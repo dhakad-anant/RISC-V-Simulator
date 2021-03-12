@@ -1,2 +1,2 @@
-# RISC-V-Simulater
+# RISC-V-Simulator
 CS204 Project
