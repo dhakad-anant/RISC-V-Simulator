@@ -32,10 +32,40 @@ def Decode():
     fun3 = (int(str(IR),16) & int("0x3000",16)) >> 12
 
     instruction = [0]*32
-    # print(opcode)
-    #OPCODE = > 0110011 , 0111011    R TYPE
-    if opcode==int("0110011",2) or opcode==int("0111011",2): # R type
-        if fun3==
+    print(opcode)
+
+    # R format - (add,srl,sll,sub,slt,xor,sra,and,or,)( mul, div, rem)
+    # R format - (0110011)(?)
+    # I format - (lb,lh,lw,)(addi, andi, ori,)(jalr)
+    # I format - (0000011)(0010011)(1100111)
+    # S format - (sb, sw, sh)
+    # S format - (0100011) f3 - sb - 000, sh - 001, sw - 010
+    # SB format - beq, bne, bge, blt
+    # SB format - (1100011) f3 - beq - 000, bne - 001, blt - 100, bge - 101
+    # U format - auipc-0010111, lui-0110111
+    # UJ format - jal-1101111
+    if opcode==int("0110011",2): # r format
+        pass
+    elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # i format
+        pass
+    elif opcode==int("0100011",2): # S format
+        pass
+    elif opcode==int("1100011",2): # SB format
+        pass
+    elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
+        pass
+    elif opcode==int("1101111",2): # UJ format
+        pass
+    else:
+        print("invalid opcode")
+    
+
+
+
+
+
+                
+
 
 
 
