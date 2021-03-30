@@ -167,18 +167,41 @@ def Execute():
 
 
 
-    elif instructionType==16:
-    elif instructionType==17:
+   elif instructionType==17:
+        RY = RA + immed
     elif instructionType==18:
+        EffAddress = RA + immed
+
     elif instructionType==19:
+        RY = RA + immed
     elif instructionType==20:
+        RY = RA + immed
     elif instructionType==21:
+        RY = RA + immed
     elif instructionType==22:
+        RY = 0
+        if RA == RB:
+            RY = 1
+            PC = PC + immed
     elif instructionType==23:
+        RY = 0
+        if RA != RB:
+            RY = 1
+            PC = PC + immed
     elif instructionType==24:
+        RY = 0
+        if RA >= RB:
+            RY = 1
+            PC = PC + immed
     elif instructionType==25:
+        RY = 0
+        if RA < RB:
+            RY = 1
+            PC = PC + immed
     elif instructionType==26:
+        reg[rd] = immed<<12 + PC
     elif instructionType==27:
+        reg[rd] = immed<<12
     elif instructionType==28:
 
 
