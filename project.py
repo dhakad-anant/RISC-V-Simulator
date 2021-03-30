@@ -16,17 +16,6 @@ ALUOp = [0]*29
 # auipc 26, lui 27
 # jal 28
 
-
-#Auxilary function________________________________________
-def sra(x,n,m):     #to change the function
-    if x & 2**(n-1) != 0:  # MSB is 1, i.e. x is negative
-        filler = int('1'*m + '0'*(n-m),2)
-        x = (x >> m) | filler  # fill in 0's with 1's
-        return x
-    else:
-        return x >> m
-#______________________________________________________________________
-
 dataMemory = {}
 instructionMemory = {}
 
@@ -118,7 +107,6 @@ def Execute():
     # beq 22, bne 23, bge 24, blt 25
     # auipc 26, lui 27
     # jal 28
-
     InA = RA
     InB = (RB if MuxB_select==0 else immed)
     if instructionType==0:
@@ -128,59 +116,61 @@ def Execute():
     elif instructionType==2:
         RY = InA|InB
     elif instructionType==3:
-        if (InB<0):
-            print("Cannot  right shift a number negative times")
-            exit(1)
         RY = InA<<InB
     elif instructionType==4:
         RY = 1 if InA<InB else 0
     elif instructionType==5:
-        if (InB<0):
-            print("Cannot  right shift a number negative times")
-            exit(1)
-        RY = sra(InA,32,InB) #to change the function
-    elif instructionType==6: # srl
-        if (InB<0):
-            print("Cannot  right shift a number negative times")
-            exit(1)
-        RY = InA>>InB
-    elif instructionType==7: #sub
-        RY = InA-InB
-    elif instructionType==8: #xor
-        RY = InA^InB
-        # andi 13, ori 14 , lb 15
+    elif instructionType==6:
+    elif instructionType==7:
+    elif instructionType==8:
     elif instructionType==9:
-        RY = InA*InB
     elif instructionType==10:
-        RY = InA/InB
     elif instructionType==11:
-        RY = InA%InB
     elif instructionType==12:
-        RY = InA+InB
     elif instructionType==13:
-        # andi 13, ori 14 , lb 15
-        RY = InA+InB
     elif instructionType==14:
-        RY = InA|InB
     elif instructionType==15:
-        RY = InA+InB
-
-
-
     elif instructionType==16:
-    elif instructionType==17:
-    elif instructionType==18:
-    elif instructionType==19:
-    elif instructionType==20:
-    elif instructionType==21:
-    elif instructionType==22:
-    elif instructionType==23:
-    elif instructionType==24:
-    elif instructionType==25:
-    elif instructionType==26:
-    elif instructionType==27:
-    elif instructionType==28:
 
+
+
+    elif instructionType==17:
+        RY = reg[RS1] + immed
+    elif instructionType==18:
+        EffAddress = reg[RS1] + immed
+
+    elif instructionType==19:
+        RY = reg[RS1] + immed
+    elif instructionType==20:
+        RY = reg[RS1] + immed
+    elif instructionType==21:
+        RY = reg[RS1] + immed
+    elif instructionType==22:
+        RY = 0
+        if reg[RS1] == reg[RS2]:
+            RY = 1
+            PC = PC + immed
+    elif instructionType==23:
+        RY = 0
+        if reg[RS1] != reg[RS2]:
+            RY = 1
+            PC = PC + immed
+    elif instructionType==24:
+        RY = 0
+        if reg[RS1] >= reg[RS2]:
+            RY = 1
+            PC = PC + immed
+    elif instructionType==25:
+        RY = 0
+        if reg[RS1] < reg[RS2]:
+            RY = 1
+            PC = PC + immed
+    elif instructionType==26:
+        reg[rd] = immed<<12 + PC
+    elif instructionType==27:
+        reg[rd] = immed<<12
+    elif instructionType==28:
+        
 
 def MemoryAccess():
     pass
