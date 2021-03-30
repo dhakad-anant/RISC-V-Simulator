@@ -16,6 +16,17 @@ ALUOp = [0]*29
 # auipc 26, lui 27
 # jal 28
 
+
+#Auxilary function________________________________________
+def sra(x,n,m):     #to change the function
+    if x & 2**(n-1) != 0:  # MSB is 1, i.e. x is negative
+        filler = int('1'*m + '0'*(n-m),2)
+        x = (x >> m) | filler  # fill in 0's with 1's
+        return x
+    else:
+        return x >> m
+#______________________________________________________________________
+
 dataMemory = {}
 instructionMemory = {}
 
@@ -107,6 +118,7 @@ def Execute():
     # beq 22, bne 23, bge 24, blt 25
     # auipc 26, lui 27
     # jal 28
+
     InA = RA
     InB = (RB if MuxB_select==0 else immed)
     if instructionType==0:
@@ -116,20 +128,45 @@ def Execute():
     elif instructionType==2:
         RY = InA|InB
     elif instructionType==3:
+        if (InB<0):
+            print("Cannot  right shift a number negative times")
+            exit(1)
         RY = InA<<InB
     elif instructionType==4:
         RY = 1 if InA<InB else 0
     elif instructionType==5:
-    elif instructionType==6:
-    elif instructionType==7:
-    elif instructionType==8:
+        if (InB<0):
+            print("Cannot  right shift a number negative times")
+            exit(1)
+        RY = sra(InA,32,InB) #to change the function
+    elif instructionType==6: # srl
+        if (InB<0):
+            print("Cannot  right shift a number negative times")
+            exit(1)
+        RY = InA>>InB
+    elif instructionType==7: #sub
+        RY = InA-InB
+    elif instructionType==8: #xor
+        RY = InA^InB
+        # andi 13, ori 14 , lb 15
     elif instructionType==9:
+        RY = InA*InB
     elif instructionType==10:
+        RY = InA/InB
     elif instructionType==11:
+        RY = InA%InB
     elif instructionType==12:
+        RY = InA+InB
     elif instructionType==13:
+        # andi 13, ori 14 , lb 15
+        RY = InA+InB
     elif instructionType==14:
+        RY = InA|InB
     elif instructionType==15:
+        RY = InA+InB
+
+
+
     elif instructionType==16:
     elif instructionType==17:
     elif instructionType==18:
