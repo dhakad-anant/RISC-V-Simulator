@@ -6,6 +6,16 @@ mcFile = open("input.mc","r+")
 #defining global variables________________________________________________________________________________
 reg = [0]*32
 RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,immed=[0]*25
+
+ALUOp = [0]*29 
+#instructions
+#add 0, and 1, or 2, sll 3, slt 4, sra 5, srl 6, sub 7, xor 8, mul 9, div 10, rem   11
+#addi 12, andi 13, ori 14 , lb 15, lh 16, lw 17, jalr 18
+#sb 19, sw 20, sh 21
+# beq 22, bne 23, bge 24, blt 25
+# auipc 26, lui 27
+# jal 28
+
 dataMemory = {}
 instructionMemory = {}
 
@@ -48,6 +58,7 @@ def Decode():
         RD = (int(IR,16) & '0xF80') >> 7
         RS1 = (int(IR,16) & '0xF8000') >> 15
         immed = (int(IR,16) & '0xFFF00000') >> 20
+        #to make error check
 
     elif opcode==int("0100011",2): # S format
         RS1 = (int(str(IR),16) & int("0xF8000",16)) >> 15
@@ -60,11 +71,19 @@ def Decode():
         print("rs1 : ",RS1)
         print("rs2 : ",RS2)
         print("immed : ",immed)
-        if fun3 != int("000",2) and fun3 != int("001",2) and fun3 != int("010",2):
-            print("invalid opcode")
+
+        #sb 19, sw 20, sh 21
+
+        if fun3 != int("000",2):
+            ALUOp[19]=1
+        elif fun3 != int("010",2):
+            ALUOp[20]=1
+        elif fun3 != int("001",2):
+            ALUOp[21]=1
+        else:
+            print("invalid fun3 => S format")
             exit(1)
             return
-
     elif opcode==int("1100011",2): # SB format
         pass
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
@@ -76,7 +95,55 @@ def Decode():
         
 def Execute():
 
-    pass
+    if 1 not in ALUOp:
+        print("ERROR")
+        exit(1)
+        
+    instructionType = ALUOp.index(1)
+    #instructions
+    #add 0, and 1, or 2, sll 3, slt 4, sra 5, srl 6, sub 7, xor 8, mul 9, div 10, rem   11
+    #addi 12, andi 13, ori 14 , lb 15, lh 16, lw 17, jalr 18
+    #sb 19, sw 20, sh 21
+    # beq 22, bne 23, bge 24, blt 25
+    # auipc 26, lui 27
+    # jal 28
+    InA = RA
+    InB = (RB if MuxB_select==0 else immed)
+    if instructionType==0:
+        RY = InA+InB
+    elif instructionType==1:
+        RY = InA&InB
+    elif instructionType==2:
+        RY = InA|InB
+    elif instructionType==3:
+        RY = InA<<InB
+    elif instructionType==4:
+        RY = 1 if InA<InB else 0
+    elif instructionType==5:
+    elif instructionType==6:
+    elif instructionType==7:
+    elif instructionType==8:
+    elif instructionType==9:
+    elif instructionType==10:
+    elif instructionType==11:
+    elif instructionType==12:
+    elif instructionType==13:
+    elif instructionType==14:
+    elif instructionType==15:
+    elif instructionType==16:
+    elif instructionType==17:
+    elif instructionType==18:
+    elif instructionType==19:
+    elif instructionType==20:
+    elif instructionType==21:
+    elif instructionType==22:
+    elif instructionType==23:
+    elif instructionType==24:
+    elif instructionType==25:
+    elif instructionType==26:
+    elif instructionType==27:
+    elif instructionType==28:
+
 
 def MemoryAccess():
     pass
