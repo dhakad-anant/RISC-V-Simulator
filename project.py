@@ -5,7 +5,7 @@ mcFile = open("input.mc","r+")
 
 #defining global variables________________________________________________________________________________
 reg = [0]*32
-RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR=[0]*20
+RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,immed=[0]*25
 dataMemory = {}
 instructionMemory = {}
 
@@ -19,13 +19,12 @@ def Fetch():
 def Decode():
     print("Decoding the instruction")
     #getting the opcode
+    global opcode
     opcode = int(str(IR),16) & int("0x7f",16)
-    fun3 = (int(str(IR),16) & int("0x3000",16)) >> 12
-
+    fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
     instruction = [0]*32
     print(opcode)
-
-    # R format - (add,srl,sll,sub,slt,xor,sra,and,or,)( mul, div, rem)
+    # R format - (add,srl,sll,sub,slt,xor,sra,and,or,) ( mul, div, rem)
     # R format - (0110011)(?)
     
     # I format - (lb,lh,lw,)(addi, andi, ori,)(jalr)
@@ -40,10 +39,20 @@ def Decode():
     # U format - auipc-0010111, lui-0110111
     
     # UJ format - jal-1101111
+
+
     if opcode==int("0110011",2): # r format
         pass
     elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # i format
-        pass
+
+
+        rdMask = '0xF80'
+        rd = int(IR,16) & rdMask
+        rd = rd >> 7
+        rs1Mask = '0xF8000'
+        rs1 = int(IR,16) & rs1Mask
+        rs1 = rs1 >> 15
+
     elif opcode==int("0100011",2): # S format
         pass
     elif opcode==int("1100011",2): # SB format
@@ -56,6 +65,7 @@ def Decode():
         print("invalid opcode")
         
 def Execute():
+
     pass
 
 def MemoryAccess():
