@@ -1,22 +1,13 @@
 # CS204 Project
-
 # Read the .mc file as input
-
-
 mcFile = open("input.mc","r+")
 # File reading completed
-
-
 
 #defining global variables________________________________________________________________________________
 reg = [0]*32
 RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR=[0]*20
 dataMemory = {}
 instructionMemory = {}
-
-
-
-
 
 def Fetch():
     #Pc, ir
