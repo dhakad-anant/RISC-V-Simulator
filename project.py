@@ -135,34 +135,34 @@ def Execute():
 
 
     elif instructionType==17:
-        RY = reg[RS1] + immed
+        RY = RA + immed
     elif instructionType==18:
-        EffAddress = reg[RS1] + immed
+        EffAddress = RA + immed
 
     elif instructionType==19:
-        RY = reg[RS1] + immed
+        RY = RA + immed
     elif instructionType==20:
-        RY = reg[RS1] + immed
+        RY = RA + immed
     elif instructionType==21:
-        RY = reg[RS1] + immed
+        RY = RA + immed
     elif instructionType==22:
         RY = 0
-        if reg[RS1] == reg[RS2]:
+        if RA == RB:
             RY = 1
             PC = PC + immed
     elif instructionType==23:
         RY = 0
-        if reg[RS1] != reg[RS2]:
+        if RA != RB:
             RY = 1
             PC = PC + immed
     elif instructionType==24:
         RY = 0
-        if reg[RS1] >= reg[RS2]:
+        if RA >= RB:
             RY = 1
             PC = PC + immed
     elif instructionType==25:
         RY = 0
-        if reg[RS1] < reg[RS2]:
+        if RA < RB:
             RY = 1
             PC = PC + immed
     elif instructionType==26:
@@ -170,7 +170,7 @@ def Execute():
     elif instructionType==27:
         reg[rd] = immed<<12
     elif instructionType==28:
-        
+
 
 def MemoryAccess():
     pass
