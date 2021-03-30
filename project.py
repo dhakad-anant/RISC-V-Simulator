@@ -45,13 +45,9 @@ def Decode():
         pass
     elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # i format
 
-
-        rdMask = '0xF80'
-        rd = int(IR,16) & rdMask
-        rd = rd >> 7
-        rs1Mask = '0xF8000'
-        rs1 = int(IR,16) & rs1Mask
-        rs1 = rs1 >> 15
+        RD = (int(IR,16) & '0xF80') >> 7
+        RS1 = (int(IR,16) & '0xF8000') >> 15
+        immed = (int(IR,16) & '0xFFF00000') >> 20
 
     elif opcode==int("0100011",2): # S format
         RS1 = (int(str(IR),16) & int("0xF8000",16)) >> 15
@@ -66,7 +62,9 @@ def Decode():
         print("immed : ",immed)
         if fun3 != int("000",2) and fun3 != int("001",2) and fun3 != int("010",2):
             print("invalid opcode")
+            exit(1)
             return
+
     elif opcode==int("1100011",2): # SB format
         pass
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
