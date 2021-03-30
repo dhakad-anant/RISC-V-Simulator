@@ -36,13 +36,18 @@ def Decode():
 
     # R format - (add,srl,sll,sub,slt,xor,sra,and,or,)( mul, div, rem)
     # R format - (0110011)(?)
+    
     # I format - (lb,lh,lw,)(addi, andi, ori,)(jalr)
     # I format - (0000011)(0010011)(1100111)
+    
     # S format - (sb, sw, sh)
     # S format - (0100011) f3 - sb - 000, sh - 001, sw - 010
+    
     # SB format - beq, bne, bge, blt
     # SB format - (1100011) f3 - beq - 000, bne - 001, blt - 100, bge - 101
+    
     # U format - auipc-0010111, lui-0110111
+    
     # UJ format - jal-1101111
     if opcode==int("0110011",2): # r format
         pass
@@ -58,22 +63,7 @@ def Decode():
         pass
     else:
         print("invalid opcode")
-    
-
-
-
-
-
-                
-
-
-
-
-
-
-
-    
-
+        
 def Execute():
     pass
 
@@ -82,8 +72,6 @@ def MemoryAccess():
 
 def RegisterUpdate():
     pass
-
-
 
 def validateDataSegment(y):
     if len(y)!=2:
