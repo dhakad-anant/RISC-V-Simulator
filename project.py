@@ -88,14 +88,12 @@ def Decode():
     elif opcode==int("0100011",2): # S format
         RS1 = (int(str(IR),16) & int("0xF8000",16)) >> 15
         RS2 = (int(str(IR),16) & int("0x1F00000",16)) >> 20
-        immed40 = (int(str(IR),16) & int("0xF80",16)) >> 7
-        print("immed40 : ",immed40)
+        immed4to0 = (int(str(IR),16) & int("0xF80",16)) >> 7
         immed11to5 = (int(str(IR),16) & int("0xFE000000",16)) >> 20
-        print("immed11to5 : ",immed11to5)
-        immed = immed40 | immed11to5
+        immed = immed4to0 | immed11to5
         print("rs1 : ",RS1)
         print("rs2 : ",RS2)
-        print("immed : ",immed)
+        print("Immediate field : ",immed)
 
         #sb 19, sw 20, sh 21
 
@@ -112,10 +110,13 @@ def Decode():
     elif opcode==int("1100011",2): # SB format
         pass
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
-        RD = int(IR, 16) & int("0xF80", 16) >> 7
-        immed = int(IR, 16) & int("0xFFFFF000", 16) >> 12
+        RD = (int(IR, 16) & int("0xF80", 16)) >> 7
+        print("rd : " + str(RD))
+        immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
+        print("Immediate field : " + str(immed))
     elif opcode==int("1101111",2): # UJ format
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
+        print("rd : " + str(RD))
         immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         immed = 0
         immed = immed | ((immed_tmp & int("0x7FE00", 16)) >> 9)
@@ -123,7 +124,7 @@ def Decode():
         immed = immed | ((immed_tmp & int("0xFF", 16)) << 11)
         immed = immed | (immed_tmp & int("0x80000", 16))
         immed *= 2
-        print("immed : " + str(immed))
+        print("Immediate field : " + str(immed))
     else:
         print("invalid opcode")
         
