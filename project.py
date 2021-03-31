@@ -1,4 +1,7 @@
 # CS204 Project
+
+from collections import defaultdict
+
 # Read the .mc file as input
 mcFile = open("input.mc","r+")
 # File reading completed
@@ -27,7 +30,7 @@ def sra(x,n,m):     #to change the function
         return x >> m
 #______________________________________________________________________
 
-dataMemory = {}
+dataMemory = defaultdict(lambda : "0x0")
 instructionMemory = {}
 
 def Fetch():
@@ -77,12 +80,70 @@ def Decode():
 
 
     if opcode==int("0110011",2): # r format
+        fun7 = (int(IR,16) & int('0xFE000000',16)) >> 25
+        if fun3 == 0:
+            if fun7 == 0:
+                ALUOp[0]=1
+            elif fun7 == 32:
+                ALUOp[7] = 1
+            else:
+                print("Invalid Func7 for Add/Sub")
+                exit(1)
+        elif fun3==7:
+            if fun7==0:
+                ALUOp[1]=1
+            else:
+                print("Invalid Fun7 for AND")
+                exit(1)
+        elif fun3 == 6:
+            if fun7==0:
+                ALUOp[2]=1
+            elif fun7==1:
+                ALUOp[11] = 1
+            else:
+                print("Invalid Func7 for OR/REM")
+                exit(1)
+        elif fun3 == 1:
+            if fun7==0:
+                ALUOp[3]=1
+            else:
+                print("Invalid Func7 for SLL")
+                exit(1)
+        elif fun3 == 2:
+            if fun7==0:
+                ALUOp[4]=1
+            else:
+                print("Invalid Func7 for SLT")
+                exit(1)
+        elif fun3 == 5:
+            if fun7==32:
+                ALUOp[5]=1
+            elif fun7==0:
+                ALUOp[6]=1
+            else:
+                print("Invalid Func7 for SRA/SRL")
+                exit(1)
+        elif fun3 == 4:
+            if fun7==0:
+                ALUOp[8]=1
+            elif fun7==1:
+                ALUOp[10]=1
+            else:
+                print("Invalid Func7 for XOR")
+                exit(1)
+        elif fun3 == 0:
+            if fun7==1:
+                ALUOp[9]=1
+            else:
+                print("Invalid Func7 for MUL")
+                exit(1)
         pass
+
     elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # i format
 
-        RD = (int(IR,16) & '0xF80') >> 7
-        RS1 = (int(IR,16) & '0xF8000') >> 15
-        immed = (int(IR,16) & '0xFFF00000') >> 20
+        RD = (int(IR,16) & int('0xF80',16)) >> 7
+        RS1 = (int(IR,16) & int('0xF8000',16)) >> 15
+        immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
         #to make error check
 
     elif opcode==int("0100011",2): # S format
@@ -107,8 +168,10 @@ def Decode():
             print("invalid fun3 => S format")
             exit(1)
             return
+
     elif opcode==int("1100011",2): # SB format
         pass
+
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         print("rd : " + str(RD))
@@ -223,7 +286,7 @@ def Execute():
         RZ = PC + 4
         # add a control signal
         pass   # PC = label  # x0 = PC + 4
-    
+
 # def ALUControl():
 #     InA = RA
 #     if(operation == 0): #add
@@ -267,6 +330,19 @@ def Execute():
 #     return RY
 
 def MemoryAccess():
+    instructionType = ALUOp.index(1)
+    if instructionType == 15:
+        MDR = int(dataMemory[MAR],16) & (int('0xFF',16))
+    elif instructionType == 16:
+        MDR = int(dataMemory[MAR],16) & (int('0xFFFF',16))
+    elif instructionType == 17:
+        MDR = int(dataMemory[MAR],16)
+    elif instructionType == 19:
+        dataMemory[MAR] = hex(MDR & int('0xFF',16))
+    elif instructionType == 20:
+        dataMemory[MAR] = hex(MDR)
+    elif instructionType == 21:
+        dataMemory[MAR] = hex(MDR & int('0xFFFF',16))
     pass
 
 def RegisterUpdate():
