@@ -228,6 +228,48 @@ def Execute():
         reg[RD] = immed<<12
     elif instructionType==28:
         pass
+    
+def ALUControl(InA,InB,operation):
+    result = 0
+    if(operation == 0): #add
+        result = InA + InB
+    elif(operation == 1): #sub
+        result = InA - InB
+    elif(operation == 2): #div
+        if(InB == 0):
+            print("Error : Division by zero")
+            exit(1)
+        result = InA/InB
+    elif(operation == 3): #mul
+        result = InA*InB
+    elif(operation == 4): #remainder
+        if(InB == 0):
+            print("Error : Remainder by zero")
+            exit(1)
+        result = InA%InB
+    elif(operation == 5): #or
+        result = InA|InB
+    elif(operation == 6): #xor
+        result = InA^InB
+    elif(operation == 7): #shift left
+        if (InB<0):
+            print("Cannot  left shift a number negative times")
+            exit(1)
+        result = InA<<InB
+    elif(operation == 8): #shift right
+        if (InB<0):
+            print("Cannot  right shift a number negative times")
+            exit(1)
+        result = InA>>InB
+    elif(operation == 9): #and
+        result = InA&InB
+    elif(operation == 10): #less than
+        result = (InA < InB)
+    elif(operation == 11): #comparator
+        result = (InA == InB)
+    elif(operation == 12): #greater than equal to
+        result = (InA >= InB)
+    return result
 
 def MemoryAccess():
     pass
