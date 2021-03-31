@@ -5,7 +5,7 @@ mcFile = open("input.mc","r+")
 
 #defining global variables________________________________________________________________________________
 reg = [0]*32
-RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,immed=[0]*25
+RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed=[0]*27
 
 ALUOp = [0]*29 
 #instructions
@@ -127,155 +127,152 @@ def Decode():
         print("Immediate field : " + str(immed))
     else:
         print("invalid opcode")
-        
-def Execute():
 
+
+# make the control signals global   
+def Execute():
     if 1 not in ALUOp:
         print("ERROR")
-        exit(1)
-        
+        exit(1)  
+    global immed, numBytes      
     instructionType = ALUOp.index(1)
     #instructions
-    #add 0, and 1, or 2, sll 3, slt 4, sra 5, srl 6, sub 7, xor 8, mul 9, div 10, rem   11
+    #add 0, and 1, or 2, sll 3, slt 4, sra 5, srl 6, sub 7, xor 8, mul 9, div 10, rem 11
     #addi 12, andi 13, ori 14 , lb 15, lh 16, lw 17, jalr 18
     #sb 19, sw 20, sh 21
     # beq 22, bne 23, bge 24, blt 25
     # auipc 26, lui 27
     # jal 28
-
     InA = RA
     InB = (RB if MuxB_select==0 else immed)
-    if instructionType==0:
-        RY = InA+InB
-    elif instructionType==1:
-        RY = InA&InB
-    elif instructionType==2:
-        RY = InA|InB
-    elif instructionType==3:
+    if instructionType==0 or instructionType==12 or instructionType==18: # add, addi, jalr
+        RZ = InA + InB
+    elif instructionType==1 or instructionType==13: # and, andi
+        RZ = InA & InB
+    elif instructionType==2 or instructionType==14: # or,ori
+        RZ = InA|InB
+    elif instructionType==3: # left shift
         if (InB<0):
-            print("Cannot  right shift a number negative times")
+            print("Cannot left shift a number negative times")
             exit(1)
-        RY = InA<<InB
-    elif instructionType==4:
-        RY = 1 if InA<InB else 0
-    elif instructionType==5:
+        RZ = InA << InB
+    elif instructionType==4: # slt
+        RZ = 1 if InA<InB else 0
+    elif instructionType==5: # sra
         if (InB<0):
-            print("Cannot  right shift a number negative times")
+            print("Cannot right shift a number negative times")
             exit(1)
-        RY = sra(InA,32,InB) #to change the function
+        RZ = sra(InA,32,InB) #to change the function
     elif instructionType==6: # srl
         if (InB<0):
-            print("Cannot  right shift a number negative times")
+            print("Cannot right shift a number negative times")
             exit(1)
-        RY = InA>>InB
+        RZ = InA >> InB
     elif instructionType==7: #sub
-        RY = InA-InB
+        RZ = InA - InB
     elif instructionType==8: #xor
-        RY = InA^InB
-        # andi 13, ori 14 , lb 15
-    elif instructionType==9:
-        RY = InA*InB
-    elif instructionType==10:
-        RY = InA/InB
-    elif instructionType==11:
-        RY = InA%InB
-    elif instructionType==12:
-        RY = InA+InB
-    elif instructionType==13:
-        # andi 13, ori 14 , lb 15
-        RY = InA+InB
-    elif instructionType==14:
-        RY = InA|InB
-    elif instructionType==15:
-        RY = InA+InB
-
-
-
-    elif instructionType==17 :
-        RY = RA + immed
-    elif instructionType==18:
-        EffAddress = RA + immed
-
-    elif instructionType==19:
-        RY = RA + immed
-    elif instructionType==20:
-        RY = RA + immed
-    elif instructionType==21:
-        RY = RA + immed
-    elif instructionType==22:
-        RY = 0
-        if RA == RB:
-            RY = 1
-            PC = PC + immed
-    elif instructionType==23:
-        RY = 0
-        if RA != RB:
-            RY = 1
-            PC = PC + immed
-    elif instructionType==24:
-        RY = 0
-        if RA >= RB:
-            RY = 1
-            PC = PC + immed
-    elif instructionType==25:
-        RY = 0
-        if RA < RB:
-            RY = 1
-            PC = PC + immed
-    elif instructionType==26:
-        reg[RD] = immed<<12 + PC
-    elif instructionType==27:
-        reg[RD] = immed<<12
-    elif instructionType==28:
+        RZ = InA ^ InB
+    elif instructionType==9: # mul
+        RZ = InA*InB
+    elif instructionType==10: # div
+        if(InB==0):
+            print("Error... Cannot divide by zero exception")
+            exit(1)
+        RZ = InA/InB
+    elif instructionType==11: # rem
+        if(InB==0):
+            print("Error... Cannot modulo number by zero exception")
+            exit(1)
+        RZ = InA % InB
+    elif instructionType==15:  #lb
+        RZ = InA+InB
+        numBytes = 1
+    elif instructionType==16: #lh
+        RZ = InA + InB 
+        numBytes = 2
+    elif instructionType==17: #lw
+        RZ = InA + InB
+        numBytes = 4   
+    elif instructionType==19: # sb
+        RZ = InA + InB
+        numBytes = 1
+    elif instructionType==20: # sw
+        RZ = InA + InB
+        numBytes = 4
+    elif instructionType==21: # sh
+        RZ = InA + InB
+        numBytes = 2
+    elif instructionType==22: # beq
+        if InA == InB:
+            equal = 1         # control signal for branch; IAG      
+    elif instructionType==23: # bne
+        if InA != InB:
+            notEqual = 1       # control signal for branch
+    elif instructionType==24: # bge
+        if InA >= InB:
+            gequal = 1         # control signal for branch
+    elif instructionType==25: # blt
+        if InA < InB:
+            less = 1           # control signal for branch
+    elif instructionType==26: # auipc
+        #todo
         pass
+    elif instructionType==27: # lui  eg  lui x5, 0x2
+        RZ = InB<<12
+    elif instructionType==28: # jal jal x0, label
+        RZ = PC + 4
+        # add a control signal
+        pass   # PC = label  # x0 = PC + 4
     
-def ALUControl(InA,InB,operation):
-    result = 0
-    if(operation == 0): #add
-        result = InA + InB
-    elif(operation == 1): #sub
-        result = InA - InB
-    elif(operation == 2): #div
-        if(InB == 0):
-            print("Error : Division by zero")
-            exit(1)
-        result = InA/InB
-    elif(operation == 3): #mul
-        result = InA*InB
-    elif(operation == 4): #remainder
-        if(InB == 0):
-            print("Error : Remainder by zero")
-            exit(1)
-        result = InA%InB
-    elif(operation == 5): #or
-        result = InA|InB
-    elif(operation == 6): #xor
-        result = InA^InB
-    elif(operation == 7): #shift left
-        if (InB<0):
-            print("Cannot  left shift a number negative times")
-            exit(1)
-        result = InA<<InB
-    elif(operation == 8): #shift right
-        if (InB<0):
-            print("Cannot  right shift a number negative times")
-            exit(1)
-        result = InA>>InB
-    elif(operation == 9): #and
-        result = InA&InB
-    elif(operation == 10): #less than
-        result = (InA < InB)
-    elif(operation == 11): #comparator
-        result = (InA == InB)
-    elif(operation == 12): #greater than equal to
-        result = (InA >= InB)
-    return result
+# def ALUControl():
+#     InA = RA
+#     if(operation == 0): #add
+#         RY = InA + InB
+#     elif(operation == 1): #sub
+#         RY = InA - InB
+#     elif(operation == 2): #div
+#         if(InB == 0):
+#             print("Error : Division by zero")
+#             exit(1)
+#         RY = InA/InB
+#     elif(operation == 3): #mul
+#         RY = InA*InB
+#     elif(operation == 4): #remainder
+#         if(InB == 0):
+#             print("Error : Remainder by zero")
+#             exit(1)
+#         RY = InA%InB
+#     elif(operation == 5): #or
+#         RY = InA|InB
+#     elif(operation == 6): #xor
+#         RY = InA^InB
+#     elif(operation == 7): #shift left
+#         if (InB<0):
+#             print("Cannot  left shift a number negative times")
+#             exit(1)
+#         RY = InA<<InB
+#     elif(operation == 8): #shift right
+#         if (InB<0):
+#             print("Cannot  right shift a number negative times")
+#             exit(1)
+#         RY = InA>>InB
+#     elif(operation == 9): #and
+#         RY = InA&InB
+#     elif(operation == 10): #less than
+#         RY = (InA < InB)
+#     elif(operation == 11): #comparator
+#         RY = (InA == InB)
+#     elif(operation == 12): #greater than equal to
+#         RY = (InA >= InB)
+#     return RY
 
 def MemoryAccess():
     pass
 
 def RegisterUpdate():
-    pass
+    if RF_write==1: 
+        reg[RegFileAddrC] = RY
+
 
 def validateDataSegment(y):
     if len(y)!=2:
