@@ -37,14 +37,28 @@ def Fetch():
     IR = instructionMemory[hex(PC)]
     print(IR)
 
+def decimalToBinary(num, length):
+    ans=""
+    while(num>0):
+        if(num&1):
+            ans+='1'
+        else:
+            ans+='0'
+        num = num//2
+    for i in range(length-len(ans)):
+        ans+='0'
+    return ans[::-1]   
+
 def Decode():
     print("Decoding the instruction")
     #getting the opcode
     global opcode
-    opcode = int(str(IR),16) & int("0x7f",16)
+    print(int("0x7f", 16))
+    opcode = int(str(IR),16) & int("7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
     instruction = [0]*32
-    print(opcode)
+    print("Decoding Results :-")
+    print("Opcode : "+decimalToBinary(opcode, 7))
     # R format - (add,srl,sll,sub,slt,xor,sra,and,or,) ( mul, div, rem)
     # R format - (0110011)(?)
     
@@ -98,9 +112,18 @@ def Decode():
     elif opcode==int("1100011",2): # SB format
         pass
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
-        pass
+        RD = int(IR, 16) & int("0xF80", 16) >> 7
+        immed = int(IR, 16) & int("0xFFFFF000", 16) >> 12
     elif opcode==int("1101111",2): # UJ format
-        pass
+        RD = (int(IR, 16) & int("0xF80", 16)) >> 7
+        immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
+        immed = 0
+        immed = immed | ((immed_tmp & int("0x7FE00", 16)) >> 9)
+        immed = immed | ((immed_tmp & int("0x100", 16)) << 2)
+        immed = immed | ((immed_tmp & int("0xFF", 16)) << 11)
+        immed = immed | (immed_tmp & int("0x80000", 16))
+        immed *= 2
+        print("immed : " + str(immed))
     else:
         print("invalid opcode")
         
@@ -167,7 +190,7 @@ def Execute():
 
 
 
-   elif instructionType==17:
+    elif instructionType==17 :
         RY = RA + immed
     elif instructionType==18:
         EffAddress = RA + immed
@@ -199,11 +222,11 @@ def Execute():
             RY = 1
             PC = PC + immed
     elif instructionType==26:
-        reg[rd] = immed<<12 + PC
+        reg[RD] = immed<<12 + PC
     elif instructionType==27:
-        reg[rd] = immed<<12
+        reg[RD] = immed<<12
     elif instructionType==28:
-
+        pass
 
 def MemoryAccess():
     pass
