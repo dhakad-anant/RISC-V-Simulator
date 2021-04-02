@@ -52,10 +52,12 @@ def decimalToBinary(num, length):
         ans+='0'
     return ans[::-1]   
 
+
 def Decode():
     print("Decoding the instruction")
     #getting the opcode
     global opcode
+    global immed
     print(int("0x7f", 16))
     opcode = int(str(IR),16) & int("7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
@@ -150,10 +152,11 @@ def Decode():
         RS1 = (int(str(IR),16) & int("0xF8000",16)) >> 15
         RS2 = (int(str(IR),16) & int("0x1F00000",16)) >> 20
         immed4to0 = (int(str(IR),16) & int("0xF80",16)) >> 7
-        immed11to5 = (int(str(IR),16) & int("0xFE000000",16)) >> 20
+        immed11to5 = (int(str(IR),16) & int("0xFE000000",16)) >> 25
         immed = immed4to0 | immed11to5
         print("rs1 : ",RS1)
         print("rs2 : ",RS2)
+        ImmediateSign()
         print("Immediate field : ",immed)
 
         #sb 19, sw 20, sh 21
@@ -170,12 +173,24 @@ def Decode():
             return
 
     elif opcode==int("1100011",2): # SB format
-        pass
+        RS1 = (int(IR, 16) & int("0xF8000", 16)) >> 15
+        RS2 = (int(IR, 16) & int("0x1F00000", 16)) >> 20
+        imm1 = (int(IR, 16) & int("0xF80", 16)) >> 7
+        imm2 = (int(IR, 16) & int("0xFE000000", 16)) >> 25
+        immed = 0
+        immed = immed | ((imm1 & int("0x1E", 16)) >> 1)
+        immed = immed | ((imm2 & int("0x3F", 16)) << 4)
+        immed = immed | ((imm1 & 1) << 10)
+        immed = immed | (((imm2 & int("0x40", 16)) >> 6) << 11)
+        immed *= 2
+        ImmediateSign()
+        print("Immediate field : ", immed)
 
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         print("rd : " + str(RD))
         immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
+        ImmediateUJ()
         print("Immediate field : " + str(immed))
     elif opcode==int("1101111",2): # UJ format
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
@@ -187,10 +202,26 @@ def Decode():
         immed = immed | ((immed_tmp & int("0xFF", 16)) << 11)
         immed = immed | (immed_tmp & int("0x80000", 16))
         immed *= 2
+        ImmediateUJ()
         print("Immediate field : " + str(immed))
     else:
         print("invalid opcode")
 
+def ImmediateSign():
+    global immed
+    if(immed & int("0x1000", 16) == 0):
+        return
+    immed = immed ^ (2**13-1)
+    immed += 1
+    immed *= (-1)
+
+def ImmediateUJ():
+    global immed
+    if(immed & int("0x100000", 16) == 0):
+        return
+    immed = immed ^ (2**21-1)
+    immed += 1
+    immed *= (-1)
 
 # make the control signals global   
 def Execute():
