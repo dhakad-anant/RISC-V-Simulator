@@ -400,12 +400,12 @@ def MemoryAccess():
     # =========== CHECK =============
     global MAR,RY
 
-    if MuxY_select == 0:
+    if MuxY_select == 1:
         RY = RZ
-    elif MuxY_select == 1:
+    elif MuxY_select == 2:
         MAR = RZ
         RY = ProcessorMemoryInterface()
-    else:
+    elif MuxY_select == 3:
         RY = PC_Temp
     
 
