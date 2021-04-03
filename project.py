@@ -394,17 +394,16 @@ def Execute():
 #         RY = (InA >= InB)
 #     return RY
 
-
 def MemoryAccess():
     # =========== CHECK =============
     global MAR,RY
 
-    if MuxY_select == 1:
+    if MuxY_select == 0:
         RY = RZ
-    elif MuxY_select == 2:
+    elif MuxY_select == 1:
         MAR = RZ
         RY = ProcessorMemoryInterface()
-    elif MuxY_select == 3:
+    elif MuxY_select == 2:
         RY = PC_Temp
     
 
