@@ -14,14 +14,13 @@ mcFile = open("input.mc","r+")
 reg = [0]*32
 RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed, PC_Temp=[0]*29
 
-ALUOp = [0]*29 
+
+ALUOp = [0]*15
 #instructions
-#add 0, and 1, or 2, sll 3, slt 4, sra 5, srl 6, sub 7, xor 8, mul 9, div 10, rem   11
-#addi 12, andi 13, ori 14 , lb 15, lh 16, lw 17, jalr 18
-#sb 19, sw 20, sh 21
-# beq 22, bne 23, bge 24, blt 25
-# auipc 26, lui 27
-# jal 28
+# add 0, sub 1, div 2, mul 3, remainder 4, xor 5,
+# shift_left 6, shift_right_ari 7,shift_ri_lo 8, or 9,
+# and 10, less_than 11, equal 12, not_equal 13, 
+# greater_than_equal_to 14,
 
 
 #Auxilary function________________________________________
