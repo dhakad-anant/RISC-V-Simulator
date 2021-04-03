@@ -1,5 +1,9 @@
 # CS204 Project
 
+# TODO - 
+# Instruction memory should be byte addressable
+# Store dhange se karo
+
 from collections import defaultdict
 
 # Read the .mc file as input
@@ -8,7 +12,7 @@ mcFile = open("input.mc","r+")
 
 #defining global variables________________________________________________________________________________
 reg = [0]*32
-RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed=[0]*27
+RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed, PC_Temp=[0]*29
 
 ALUOp = [0]*29 
 #instructions
@@ -21,23 +25,54 @@ ALUOp = [0]*29
 
 
 #Auxilary function________________________________________
-def sra(x,n,m):     #to change the function
-    if x & 2**(n-1) != 0:  # MSB is 1, i.e. x is negative
-        filler = int('1'*m + '0'*(n-m),2)
-        x = (x >> m) | filler  # fill in 0's with 1's
-        return x
+def sra(x,m):     #to change the function
+    bx = bin(x)[2:]
+    if len(bx)<32 or bx[0]=='0':
+        return x>>m
     else:
-        return x >> m
+        ans = '1'*m + bx[:32-m]
+        twosCompli = [str(1-int(i)) for i in ans[1:]]
+        twosCompli = (''.join(twosCompli))
+        twosCompli = - (int(twosCompli,2) + 1)
+        return twosCompli
+
+    # if x & 2**(n-1) != 0:  # MSB is 1, i.e. x is negative
+    #     filler = int('1'*m + '0'*(n-m),2)
+    #     x = (x >> m) | filler  # fill in 0's with 1's
+    #     return x
+    # else:
+    #     return x >> m
 #______________________________________________________________________
 
-dataMemory = defaultdict(lambda : "0x0")
+dataMemory = defaultdict(lambda : [0,0,0,0])
 instructionMemory = {}
+
+def ProcessorMemoryInterface():
+    # Set MAR in Fetch
+
+    if MuxMA_select == 0:
+        temp = dataMemory[MAR][:numBytes]
+        temp.reverse()
+        ans = '0x'
+        for i in temp:
+            curr =  hex(i)[2:]
+            ans += '0'*(2-len(curr)) + curr
+        return ans
+
+    else:
+        ans = instructionMemory[MAR]
+        return ans
+    
 
 def Fetch():
     #Pc, ir
-    global IR
+    global IR,MAR,MuxMA_select, PC_Temp
+
     print("Fetching the instruction")
-    IR = instructionMemory[hex(PC)]
+    MAR = hex(PC)
+    MuxMA_select = 1
+    IR = ProcessorMemoryInterface()
+    PC_Temp = PC + 4
     print(IR)
 
 def decimalToBinary(num, length):
@@ -360,21 +395,33 @@ def Execute():
 #         RY = (InA >= InB)
 #     return RY
 
+
 def MemoryAccess():
-    instructionType = ALUOp.index(1)
-    if instructionType == 15:
-        MDR = int(dataMemory[MAR],16) & (int('0xFF',16))
-    elif instructionType == 16:
-        MDR = int(dataMemory[MAR],16) & (int('0xFFFF',16))
-    elif instructionType == 17:
-        MDR = int(dataMemory[MAR],16)
-    elif instructionType == 19:
-        dataMemory[MAR] = hex(MDR & int('0xFF',16))
-    elif instructionType == 20:
-        dataMemory[MAR] = hex(MDR)
-    elif instructionType == 21:
-        dataMemory[MAR] = hex(MDR & int('0xFFFF',16))
-    pass
+    # =========== CHECK =============
+    global MAR,RY
+
+    if MuxY_select == 0:
+        RY = RZ
+    elif MuxY_select == 1:
+        MAR = RZ
+        RY = ProcessorMemoryInterface()
+    else:
+        RY = PC_Temp
+    
+
+    # if instructionType == 15:
+    #     MDR = int(dataMemory[MAR],16) & (int('0xFF',16))
+    # elif instructionType == 16:
+    #     MDR = int(dataMemory[MAR],16) & (int('0xFFFF',16))
+    # elif instructionType == 17:
+    #     MDR = int(dataMemory[MAR],16)
+    # elif instructionType == 19:
+    #     dataMemory[MAR] = hex(MDR & int('0xFF',16))
+    # elif instructionType == 20:
+    #     dataMemory[MAR] = hex(MDR)
+    # elif instructionType == 21:
+    #     dataMemory[MAR] = hex(MDR & int('0xFFFF',16))
+    # pass
 
 def RegisterUpdate():
     if RF_write==1: 
@@ -405,13 +452,17 @@ def main():
             if validateDataSegment(y)==False:
                 print("ERROR")
                 exit(1)
-            dataMemory[y[0]] = y[1]
+            dataMemory[y[0]][0] = int(y[1],16) & int('0xFF',16)
+            dataMemory[y[0]][1] = int(y[1],16) & int('0xFF00',16)
+            dataMemory[y[0]][2] = int(y[1],16) & int('0xFF0000',16)
+            dataMemory[y[0]][3] = int(y[1],16) & int('0xFF000000',16)
+
         if '$' in y:
             flag = 1
         if flag==0:
             #TODO : Add Validation______________
             y = x.split('\n')[0].split()
-            instructionMemory[y[0]] = y[1]            
+            instructionMemory[y[0]] = y[1]          
     # run simulator 
     run_RISC_simulator()
     # exit from the code
