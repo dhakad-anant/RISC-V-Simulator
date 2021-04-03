@@ -86,101 +86,138 @@ def decimalToBinary(num, length):
         ans+='0'
     return ans[::-1]   
 
-
 def Decode():
     print("Decoding the instruction")
     #getting the opcode
-    global opcode
-    global immed
-    print(int("0x7f", 16))
-    opcode = int(str(IR),16) & int("7f",16)
+    global opcode,immed,RS1,RS2,RD,RF_write,MuxB_select,numBytes
+    opcode = int(str(IR),16) & int("0x7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
     instruction = [0]*32
     print("Decoding Results :-")
     print("Opcode : "+decimalToBinary(opcode, 7))
-    # R format - (add,srl,sll,sub,slt,xor,sra,and,or,) ( mul, div, rem)
-    # R format - (0110011)(?)
-    
-    # I format - (lb,lh,lw,)(addi, andi, ori,)(jalr)
+    # R format - (add,srl,sll,sub,slt,xor,sra,and,or,mul, div, rem)
+    # R format - (0110011)
+    # I format - (lb-0,lh-1,lw-2)(addi-0, andi-7, ori-6,)(jalr-0)
     # I format - (0000011)(0010011)(1100111)
-    
     # S format - (sb, sw, sh)
     # S format - (0100011) f3 - sb - 000, sh - 001, sw - 010
-    
     # SB format - beq, bne, bge, blt
     # SB format - (1100011) f3 - beq - 000, bne - 001, blt - 100, bge - 101
-    
     # U format - auipc-0010111, lui-0110111
-    
     # UJ format - jal-1101111
 
-
-    if opcode==int("0110011",2): # r format
+    if opcode==int("0110011",2): # R format
+        # setting control signals ------------------------
+        MuxB_select =  0 # i.e choose RB
+        MuxY_select = 0 # i.e choose output from RZ
+        RF_write = 1 # i.e can write at register file
+        numBytes = 4
+        # ------------------------
+        RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
+        RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
+        RS2 = (int(IR,16) & int('0x1F00000',16)) >> 20 # setting rs2 register
         fun7 = (int(IR,16) & int('0xFE000000',16)) >> 25
-        if fun3 == 0:
-            if fun7 == 0:
+        if fun3 == 0:  # add/sub/mul
+            if fun7 == 0: # add 
                 ALUOp[0]=1
-            elif fun7 == 32:
-                ALUOp[7] = 1
+            elif fun7 == 32: # subtract
+                ALUOp[1]=1
+            elif fun7==1: # mul
+                ALUOp[3]=1 
             else:
                 print("Invalid Func7 for Add/Sub")
                 exit(1)
-        elif fun3==7:
+        elif fun3==7: # and
             if fun7==0:
-                ALUOp[1]=1
+                ALUOp[10]=1
             else:
                 print("Invalid Fun7 for AND")
                 exit(1)
-        elif fun3 == 6:
-            if fun7==0:
-                ALUOp[2]=1
-            elif fun7==1:
-                ALUOp[11] = 1
+        elif fun3 == 6: # or/remainder
+            if fun7==0: # or
+                ALUOp[9]=1
+            elif fun7==1: # remainder
+                ALUOp[4]=1
             else:
                 print("Invalid Func7 for OR/REM")
                 exit(1)
-        elif fun3 == 1:
+        elif fun3 == 1: # sll - shift_left
             if fun7==0:
-                ALUOp[3]=1
+                ALUOp[6]=1
             else:
                 print("Invalid Func7 for SLL")
                 exit(1)
-        elif fun3 == 2:
+        elif fun3 == 2: # slt - set_if_less_than
             if fun7==0:
-                ALUOp[4]=1
+                ALUOp[11]=1
             else:
                 print("Invalid Func7 for SLT")
                 exit(1)
-        elif fun3 == 5:
-            if fun7==32:
-                ALUOp[5]=1
-            elif fun7==0:
-                ALUOp[6]=1
+        elif fun3 == 5: # srl/sra
+            if fun7==32: # shift_ri_ari
+                ALUOp[7]=1
+            elif fun7==0: #shift_ri_lo
+                ALUOp[8]=1
             else:
                 print("Invalid Func7 for SRA/SRL")
                 exit(1)
-        elif fun3 == 4:
-            if fun7==0:
-                ALUOp[8]=1
-            elif fun7==1:
-                ALUOp[10]=1
+        elif fun3 == 4: #xor/div
+            if fun7==0: # xor
+                ALUOp[5]=1
+            elif fun7==1: #div
+                ALUOp[2]=1
             else:
-                print("Invalid Func7 for XOR")
+                print("Invalid Func7 for XOR/div")
                 exit(1)
-        elif fun3 == 0:
-            if fun7==1:
+        else:
+            print("fun3 not matching in R format")
+            exit(1)
+
+    elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # I format
+
+        RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
+        RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
+        immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
+
+        if opcode==int("0000011",2): # lb/lh/lw
+            # setting control signals ------------------------
+            MuxB_select =  1 # i.e choose Immediate
+            MuxY_select = 1 # i.e choose output from MDR
+            RF_write = 1 # i.e can write at register file
+            # ------------------------
+            ALUOp[0]=1
+            if fun3 == 0: #lb
+                numBytes = 1
+            elif fun3 == 1: #lh
+                numBytes = 2
+            elif fun3 == 2: #lw
+                numBytes = 4
+            else:
+                print("Wrong fun3 for lb/lh/lw")
+                exit(1)
+        elif opcode==int("0010011",2): #addi/andi/ori
+            # setting control signals ------------------------
+            numBytes = 4
+            MuxB_select =  1 # i.e choose Immediate
+            MuxY_select = 0 # i.e choose output from MDR
+            RF_write = 1 # i.e can write at register file
+            # ------------------------
+            if fun3==0:#addi
+                ALUOp[0]=1
+            elif fun3==7:#andi
+                ALUOp[10]=1
+            elif fun3==6:#ori
                 ALUOp[9]=1
             else:
-                print("Invalid Func7 for MUL")
+                print("Error fun3 not matching for addi/andi/ori")
                 exit(1)
-        pass
+        elif opcode==int("1100111",2): #jalr ****************ERROR CHECK**************************
+            if fun3==0:
 
-    elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # i format
+            else:
+                print("Error wrong fun3 for jalr")
+                exit(1)
 
-        RD = (int(IR,16) & int('0xF80',16)) >> 7
-        RS1 = (int(IR,16) & int('0xF8000',16)) >> 15
-        immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
-        #to make error check
 
     elif opcode==int("0100011",2): # S format
         RS1 = (int(str(IR),16) & int("0xF8000",16)) >> 15
