@@ -27,7 +27,7 @@ def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxI
     MuxINC_select = MuxINC
     numBytes = numB
 
-ALUOp = [0]*15
+ALUOp = [0]*28
 #instructions
 # add 0, sub 1, div 2, mul 3, remainder 4, xor 5,
 # shift_left 6, shift_right_ari 7,shift_ri_lo 8, or 9,
@@ -103,8 +103,8 @@ def Decode():
     print("Decoding the instruction")
     #getting the opcode
     global opcode,immed,RS1,RS2,RD,RF_write,MuxB_select,numBytes
-    global AluOp
-    Aluop = [0]*15
+    global ALUOp
+    ALUOp = [0]*28
     opcode = int(str(IR),16) & int("0x7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
     instruction = [0]*32
@@ -275,28 +275,35 @@ def Decode():
         immed = immed | ((imm2 & int("0x3F", 16)) << 4)
         immed = immed | ((imm1 & 1) << 10)
         immed = immed | (((imm2 & int("0x40", 16)) >> 6) << 11)
+        ImmediateSign(12)
         immed *= 2
-        ImmediateSign(13)
         print("Immediate field : ", immed)
         # Setting control Signals
         if(fun3 == 0):
-            GenerateControlSignals(0,0,0,0,0,0,0,1,0)
+            ALUOp[22] = 1
         elif(fun3 == 1):
-            GenerateControlSignals(0,0,0,0,0,0,0,1,0)
+            ALUOp[23] = 1
         elif(fun3 == 4):
-            GenerateControlSignals(0,0,0,0,0,0,0,1,0)
+            ALUOp[25] = 1
         elif(fun3 == 5):
-            GenerateControlSignals(0,0,0,0,0,0,0,1,0)
+            ALUOp[24] = 1
         else:
             print("Invalid fun3 for SB Format instruction. Terminating the program.")
             exit(1)
+        GenerateControlSignals(0,0,0,0,0,0,0,1,0)
 
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         print("rd : " + str(RD))
         immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
-        ImmediateSign(21)
+        ImmediateSign(20)
         print("Immediate field : " + str(immed))
+        if(opcode == int("0010111", 2)):
+            ALUOp[26] = 1
+            GenerateControlSignals(0,1,0,0,0,0,0,1,0)
+        else:
+            ALUOp[27] = 1
+            GenerateControlSignals(1,1,0,0,0,0,0,0,0)
     elif opcode==int("1101111",2): # UJ format
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         print("rd : " + str(RD))
@@ -306,9 +313,10 @@ def Decode():
         immed = immed | ((immed_tmp & int("0x100", 16)) << 2)
         immed = immed | ((immed_tmp & int("0xFF", 16)) << 11)
         immed = immed | (immed_tmp & int("0x80000", 16))
+        ImmediateSign(20)
         immed *= 2
-        ImmediateSign(21)
         print("Immediate field : " + str(immed))
+        GenerateControlSignals(1,1,2,0,0,0,0,1,0)
     else:
         print("invalid opcode")
 
@@ -334,7 +342,6 @@ def Execute():
     #sb 19, sw 20, sh 21
     # beq 22, bne 23, bge 24, blt 25
     # auipc 26, lui 27
-    # jal 28
     InA = RA
     InB = (RB if MuxB_select==0 else immed)
     if instructionType==0 or instructionType==12 or instructionType==15 or instructionType==16 or instructionType==17 or instructionType==18 or instructionType==19 or instructionType==20 or instructionType==21: # add, addi, jalr sb sw lb lh lw sh
@@ -378,25 +385,26 @@ def Execute():
         RZ = InA % InB
     elif instructionType==22: # beq
         if InA == InB:
-            equal = 1         # control signal for branch; IAG      
+            RZ = 1         # control signal for branch; IAG  
+        else:
+            RZ = 0    
     elif instructionType==23: # bne
         if InA != InB:
-            notEqual = 1       # control signal for branch
+            RZ = 1       # control signal for branch
+        else:
+            RZ = 0
     elif instructionType==24: # bge
         if InA >= InB:
-            gequal = 1         # control signal for branch
+            RZ = 1       # control signal for branch
+        else:
+            RZ = 0
     elif instructionType==25: # blt
         if InA < InB:
-            less = 1           # control signal for branch
-    elif instructionType==26: # auipc
-        #todo
-        pass
-    elif instructionType==27: # lui  eg  lui x5, 0x2
+            RZ = 1      # control signal for branch
+        else:
+            RZ = 0
+    elif instructionType==26 or instructionType==27: # auipc
         RZ = InB<<12
-    elif instructionType==28: # jal x0, label
-        RZ = PC + 4
-        # add a control signal
-        pass   # PC = label  # x0 = PC + 4
 
 def MemoryAccess():
     # =========== CHECK =============
