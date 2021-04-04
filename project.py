@@ -12,10 +12,10 @@ mcFile = open("input.mc","r+")
 
 #defining global variables____________________________
 reg = [0]*32
-RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
+RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
 
 def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
-    global RF_write, MuxB_select, MuxY_select, MuxMA_select, MuxINC_select, MuxPC_select, Mem_Read, Mem_Write,numBytes
+    global RF_Write, MuxB_select, MuxY_select, MuxMA_select, MuxINC_select, MuxPC_select, Mem_Read, Mem_Write,numBytes
 
     RF_Write = reg_write
     MuxB_select = MuxB
@@ -97,7 +97,7 @@ def decimalToBinary(num, length):
 def Decode():
     print("Decoding the instruction")
     #getting the opcode
-    global opcode,immed,RS1,RS2,RD,RF_write,MuxB_select,numBytes,RM,RA,RB, reg
+    global opcode,immed,RS1,RS2,RD,RF_Write,MuxB_select,numBytes,RM,RA,RB, reg
     opcode = int(str(IR),16) & int("0x7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
     instruction = [0]*32
@@ -419,8 +419,8 @@ def MemoryAccess():
 
 def RegisterUpdate():
     global reg,RD
-    print('register mein',RF_write, RD)
-    if RF_write == 1:
+    print('register mein',RF_Write, RD)
+    if RF_Write == 1:
         reg[RD] = RY
 
 def validateDataSegment(y):
