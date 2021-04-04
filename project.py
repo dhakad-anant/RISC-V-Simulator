@@ -262,6 +262,8 @@ def Decode():
     elif opcode==int("1100011",2): # SB format
         RS1 = (int(IR, 16) & int("0xF8000", 16)) >> 15
         RS2 = (int(IR, 16) & int("0x1F00000", 16)) >> 20
+        RA = reg[RS1]
+        RB = reg[RS2]
         imm1 = (int(IR, 16) & int("0xF80", 16)) >> 7
         imm2 = (int(IR, 16) & int("0xFE000000", 16)) >> 25
         immed = 0
@@ -292,11 +294,15 @@ def Decode():
         immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         ImmediateSign(20)
         print("Immediate field : " + str(immed))
-        ALUOp[6] = 1
         if(opcode == int("0010111", 2)):
-            GenerateControlSignals(0,1,0,0,0,0,0,1,0)
+            ALUOp[0] = 1
+            RA = PC
+            immed = immed << 12
         else:
-            GenerateControlSignals(1,1,0,0,0,0,0,0,0)
+            ALUOp[6] = 1
+            RA = immed
+            immed = 12
+        GenerateControlSignals(1,1,0,0,0,0,0,0,0)
     elif opcode==int("1101111",2): # UJ format
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         print("rd : " + str(RD))
