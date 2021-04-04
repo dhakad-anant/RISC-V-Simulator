@@ -357,52 +357,56 @@ def ImmediateSign(num):
     immed *= (-1)
 
 def Execute():
-    global immed
+    global immed,ALUOp,RZ
     operation = ALUOp.index(1)
+    ALUOp = [0]*15
     InA = RA
     if(MuxB_select == 1):
         InB = immed
     else:
         InB = RB
     if(operation == 0): #add
-        RY = InA + InB
+        RZ = InA + InB
     elif(operation == 1): #sub
-        RY = InA - InB
+        RZ = InA - InB
     elif(operation == 2): #div
         if(InB == 0):
             print("Error : Division by zero")
             exit(1)
-        RY = InA/InB
+        RZ = InA/InB
     elif(operation == 3): #mul
-        RY = InA*InB
+        RZ = InA*InB
     elif(operation == 4): #remainder
         if(InB == 0):
             print("Error : Remainder by zero")
             exit(1)
-        RY = InA%InB
-    elif(operation == 5): #or
-        RY = InA|InB
-    elif(operation == 6): #xor
-        RY = InA^InB
-    elif(operation == 7): #shift left
+        RZ = InA%InB
+    elif(operation == 5): #xor
+        RZ = InA^InB
+    elif(operation == 6): #shift_left
         if (InB<0):
             print("Cannot  left shift a number negative times")
             exit(1)
-        RY = InA<<InB
-    elif(operation == 8): #shift right
-        if (InB<0):
-            print("Cannot  right shift a number negative times")
-            exit(1)
-        RY = InA>>InB
-    elif(operation == 9): #and
-        RY = InA&InB
-    elif(operation == 10): #less than
-        RY = (InA < InB)
-    elif(operation == 11): #comparator
-        RY = (InA == InB)
-    elif(operation == 12): #greater than equal to
-        RY = (InA >= InB)
-    return RY
+        RZ = InA<<InB
+    elif(operation == 7): #shift_right_ari 
+        # ********************ERROR***************** WRITE SRA
+        pass
+    elif(operation == 8): #shift_ri_lo  
+        RZ = InA>>InB
+    elif(operation == 9): #or  
+        RZ = (InA|InB)
+    elif(operation == 10): #and  
+        RZ = (InA&InB)
+    elif(operation == 11): #less_than  
+        RZ = (InA<InB)
+    elif(operation == 12): #equal  
+        RZ = (InA==InB)
+    elif(operation == 13): #not_equal  
+        RZ = (InA!=InB)
+    elif(operation == 14): #greater_than_equal_to  
+        RZ = (InA>=InB)
+    # return RZ
+
 
 
 def MemoryAccess():
