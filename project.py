@@ -12,8 +12,20 @@ mcFile = open("input.mc","r+")
 
 #defining global variables________________________________________________________________________________
 reg = [0]*32
-RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed, PC_Temp=[0]*29
+RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed,PC_Temp,ALU_Operation,Mem_Write,Mem_Read=[0]*29
 
+def GenerateControlSignals(reg_write,MuxB,operation,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC):
+    global RF_write, MuxB_select, ALU_Operation, MuxY_select, MuxMA_select, MuxINC_select, MuxPC_select, Mem_Read, Mem_Write
+
+    RF_Write = reg_write
+    MuxB_select = MuxB
+    MuxY_select = MuxY
+    ALU_Operation = operation
+    Mem_Write = MemWrite
+    Mem_Read = MemRead
+    MuxMA_select = MuxMA
+    MuxPC_select = MuxPC
+    MuxINC_select = MuxINC
 
 ALUOp = [0]*15
 #instructions
@@ -178,6 +190,7 @@ def Decode():
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
         immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
+        ImmediateSign(12)
 
         if opcode==int("0000011",2): # lb/lh/lw
             # setting control signals ------------------------
@@ -213,7 +226,7 @@ def Decode():
                 exit(1)
         elif opcode==int("1100111",2): #jalr ****************ERROR CHECK**************************
             if fun3==0:
-
+                pass
             else:
                 print("Error wrong fun3 for jalr")
                 exit(1)
@@ -227,7 +240,7 @@ def Decode():
         immed = immed4to0 | immed11to5
         print("rs1 : ",RS1)
         print("rs2 : ",RS2)
-        ImmediateSign()
+        ImmediateSign(12)
         print("Immediate field : ",immed)
 
         #sb 19, sw 20, sh 21
@@ -254,14 +267,16 @@ def Decode():
         immed = immed | ((imm1 & 1) << 10)
         immed = immed | (((imm2 & int("0x40", 16)) >> 6) << 11)
         immed *= 2
-        ImmediateSign()
+        ImmediateSign(13)
         print("Immediate field : ", immed)
+        # Setting control Signals
+
 
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         print("rd : " + str(RD))
         immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
-        ImmediateUJ()
+        ImmediateSign(21)
         print("Immediate field : " + str(immed))
     elif opcode==int("1101111",2): # UJ format
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
@@ -273,26 +288,19 @@ def Decode():
         immed = immed | ((immed_tmp & int("0xFF", 16)) << 11)
         immed = immed | (immed_tmp & int("0x80000", 16))
         immed *= 2
-        ImmediateUJ()
+        ImmediateSign(21)
         print("Immediate field : " + str(immed))
     else:
         print("invalid opcode")
 
-def ImmediateSign():
+def ImmediateSign(num):
     global immed
-    if(immed & int("0x1000", 16) == 0):
+    if(immed & 2**(num-1) == 0):
         return
-    immed = immed ^ (2**13-1)
+    immed = immed ^ (2**num-1)
     immed += 1
     immed *= (-1)
 
-def ImmediateUJ():
-    global immed
-    if(immed & int("0x100000", 16) == 0):
-        return
-    immed = immed ^ (2**21-1)
-    immed += 1
-    immed *= (-1)
 
 # make the control signals global   
 def Execute():
@@ -391,43 +399,43 @@ def Execute():
 
 # def ALUControl():
 #     InA = RA
-#     if(operation == 0): #add
+#     if(ALU_Operation == 0): #add
 #         RY = InA + InB
-#     elif(operation == 1): #sub
+#     elif(ALU_Operation == 1): #sub
 #         RY = InA - InB
-#     elif(operation == 2): #div
+#     elif(ALU_Operation == 2): #div
 #         if(InB == 0):
 #             print("Error : Division by zero")
 #             exit(1)
 #         RY = InA/InB
-#     elif(operation == 3): #mul
+#     elif(ALU_Operation == 3): #mul
 #         RY = InA*InB
-#     elif(operation == 4): #remainder
+#     elif(ALU_Operation == 4): #remainder
 #         if(InB == 0):
 #             print("Error : Remainder by zero")
 #             exit(1)
 #         RY = InA%InB
-#     elif(operation == 5): #or
+#     elif(ALU_Operation == 5): #or
 #         RY = InA|InB
-#     elif(operation == 6): #xor
+#     elif(ALU_Operation == 6): #xor
 #         RY = InA^InB
-#     elif(operation == 7): #shift left
+#     elif(ALU_Operation == 7): #shift left
 #         if (InB<0):
 #             print("Cannot  left shift a number negative times")
 #             exit(1)
 #         RY = InA<<InB
-#     elif(operation == 8): #shift right
+#     elif(ALU_Operation == 8): #shift right
 #         if (InB<0):
 #             print("Cannot  right shift a number negative times")
 #             exit(1)
 #         RY = InA>>InB
-#     elif(operation == 9): #and
+#     elif(ALU_Operation == 9): #and
 #         RY = InA&InB
-#     elif(operation == 10): #less than
+#     elif(ALU_Operation == 10): #less than
 #         RY = (InA < InB)
-#     elif(operation == 11): #comparator
+#     elif(ALU_Operation == 11): #comparator
 #         RY = (InA == InB)
-#     elif(operation == 12): #greater than equal to
+#     elif(ALU_Operation == 12): #greater than equal to
 #         RY = (InA >= InB)
 #     return RY
 
