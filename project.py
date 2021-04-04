@@ -14,8 +14,8 @@ mcFile = open("input.mc","r+")
 reg = [0]*32
 RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*29
 
-def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC):
-    global RF_write, MuxB_select, MuxY_select, MuxMA_select, MuxINC_select, MuxPC_select, Mem_Read, Mem_Write
+def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
+    global RF_write, MuxB_select, MuxY_select, MuxMA_select, MuxINC_select, MuxPC_select, Mem_Read, Mem_Write,numBytes
 
     RF_Write = reg_write
     MuxB_select = MuxB
@@ -25,6 +25,7 @@ def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxI
     MuxMA_select = MuxMA
     MuxPC_select = MuxPC
     MuxINC_select = MuxINC
+    numBytes = numB
 
 ALUOp = [0]*15
 #instructions
@@ -278,7 +279,17 @@ def Decode():
         ImmediateSign(13)
         print("Immediate field : ", immed)
         # Setting control Signals
-
+        if(fun3 == 0):
+            GenerateControlSignals(0,0,0,0,0,0,0,1,0)
+        elif(fun3 == 1):
+            GenerateControlSignals(0,0,0,0,0,0,0,1,0)
+        elif(fun3 == 4):
+            GenerateControlSignals(0,0,0,0,0,0,0,1,0)
+        elif(fun3 == 5):
+            GenerateControlSignals(0,0,0,0,0,0,0,1,0)
+        else:
+            print("Invalid fun3 for SB Format instruction. Terminating the program.")
+            exit(1)
 
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
