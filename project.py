@@ -14,8 +14,8 @@ mcFile = open("input.mc","r+")
 reg = [0]*32
 RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed,PC_Temp,ALU_Operation,Mem_Write,Mem_Read=[0]*29
 
-def GenerateControlSignals(reg_write,MuxB,operation,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC):
-    global RF_write, MuxB_select, ALU_Operation, MuxY_select, MuxMA_select, MuxINC_select, MuxPC_select, Mem_Read, Mem_Write
+def GenerateControlSignals(reg_write,MuxB,operation,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
+    global RF_write, MuxB_select, ALU_Operation, MuxY_select, MuxMA_select, MuxINC_select, MuxPC_select, Mem_Read, Mem_Write, numBytes
 
     RF_Write = reg_write
     MuxB_select = MuxB
@@ -26,6 +26,7 @@ def GenerateControlSignals(reg_write,MuxB,operation,MuxY,MemRead,MemWrite,MuxMA,
     MuxMA_select = MuxMA
     MuxPC_select = MuxPC
     MuxINC_select = MuxINC
+    numBytes = numB
 
 ALUOp = [0]*15
 #instructions
@@ -97,6 +98,7 @@ def decimalToBinary(num, length):
     for i in range(length-len(ans)):
         ans+='0'
     return ans[::-1]   
+
 
 def Decode():
     print("Decoding the instruction")
@@ -186,7 +188,6 @@ def Decode():
             exit(1)
 
     elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # I format
-
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
         immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
@@ -224,13 +225,17 @@ def Decode():
             else:
                 print("Error fun3 not matching for addi/andi/ori")
                 exit(1)
-        elif opcode==int("1100111",2): #jalr ****************ERROR CHECK**************************
+        elif opcode==int("1100111",2): #jalr ****************ERROR(CHECK IT)**************************
+            # setting control signals ------------------------
+            MuxB_select =  1 # i.e choose Immediate
+            MuxY_select = 2 # i.e choose output from link register
+            RF_write = 1 # i.e can write at register file
+            # ------------------------
             if fun3==0:
-                pass
+                ALUOp[0]=1
             else:
                 print("Error wrong fun3 for jalr")
                 exit(1)
-
 
     elif opcode==int("0100011",2): # S format
         RS1 = (int(str(IR),16) & int("0xF8000",16)) >> 15
@@ -240,17 +245,20 @@ def Decode():
         immed = immed4to0 | immed11to5
         print("rs1 : ",RS1)
         print("rs2 : ",RS2)
+        # setting control signals ------------------------
+        MuxB_select =  1 # i.e choose Immediate
+        MuxY_select = 0 # i.e choose output from RY(BUT IT IS A DON'T CARE BCZ YOU CAN WRITE TO RF FILE)
+        RF_write = 0 # i.e can't write at register file
+        # ------------------------
         ImmediateSign(12)
+        ALUOp[0]=1
         print("Immediate field : ",immed)
-
-        #sb 19, sw 20, sh 21
-
-        if fun3 != int("000",2):
-            ALUOp[19]=1
-        elif fun3 != int("010",2):
-            ALUOp[20]=1
-        elif fun3 != int("001",2):
-            ALUOp[21]=1
+        if fun3 != int("000",2): # sb
+            numBytes = 1
+        elif fun3 != int("010",2): # sw
+            numBytes = 4
+        elif fun3 != int("001",2): # sh
+            numBytes = 2
         else:
             print("invalid fun3 => S format")
             exit(1)
@@ -270,7 +278,17 @@ def Decode():
         ImmediateSign(13)
         print("Immediate field : ", immed)
         # Setting control Signals
-
+        if(fun3 == 0):
+            GenerateControlSignals(0,0,11,0,0,0,0,0,1,0)
+        elif(fun3 == 1):
+            GenerateControlSignals(0,0,13,0,0,0,0,0,1,0)
+        elif(fun3 == 4):
+            GenerateControlSignals(0,0,10,0,0,0,0,0,1,0)
+        elif(fun3 == 5):
+            GenerateControlSignals(0,0,12,0,0,0,0,0,1,0)
+        else:
+            print("Invalid fun3 for SB Format instruction. Terminating the program.")
+            exit(1)
 
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
@@ -302,142 +320,54 @@ def ImmediateSign(num):
     immed *= (-1)
 
 
-# make the control signals global   
 def Execute():
-    if 1 not in ALUOp:
-        print("ERROR")
-        exit(1)  
-    global immed, numBytes      
-    instructionType = ALUOp.index(1)
-    #instructions
-    #add 0, and 1, or 2, sll 3, slt 4, sra 5, srl 6, sub 7, xor 8, mul 9, div 10, rem 11
-    #addi 12, andi 13, ori 14 , lb 15, lh 16, lw 17, jalr 18
-    #sb 19, sw 20, sh 21
-    # beq 22, bne 23, bge 24, blt 25
-    # auipc 26, lui 27
-    # jal 28
     InA = RA
-    InB = (RB if MuxB_select==0 else immed)
-    if instructionType==0 or instructionType==12 or instructionType==18: # add, addi, jalr
-        RZ = InA + InB
-    elif instructionType==1 or instructionType==13: # and, andi
-        RZ = InA & InB
-    elif instructionType==2 or instructionType==14: # or,ori
-        RZ = InA|InB
-    elif instructionType==3: # left shift
+    InB = 0
+    if(MuxB_select == 1):
+        InB = RB
+    else:
+        InB = immed
+    if(ALU_Operation == 0): #add
+        RY = InA + InB
+    elif(ALU_Operation == 1): #sub
+        RY = InA - InB
+    elif(ALU_Operation == 2): #div
+        if(InB == 0):
+            print("Error : Division by zero")
+            exit(1)
+        RY = InA/InB
+    elif(ALU_Operation == 3): #mul
+        RY = InA*InB
+    elif(ALU_Operation == 4): #remainder
+        if(InB == 0):
+            print("Error : Remainder by zero")
+            exit(1)
+        RY = InA%InB
+    elif(ALU_Operation == 5): #or
+        RY = InA|InB
+    elif(ALU_Operation == 6): #xor
+        RY = InA^InB
+    elif(ALU_Operation == 7): #shift left
         if (InB<0):
-            print("Cannot left shift a number negative times")
+            print("Cannot  left shift a number negative times")
             exit(1)
-        RZ = InA << InB
-    elif instructionType==4: # slt
-        RZ = 1 if InA<InB else 0
-    elif instructionType==5: # sra
+        RY = InA<<InB
+    elif(ALU_Operation == 8): #shift right
         if (InB<0):
-            print("Cannot right shift a number negative times")
+            print("Cannot  right shift a number negative times")
             exit(1)
-        RZ = sra(InA,32,InB) #to change the function
-    elif instructionType==6: # srl
-        if (InB<0):
-            print("Cannot right shift a number negative times")
-            exit(1)
-        RZ = InA >> InB
-    elif instructionType==7: #sub
-        RZ = InA - InB
-    elif instructionType==8: #xor
-        RZ = InA ^ InB
-    elif instructionType==9: # mul
-        RZ = InA*InB
-    elif instructionType==10: # div
-        if(InB==0):
-            print("Error... Cannot divide by zero exception")
-            exit(1)
-        RZ = InA/InB
-    elif instructionType==11: # rem
-        if(InB==0):
-            print("Error... Cannot modulo number by zero exception")
-            exit(1)
-        RZ = InA % InB
-    elif instructionType==15:  #lb
-        RZ = InA+InB
-        numBytes = 1
-    elif instructionType==16: #lh
-        RZ = InA + InB 
-        numBytes = 2
-    elif instructionType==17: #lw
-        RZ = InA + InB
-        numBytes = 4   
-    elif instructionType==19: # sb
-        RZ = InA + InB
-        numBytes = 1
-    elif instructionType==20: # sw
-        RZ = InA + InB
-        numBytes = 4
-    elif instructionType==21: # sh
-        RZ = InA + InB
-        numBytes = 2
-    elif instructionType==22: # beq
-        if InA == InB:
-            equal = 1         # control signal for branch; IAG      
-    elif instructionType==23: # bne
-        if InA != InB:
-            notEqual = 1       # control signal for branch
-    elif instructionType==24: # bge
-        if InA >= InB:
-            gequal = 1         # control signal for branch
-    elif instructionType==25: # blt
-        if InA < InB:
-            less = 1           # control signal for branch
-    elif instructionType==26: # auipc
-        #todo
-        pass
-    elif instructionType==27: # lui  eg  lui x5, 0x2
-        RZ = InB<<12
-    elif instructionType==28: # jal jal x0, label
-        RZ = PC + 4
-        # add a control signal
-        pass   # PC = label  # x0 = PC + 4
-
-# def ALUControl():
-#     InA = RA
-#     if(ALU_Operation == 0): #add
-#         RY = InA + InB
-#     elif(ALU_Operation == 1): #sub
-#         RY = InA - InB
-#     elif(ALU_Operation == 2): #div
-#         if(InB == 0):
-#             print("Error : Division by zero")
-#             exit(1)
-#         RY = InA/InB
-#     elif(ALU_Operation == 3): #mul
-#         RY = InA*InB
-#     elif(ALU_Operation == 4): #remainder
-#         if(InB == 0):
-#             print("Error : Remainder by zero")
-#             exit(1)
-#         RY = InA%InB
-#     elif(ALU_Operation == 5): #or
-#         RY = InA|InB
-#     elif(ALU_Operation == 6): #xor
-#         RY = InA^InB
-#     elif(ALU_Operation == 7): #shift left
-#         if (InB<0):
-#             print("Cannot  left shift a number negative times")
-#             exit(1)
-#         RY = InA<<InB
-#     elif(ALU_Operation == 8): #shift right
-#         if (InB<0):
-#             print("Cannot  right shift a number negative times")
-#             exit(1)
-#         RY = InA>>InB
-#     elif(ALU_Operation == 9): #and
-#         RY = InA&InB
-#     elif(ALU_Operation == 10): #less than
-#         RY = (InA < InB)
-#     elif(ALU_Operation == 11): #comparator
-#         RY = (InA == InB)
-#     elif(ALU_Operation == 12): #greater than equal to
-#         RY = (InA >= InB)
-#     return RY
+        RY = InA>>InB
+    elif(ALU_Operation == 9): #and
+        RY = InA&InB
+    elif(ALU_Operation == 10): #less than
+        RY = (InA < InB)
+    elif(ALU_Operation == 11): #comparator
+        RY = (InA == InB)
+    elif(ALU_Operation == 12): #greater than equal to
+        RY = (InA >= InB)
+    elif(ALU_Operation == 13): #not equal to
+        RY = (InA != InB)
+    return RY
 
 def MemoryAccess():
     # =========== CHECK =============
