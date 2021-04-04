@@ -86,6 +86,7 @@ def decimalToBinary(num, length):
         ans+='0'
     return ans[::-1]   
 
+
 def Decode():
     print("Decoding the instruction")
     #getting the opcode
@@ -174,7 +175,6 @@ def Decode():
             exit(1)
 
     elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # I format
-
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
         immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
@@ -211,13 +211,17 @@ def Decode():
             else:
                 print("Error fun3 not matching for addi/andi/ori")
                 exit(1)
-        elif opcode==int("1100111",2): #jalr ****************ERROR CHECK**************************
+        elif opcode==int("1100111",2): #jalr ****************ERROR(CHECK IT)**************************
+            # setting control signals ------------------------
+            MuxB_select =  1 # i.e choose Immediate
+            MuxY_select = 2 # i.e choose output from link register
+            RF_write = 1 # i.e can write at register file
+            # ------------------------
             if fun3==0:
-
+                ALUOp[0]=1
             else:
                 print("Error wrong fun3 for jalr")
                 exit(1)
-
 
     elif opcode==int("0100011",2): # S format
         RS1 = (int(str(IR),16) & int("0xF8000",16)) >> 15
@@ -227,17 +231,20 @@ def Decode():
         immed = immed4to0 | immed11to5
         print("rs1 : ",RS1)
         print("rs2 : ",RS2)
+        # setting control signals ------------------------
+        MuxB_select =  1 # i.e choose Immediate
+        MuxY_select = 0 # i.e choose output from RY(BUT IT IS A DON'T CARE BCZ YOU CAN WRITE TO RF FILE)
+        RF_write = 0 # i.e can't write at register file
+        # ------------------------
         ImmediateSign()
+        ALUOp[0]=1
         print("Immediate field : ",immed)
-
-        #sb 19, sw 20, sh 21
-
-        if fun3 != int("000",2):
-            ALUOp[19]=1
-        elif fun3 != int("010",2):
-            ALUOp[20]=1
-        elif fun3 != int("001",2):
-            ALUOp[21]=1
+        if fun3 != int("000",2): # sb
+            numBytes = 1
+        elif fun3 != int("010",2): # sw
+            numBytes = 4
+        elif fun3 != int("001",2): # sh
+            numBytes = 2
         else:
             print("invalid fun3 => S format")
             exit(1)
