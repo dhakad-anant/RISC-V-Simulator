@@ -100,7 +100,7 @@ def decimalToBinary(num, length):
 def Decode():
     print("Decoding the instruction")
     #getting the opcode
-    global opcode,immed,RS1,RS2,RD,RF_write,MuxB_select,numBytes
+    global opcode,immed,RS1,RS2,RD,RF_write,MuxB_select,numBytes,RM,RA,RB
     opcode = int(str(IR),16) & int("0x7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
     instruction = [0]*32
@@ -118,12 +118,13 @@ def Decode():
     # UJ format - jal-1101111
 
     if opcode==int("0110011",2): # R format
-        # setting control signals ------------------------
-        MuxB_select =  0 # i.e choose RB
-        MuxY_select = 0 # i.e choose output from RZ
-        RF_write = 1 # i.e can write at register file
-        numBytes = 4
-        # ------------------------
+        # # setting control signals ------------------------
+        # MuxB_select =  0 # i.e choose RB
+        # MuxY_select = 0 # i.e choose output from RZ
+        # RF_write = 1 # i.e can write at register file
+        # numBytes = 4
+        # # ------------------------
+        GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
         RS2 = (int(IR,16) & int('0x1F00000',16)) >> 20 # setting rs2 register
@@ -183,35 +184,46 @@ def Decode():
         else:
             print("fun3 not matching in R format")
             exit(1)
-
+        #setting ra rb rm -------------------------------------------------
+        RA = reg[RS1]
+        RB = reg[RS2] 
+        RM = RB        # ---- DON'T CARES
+        # -----------------------------------------------------------------
+   
     elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # I format
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
         immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
 
         if opcode==int("0000011",2): # lb/lh/lw
-            # setting control signals ------------------------
-            MuxB_select =  1 # i.e choose Immediate
-            MuxY_select = 1 # i.e choose output from MDR
-            RF_write = 1 # i.e can write at register file
-            # ------------------------
+            # # setting control signals ------------------------
+            # MuxB_select =  1 # i.e choose Immediate
+            # MuxY_select = 1 # i.e choose output from MDR
+            # RF_write = 1 # i.e can write at register file
+            # # ------------------------
             ALUOp[0]=1
             if fun3 == 0: #lb
-                numBytes = 1
+                GenerateControlSignals(1,1,1,1,0,0,1,0,1)
             elif fun3 == 1: #lh
-                numBytes = 2
+                GenerateControlSignals(1,1,1,1,0,0,1,0,2)
             elif fun3 == 2: #lw
-                numBytes = 4
+                GenerateControlSignals(1,1,1,1,0,0,1,0,4)
             else:
                 print("Wrong fun3 for lb/lh/lw")
                 exit(1)
+            #setting ra rb rm -------------------------------------------------
+            RA = reg[RS1]
+            # RB = reg[RS2]   ---- DON'T CARES
+            # RM = RB         ---- DON'T CARES
+            # -----------------------------------------------------------------
         elif opcode==int("0010011",2): #addi/andi/ori
-            # setting control signals ------------------------
-            numBytes = 4
-            MuxB_select =  1 # i.e choose Immediate
-            MuxY_select = 0 # i.e choose output from MDR
-            RF_write = 1 # i.e can write at register file
-            # ------------------------
+            # # setting control signals ------------------------
+            # numBytes = 4
+            # MuxB_select =  1 # i.e choose Immediate
+            # MuxY_select = 0 # i.e choose output from MDR
+            # RF_write = 1 # i.e can write at register file
+            # # ------------------------
+            GenerateControlSignals(1,1,0,0,0,0,1,0,4)
             if fun3==0:#addi
                 ALUOp[0]=1
             elif fun3==7:#andi
@@ -221,17 +233,28 @@ def Decode():
             else:
                 print("Error fun3 not matching for addi/andi/ori")
                 exit(1)
-        elif opcode==int("1100111",2): #jalr *****ERROR(CHECK IT)*********
-            # setting control signals ------------------------
-            MuxB_select =  1 # i.e choose Immediate
-            MuxY_select = 2 # i.e choose output from link register
-            RF_write = 1 # i.e can write at register file
-            # ------------------------
+            #setting ra rb rm -------------------------------------------------
+            RA = reg[RS1]
+            # RB = reg[RS2]   ---- DON'T CARES
+            # RM = RB         ---- DON'T CARES
+            # -----------------------------------------------------------------
+        elif opcode==int("1100111",2): #jalr **ERROR(CHECK IT)****
+            # # setting control signals ------------------------
+            # MuxB_select =  1 # i.e choose Immediate
+            # MuxY_select = 2 # i.e choose output from link register
+            # RF_write = 1 # i.e can write at register file
+            # # ------------------------
+            GenerateControlSignals(1,0,2,0,0,0,0,1,4)
             if fun3==0:
                 ALUOp[0]=1
             else:
                 print("Error wrong fun3 for jalr")
                 exit(1)
+            #setting ra rb rm -------------------------------------------------
+            RA = reg[RS1]
+            # RB = reg[RS2]   ---- DON'T CARES
+            # RM = RB         ---- DON'T CARES
+            # -----------------------------------------------------------------
 
     elif opcode==int("0100011",2): # S format
         RS1 = (int(str(IR),16) & int("0xF8000",16)) >> 15
@@ -241,24 +264,29 @@ def Decode():
         immed = immed4to0 | immed11to5
         print("rs1 : ",RS1)
         print("rs2 : ",RS2)
-        # setting control signals ------------------------
-        MuxB_select =  1 # i.e choose Immediate
-        MuxY_select = 0 # i.e choose output from RY(BUT IT IS A DON'T CARE BCZ YOU CAN WRITE TO RF FILE)
-        RF_write = 0 # i.e can't write at register file
-        # ------------------------
+        # # setting control signals ------------------------
+        # MuxB_select =  1 # i.e choose Immediate
+        # MuxY_select = 0 # i.e choose output from RY(BUT IT IS A DON'T CARE BCZ YOU CAN WRITE TO RF FILE)
+        # RF_write = 0 # i.e can't write at register file
+        # # ------------------------
         ImmediateSign(12)
         ALUOp[0]=1
         print("Immediate field : ",immed)
         if fun3 != int("000",2): # sb
-            numBytes = 1
-        elif fun3 != int("010",2): # sw
-            numBytes = 4
+            GenerateControlSignals(0,1,0,0,1,0,1,0,1)
         elif fun3 != int("001",2): # sh
-            numBytes = 2
+            GenerateControlSignals(0,1,0,0,1,0,1,0,2)
+        elif fun3 != int("010",2): # sw
+            GenerateControlSignals(0,1,0,0,1,0,1,0,4)
         else:
             print("invalid fun3 => S format")
             exit(1)
             return
+        #setting ra rb rm -------------------------------------------------
+        RA = reg[RS2]
+        RB = reg[RS1]
+        RM = RB
+        # -----------------------------------------------------------------
     elif opcode==int("1100011",2): # SB format
         RS1 = (int(IR, 16) & int("0xF8000", 16)) >> 15
         RS2 = (int(IR, 16) & int("0x1F00000", 16)) >> 20
