@@ -36,27 +36,21 @@ ALUOp = [0]*15
 
 
 #Auxilary function______________
-def sra(x,m):     #to change the function
-    bx = bin(x)[2:]
+def sra(number,times):     #to change the function
+    bx = bin(number)[2:]
     if len(bx)<32 or bx[0]=='0':
-        return x>>m
+        return number>>times
     else:
-        ans = '1'*m + bx[:32-m]
+        ans = '1'*times + bx[:32-times]
         twosCompli = [str(1-int(i)) for i in ans[1:]]
         twosCompli = (''.join(twosCompli))
         twosCompli = - (int(twosCompli,2) + 1)
         return twosCompli
 
-    # if x & 2**(n-1) != 0:  # MSB is 1, i.e. x is negative
-    #     filler = int('1'm + '0'(n-m),2)
-    #     x = (x >> m) | filler  # fill in 0's with 1's
-    #     return x
-    # else:
-    #     return x >> m
 #________________________
 
 dataMemory = defaultdict(lambda : [0,0,0,0])
-instructionMemory = {}
+instructionMemory = defaultdict(lambda: [0,0,0,0])
 
 def ProcessorMemoryInterface():
     # Set MAR in Fetch
@@ -71,6 +65,9 @@ def ProcessorMemoryInterface():
         return ans
     else:
         ans = instructionMemory[MAR]
+        ans.reverse()
+        ans = (''.join(ans))
+        ans = '0x'+ans
         return ans
     
 
@@ -100,7 +97,7 @@ def decimalToBinary(num, length):
 def Decode():
     print("Decoding the instruction")
     #getting the opcode
-    global opcode,immed,RS1,RS2,RD,RF_write,MuxB_select,numBytes,RM,RA,RB
+    global opcode,immed,RS1,RS2,RD,RF_write,MuxB_select,numBytes,RM,RA,RB, reg
     opcode = int(str(IR),16) & int("0x7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
     instruction = [0]*32
@@ -357,7 +354,7 @@ def ImmediateSign(num):
     immed *= (-1)
 
 def Execute():
-    global immed,ALUOp,RZ
+    global immed,ALUOp,RZ, reg
     operation = ALUOp.index(1)
     ALUOp = [0]*15
     InA = RA
@@ -407,8 +404,6 @@ def Execute():
         RZ = (InA>=InB)
     # return RZ
 
-
-
 def MemoryAccess():
     # =========== CHECK =============
     global MAR,RY
@@ -423,9 +418,10 @@ def MemoryAccess():
 
 
 def RegisterUpdate():
+    global reg,RD
+    print('register mein',RF_write, RD)
     if RF_write == 1:
-        reg[RegFileAddrC] = RY
-
+        reg[RD] = RY
 
 def validateDataSegment(y):
     if len(y)!=2:
@@ -461,7 +457,13 @@ def main():
         if flag==0:
             #TODO : Add Validation______
             y = x.split('\n')[0].split()
-            instructionMemory[y[0]] = y[1]          
+            instructionMemory[y[0]][0] = hex(int(y[1],16) & int('0xFF',16))[2:]
+            instructionMemory[y[0]][1] = hex((int(y[1],16) & int('0xFF00',16))>>8)[2:]
+            instructionMemory[y[0]][2] = hex((int(y[1],16) & int('0xFF0000',16))>>16)[2:]
+            instructionMemory[y[0]][3] = hex((int(y[1],16) & int('0xFF000000',16))>>24)[2:] 
+            for i in range (4):
+                instructionMemory[y[0]][i] = '0'*(2-len(instructionMemory[y[0]][i])) + instructionMemory[y[0]][i]
+                instructionMemory[y[0]][i] = instructionMemory[y[0]][i].upper()
     # run simulator 
     run_RISC_simulator()
     # exit from the code
@@ -472,5 +474,5 @@ def run_RISC_simulator():
     Execute()
     MemoryAccess()
     RegisterUpdate()
-
+    print(reg)
 main()
