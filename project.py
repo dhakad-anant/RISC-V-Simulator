@@ -10,9 +10,9 @@ from collections import defaultdict
 mcFile = open("input.mc","r+")
 # File reading completed
 
-#defining global variables________________________________________________________________________________
+#defining global variables____________________________
 reg = [0]*32
-RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*29
+RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
 
 def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
     global RF_write, MuxB_select, MuxY_select, MuxMA_select, MuxINC_select, MuxPC_select, Mem_Read, Mem_Write,numBytes
@@ -27,9 +27,15 @@ def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxI
     MuxINC_select = MuxINC
     numBytes = numB
 
-ALUOp = [0]*28
+ALUOp = [0]*15
+#instructions
+# add 0, sub 1, div 2, mul 3, remainder 4, xor 5,
+# shift_left 6, shift_right_ari 7,shift_ri_lo 8, or 9,
+# and 10, less_than 11, equal 12, not_equal 13, 
+# greater_than_equal_to 14,
 
-#Auxilary function________________________________________
+
+#Auxilary function______________
 def sra(x,m):     #to change the function
     bx = bin(x)[2:]
     if len(bx)<32 or bx[0]=='0':
@@ -42,12 +48,12 @@ def sra(x,m):     #to change the function
         return twosCompli
 
     # if x & 2**(n-1) != 0:  # MSB is 1, i.e. x is negative
-    #     filler = int('1'*m + '0'*(n-m),2)
+    #     filler = int('1'm + '0'(n-m),2)
     #     x = (x >> m) | filler  # fill in 0's with 1's
     #     return x
     # else:
     #     return x >> m
-#______________________________________________________________________
+#________________________
 
 dataMemory = defaultdict(lambda : [0,0,0,0])
 instructionMemory = {}
@@ -63,7 +69,6 @@ def ProcessorMemoryInterface():
             curr =  hex(i)[2:]
             ans += '0'*(2-len(curr)) + curr
         return ans
-
     else:
         ans = instructionMemory[MAR]
         return ans
@@ -75,7 +80,7 @@ def Fetch():
 
     print("Fetching the instruction")
     MAR = hex(PC)
-    MuxMA_select = 1
+    MuxMA_select = 1    
     IR = ProcessorMemoryInterface()
     PC_Temp = PC + 4
     print(IR)
@@ -92,13 +97,10 @@ def decimalToBinary(num, length):
         ans+='0'
     return ans[::-1]   
 
-
 def Decode():
     print("Decoding the instruction")
     #getting the opcode
     global opcode,immed,RS1,RS2,RD,RF_write,MuxB_select,numBytes
-    global ALUOp
-    ALUOp = [0]*28
     opcode = int(str(IR),16) & int("0x7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
     instruction = [0]*32
@@ -186,7 +188,6 @@ def Decode():
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
         immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
-        ImmediateSign(12)
 
         if opcode==int("0000011",2): # lb/lh/lw
             # setting control signals ------------------------
@@ -220,7 +221,7 @@ def Decode():
             else:
                 print("Error fun3 not matching for addi/andi/ori")
                 exit(1)
-        elif opcode==int("1100111",2): #jalr ****************ERROR(CHECK IT)**************************
+        elif opcode==int("1100111",2): #jalr *****ERROR(CHECK IT)*********
             # setting control signals ------------------------
             MuxB_select =  1 # i.e choose Immediate
             MuxY_select = 2 # i.e choose output from link register
@@ -258,7 +259,6 @@ def Decode():
             print("invalid fun3 => S format")
             exit(1)
             return
-
     elif opcode==int("1100011",2): # SB format
         RS1 = (int(IR, 16) & int("0xF8000", 16)) >> 15
         RS2 = (int(IR, 16) & int("0x1F00000", 16)) >> 20
@@ -274,13 +274,13 @@ def Decode():
         print("Immediate field : ", immed)
         # Setting control Signals
         if(fun3 == 0):
-            ALUOp[22] = 1
+            ALUOp[12] = 1
         elif(fun3 == 1):
-            ALUOp[23] = 1
+            ALUOp[13] = 1
         elif(fun3 == 4):
-            ALUOp[25] = 1
+            ALUOp[11] = 1
         elif(fun3 == 5):
-            ALUOp[24] = 1
+            ALUOp[14] = 1
         else:
             print("Invalid fun3 for SB Format instruction. Terminating the program.")
             exit(1)
@@ -292,11 +292,10 @@ def Decode():
         immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         ImmediateSign(20)
         print("Immediate field : " + str(immed))
+        ALUOp[6] = 1
         if(opcode == int("0010111", 2)):
-            ALUOp[26] = 1
             GenerateControlSignals(0,1,0,0,0,0,0,1,0)
         else:
-            ALUOp[27] = 1
             GenerateControlSignals(1,1,0,0,0,0,0,0,0)
     elif opcode==int("1101111",2): # UJ format
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
@@ -309,6 +308,7 @@ def Decode():
         immed = immed | (immed_tmp & int("0x80000", 16))
         ImmediateSign(20)
         immed *= 2
+        ALUOp[0] = 1
         print("Immediate field : " + str(immed))
         GenerateControlSignals(1,1,2,0,0,0,0,1,0)
     else:
@@ -322,83 +322,54 @@ def ImmediateSign(num):
     immed += 1
     immed *= (-1)
 
-
-# make the control signals global   
 def Execute():
-    if 1 not in ALUOp:
-        print("ERROR")
-        exit(1)  
-    global immed    
-    instructionType = ALUOp.index(1)
-    #instructions
-    #add 0, and 1, or 2, sll 3, slt 4, sra 5, srl 6, sub 7, xor 8, mul 9, div 10, rem 11
-    #addi 12, andi 13, ori 14 , lb 15, lh 16, lw 17, jalr 18
-    #sb 19, sw 20, sh 21
-    # beq 22, bne 23, bge 24, blt 25
-    # auipc 26, lui 27
+    global immed
+    operation = ALUOp.index(1)
     InA = RA
-    InB = (RB if MuxB_select==0 else immed)
-    if instructionType==0 or instructionType==12 or instructionType==15 or instructionType==16 or instructionType==17 or instructionType==18 or instructionType==19 or instructionType==20 or instructionType==21: # add, addi, jalr sb sw lb lh lw sh
-        RZ = InA + InB
-    elif instructionType==1 or instructionType==13: # and, andi
-        RZ = InA & InB
-    elif instructionType==2 or instructionType==14: # or,ori
-        RZ = InA|InB
-    elif instructionType==3: # left shift
+    if(MuxB_select == 1):
+        InB = immed
+    else:
+        InB = RB
+    if(operation == 0): #add
+        RY = InA + InB
+    elif(operation == 1): #sub
+        RY = InA - InB
+    elif(operation == 2): #div
+        if(InB == 0):
+            print("Error : Division by zero")
+            exit(1)
+        RY = InA/InB
+    elif(operation == 3): #mul
+        RY = InA*InB
+    elif(operation == 4): #remainder
+        if(InB == 0):
+            print("Error : Remainder by zero")
+            exit(1)
+        RY = InA%InB
+    elif(operation == 5): #or
+        RY = InA|InB
+    elif(operation == 6): #xor
+        RY = InA^InB
+    elif(operation == 7): #shift left
         if (InB<0):
-            print("Cannot left shift a number negative times")
+            print("Cannot  left shift a number negative times")
             exit(1)
-        RZ = InA << InB
-    elif instructionType==4: # slt
-        RZ = 1 if InA<InB else 0
-    elif instructionType==5: # sra
+        RY = InA<<InB
+    elif(operation == 8): #shift right
         if (InB<0):
-            print("Cannot right shift a number negative times")
+            print("Cannot  right shift a number negative times")
             exit(1)
-        RZ = sra(InA,InB) #to change the function
-    elif instructionType==6: # srl
-        if (InB<0):
-            print("Cannot right shift a number negative times")
-            exit(1)
-        RZ = InA >> InB
-    elif instructionType==7: #sub
-        RZ = InA - InB
-    elif instructionType==8: #xor
-        RZ = InA ^ InB
-    elif instructionType==9: # mul
-        RZ = InA*InB
-    elif instructionType==10: # div
-        if(InB==0):
-            print("Error... Cannot divide by zero exception")
-            exit(1)
-        RZ = InA/InB
-    elif instructionType==11: # rem
-        if(InB==0):
-            print("Error... Cannot modulo number by zero exception")
-            exit(1)
-        RZ = InA % InB
-    elif instructionType==22: # beq
-        if InA == InB:
-            RZ = 1         # control signal for branch; IAG  
-        else:
-            RZ = 0    
-    elif instructionType==23: # bne
-        if InA != InB:
-            RZ = 1       # control signal for branch
-        else:
-            RZ = 0
-    elif instructionType==24: # bge
-        if InA >= InB:
-            RZ = 1       # control signal for branch
-        else:
-            RZ = 0
-    elif instructionType==25: # blt
-        if InA < InB:
-            RZ = 1      # control signal for branch
-        else:
-            RZ = 0
-    elif instructionType==26 or instructionType==27: # auipc or lui
-        RZ = InB<<12
+        RY = InA>>InB
+    elif(operation == 9): #and
+        RY = InA&InB
+    elif(operation == 10): #less than
+        RY = (InA < InB)
+    elif(operation == 11): #comparator
+        RY = (InA == InB)
+    elif(operation == 12): #greater than equal to
+        RY = (InA >= InB)
+    return RY
+
 
 def MemoryAccess():
     # =========== CHECK =============
@@ -411,24 +382,10 @@ def MemoryAccess():
         RY = ProcessorMemoryInterface()
     elif MuxY_select == 2:
         RY = PC_Temp
-    
 
-    # if instructionType == 15:
-    #     MDR = int(dataMemory[MAR],16) & (int('0xFF',16))
-    # elif instructionType == 16:
-    #     MDR = int(dataMemory[MAR],16) & (int('0xFFFF',16))
-    # elif instructionType == 17:
-    #     MDR = int(dataMemory[MAR],16)
-    # elif instructionType == 19:
-    #     dataMemory[MAR] = hex(MDR & int('0xFF',16))
-    # elif instructionType == 20:
-    #     dataMemory[MAR] = hex(MDR)
-    # elif instructionType == 21:
-    #     dataMemory[MAR] = hex(MDR & int('0xFFFF',16))
-    # pass
 
 def RegisterUpdate():
-    if RF_write==1: 
+    if RF_write == 1:
         reg[RegFileAddrC] = RY
 
 
@@ -464,7 +421,7 @@ def main():
         if '$' in y:
             flag = 1
         if flag==0:
-            #TODO : Add Validation______________
+            #TODO : Add Validation______
             y = x.split('\n')[0].split()
             instructionMemory[y[0]] = y[1]          
     # run simulator 
