@@ -28,12 +28,6 @@ def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxI
     numBytes = numB
 
 ALUOp = [0]*28
-#instructions
-# add 0, sub 1, div 2, mul 3, remainder 4, xor 5,
-# shift_left 6, shift_right_ari 7,shift_ri_lo 8, or 9,
-# and 10, less_than 11, equal 12, not_equal 13, 
-# greater_than_equal_to 14,
-
 
 #Auxilary function________________________________________
 def sra(x,m):     #to change the function
@@ -403,7 +397,7 @@ def Execute():
             RZ = 1      # control signal for branch
         else:
             RZ = 0
-    elif instructionType==26 or instructionType==27: # auipc
+    elif instructionType==26 or instructionType==27: # auipc or lui
         RZ = InB<<12
 
 def MemoryAccess():
