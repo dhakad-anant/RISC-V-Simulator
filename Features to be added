@@ -1,0 +1,2 @@
+1. Hardcore the register x0 to zero. If someone tries to change it our code should give error
+2. Set the stack pointer, global pointer and other necessary registers.
