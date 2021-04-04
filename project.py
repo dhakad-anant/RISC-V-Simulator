@@ -54,7 +54,6 @@ instructionMemory = defaultdict(lambda: [0,0,0,0])
 
 def ProcessorMemoryInterface():
     # Set MAR in Fetch
-
     if MuxMA_select == 0:
         temp = dataMemory[MAR][:numBytes]
         temp.reverse()
@@ -73,14 +72,15 @@ def ProcessorMemoryInterface():
 
 def Fetch():
     #Pc, ir
-    global IR,MAR,MuxMA_select, PC_Temp
+    global IR,MAR,MuxMA_select, PC_Temp, PC
 
     print("Fetching the instruction")
     MAR = hex(PC)
     MuxMA_select = 1    
     IR = ProcessorMemoryInterface()
     PC_Temp = PC + 4
-    print(IR)
+    
+    PC = PC_Temp  # Adding this temporarily to check if instructions are working or not.
 
 def decimalToBinary(num, length):
     ans=""
@@ -192,6 +192,10 @@ def Decode():
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
         immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
 
+        #  ADDING CONSTRAINTS ON IMMEDIATE
+        if immed>2047:
+            immed -= 4096
+
         if opcode==int("0000011",2): # lb/lh/lw
             # # setting control signals ------------------------
             # MuxB_select =  1 # i.e choose Immediate
@@ -259,8 +263,6 @@ def Decode():
         immed4to0 = (int(str(IR),16) & int("0xF80",16)) >> 7
         immed11to5 = (int(str(IR),16) & int("0xFE000000",16)) >> 25
         immed = immed4to0 | immed11to5
-        print("rs1 : ",RS1)
-        print("rs2 : ",RS2)
         # # setting control signals ------------------------
         # MuxB_select =  1 # i.e choose Immediate
         # MuxY_select = 0 # i.e choose output from RY(BUT IT IS A DON'T CARE BCZ YOU CAN WRITE TO RF FILE)
@@ -268,7 +270,6 @@ def Decode():
         # # ------------------------
         ImmediateSign(12)
         ALUOp[0]=1
-        print("Immediate field : ",immed)
         if fun3 != int("000",2): # sb
             GenerateControlSignals(0,1,0,0,1,0,1,0,1)
         elif fun3 != int("001",2): # sh
@@ -298,7 +299,6 @@ def Decode():
         immed = immed | (((imm2 & int("0x40", 16)) >> 6) << 11)
         ImmediateSign(12)
         immed *= 2
-        print("Immediate field : ", immed)
         # Setting control Signals
         if(fun3 == 0):
             ALUOp[12] = 1
@@ -315,10 +315,8 @@ def Decode():
 
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
-        print("rd : " + str(RD))
         immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         ImmediateSign(20)
-        print("Immediate field : " + str(immed))
         if(opcode == int("0010111", 2)):
             ALUOp[0] = 1
             RA = PC
@@ -330,7 +328,6 @@ def Decode():
         GenerateControlSignals(1,1,0,0,0,0,0,0,0)
     elif opcode==int("1101111",2): # UJ format
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
-        print("rd : " + str(RD))
         immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         immed = 0
         immed = immed | ((immed_tmp & int("0x7FE00", 16)) >> 9)
@@ -407,7 +404,6 @@ def Execute():
 def MemoryAccess():
     # =========== CHECK =============
     global MAR,RY
-
     if MuxY_select == 0:
         RY = RZ
     elif MuxY_select == 1:
@@ -419,7 +415,6 @@ def MemoryAccess():
 
 def RegisterUpdate():
     global reg,RD
-    print('register mein',RF_Write, RD)
     if RF_Write == 1:
         reg[RD] = RY
 
@@ -469,10 +464,13 @@ def main():
     # exit from the code
 
 def run_RISC_simulator():
-    Fetch()
-    Decode()
-    Execute()
-    MemoryAccess()
-    RegisterUpdate()
-    print(reg)
+    while hex(PC) in instructionMemory:
+        Fetch()
+        Decode()
+        Execute()
+        MemoryAccess()
+        RegisterUpdate()
+        print(reg)
+        print(dataMemory)
+        print(instructionMemory)
 main()
