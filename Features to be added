@@ -1,6 +1,5 @@
 1. Hardcore the register x0 to zero. If someone tries to change it our code should give error
 2. Set the stack pointer, global pointer and other necessary registers.
-3. Add IAG module
 4. Add validation checks for instruction memory
 5. Add GUI
 6. In case of store instructions update the input.mc file 

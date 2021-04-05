@@ -117,12 +117,6 @@ def Decode():
     # UJ format - jal-1101111
 
     if opcode==int("0110011",2): # R format
-        # # setting control signals ------------------------
-        # MuxB_select =  0 # i.e choose RB
-        # MuxY_select = 0 # i.e choose output from RZ
-        # RF_write = 1 # i.e can write at register file
-        # numBytes = 4
-        # # ------------------------
         GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
