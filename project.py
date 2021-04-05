@@ -1,8 +1,5 @@
 # CS204 Project
 
-# TODO - 
-# Instruction memory should be byte addressable
-# Store dhange se karo
 
 from collections import defaultdict
 
@@ -37,7 +34,7 @@ ALUOp = [0]*15
 
 
 #Auxilary function______________
-def sra(number,times):     #to change the function
+def sra(number,times):     #correct function
     bx = bin(number)[2:]
     if len(bx)<32 or bx[0]=='0':
         return number>>times
