@@ -10,3 +10,6 @@ mul
 div
 rem
 jal
+sw
+sh
+sb
