@@ -9,7 +9,7 @@ mcFile = open("input.mc","r+")
 
 #defining global variables____________________________
 reg = [0]*32
-reg[5] = int("0x10000000",16)
+# reg[5] = int("0x10000000",16)
 RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
 
 def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
@@ -302,6 +302,7 @@ def Decode():
             immed = 12
         GenerateControlSignals(1,1,0,0,0,0,0,0,0)
     elif opcode==int("1101111",2): # UJ format
+        print("JAL---")
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         immed = 0
@@ -372,31 +373,36 @@ def Execute():
     elif(operation == 10): #and  
         RZ = (InA&InB)
     elif(operation == 11): #less_than 
-        RZ = (InA<InB)
+        RZ = int(InA<InB)
         MuxINC_select = RZ
     elif(operation == 12): #equal  
-        RZ = (InA==InB)
+        RZ = int(InA==InB)
         MuxINC_select = RZ
     elif(operation == 13): #not_equal  
-        RZ = (InA!=InB)
+        RZ = int(InA!=InB)
         MuxINC_select = RZ
     elif(operation == 14): #greater_than_equal_to  
-        RZ = (InA>=InB)
+        RZ = int(InA>=InB)
         MuxINC_select = RZ
     # return RZ
 
 def MemoryAccess():
     # =========== CHECK =============
     global MAR,RY,PC, MDR
+    print("--here")
+    print("pc--",PC)
+    
     # PC update (IAG module)    
     if(MuxPC_select == 0):
-        PC = RZ
+        print("rz",RZ)
+        PC = RA
     else:
         if(MuxINC_select == 0):
             PC = PC + 4
         else:
             PC = PC + immed
-
+    print("----------here")
+    print("pc-----------",PC)
 
     if MuxY_select == 0:
         RY = RZ
