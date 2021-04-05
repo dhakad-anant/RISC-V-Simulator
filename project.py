@@ -250,11 +250,11 @@ def Decode():
         ImmediateSign(12)
         ALUOp[0]=1
         if fun3 != int("000",2): # sb
-            GenerateControlSignals(0,1,0,0,1,0,1,0,1)
+            GenerateControlSignals(0,1,1,0,1,0,1,0,1)
         elif fun3 != int("001",2): # sh
-            GenerateControlSignals(0,1,0,0,1,0,1,0,2)
+            GenerateControlSignals(0,1,1,0,1,0,1,0,2)
         elif fun3 != int("010",2): # sw
-            GenerateControlSignals(0,1,0,0,1,0,1,0,4)
+            GenerateControlSignals(0,1,1,0,1,0,1,0,4)
         else:
             print("invalid fun3 => S format")
             exit(1)
