@@ -63,7 +63,7 @@ def ProcessorMemoryInterface():
             return ans
         elif Mem_Write == 1:
             for i in range (numBytes):
-                dataMemory[MAR][i] = MDR & int('0xFF'+'0'*(2*i),16)
+                dataMemory[MAR][i] = (MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
             return '0x1'
     else:
         ans = instructionMemory[MAR]
@@ -244,8 +244,8 @@ def Decode():
             # -----------------------------------------------------------------
 
     elif opcode==int("0100011",2): # S format
-        RS1 = (int(str(IR),16) & int("0xF8000",16)) >> 15
-        RS2 = (int(str(IR),16) & int("0x1F00000",16)) >> 20
+        RS2 = (int(str(IR),16) & int("0xF8000",16)) >> 15
+        RS1 = (int(str(IR),16) & int("0x1F00000",16)) >> 20
         immed4to0 = (int(str(IR),16) & int("0xF80",16)) >> 7
         immed11to5 = (int(str(IR),16) & int("0xFE000000",16)) >> 25
         immed = immed4to0 | immed11to5
@@ -394,10 +394,7 @@ def Execute():
 def MemoryAccess():
     # =========== CHECK =============
     global MAR,RY,PC, MDR
-    # PC update (IAG module)
-    # print("HHH", MuxPC_select)
-    
-
+    # PC update (IAG module)    
     if(MuxPC_select == 0):
         PC = RZ
     else:
@@ -412,6 +409,7 @@ def MemoryAccess():
     elif MuxY_select == 1:
         MAR = str(hex(RZ))
         MDR = RM
+        print(MAR,MDR)
         RY = int(ProcessorMemoryInterface(),16)
     elif MuxY_select == 2:
         RY = PC_Temp
