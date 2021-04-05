@@ -53,20 +53,24 @@ instructionMemory = defaultdict(lambda: [0,0,0,0])
 def ProcessorMemoryInterface():
     # Set MAR in Fetch
     if MuxMA_select == 0:
-        temp = dataMemory[MAR][:numBytes]
-        temp.reverse()
-        ans = '0x'
-        for i in temp:
-            curr =  hex(i)[2:]
-            ans += '0'*(2-len(curr)) + curr
-        return ans
+        if Mem_Read == 1:
+            temp = dataMemory[MAR][:numBytes]
+            temp.reverse()
+            ans = '0x'
+            for i in temp:
+                curr =  hex(i)[2:]
+                ans += '0'*(2-len(curr)) + curr
+            return ans
+        elif Mem_Write == 1:
+            for i in range (numBytes):
+                dataMemory[MAR][i] = MDR & int('0xFF'+'0'*(2*i),16)
+            return '0x1'
     else:
         ans = instructionMemory[MAR]
         ans.reverse()
         ans = (''.join(ans))
         ans = '0x'+ans
         return ans
-    
 
 def Fetch():
     #Pc, ir
