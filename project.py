@@ -84,6 +84,7 @@ def Fetch():
     
 
 def decimalToBinary(num, length):
+    print(num)
     ans=""
     while(num>0):
         if(num&1):
@@ -250,11 +251,11 @@ def Decode():
         immed = immed4to0 | immed11to5
         ImmediateSign(12)
         ALUOp[0]=1
-        if fun3 != int("000",2): # sb
+        if fun3 == int("000",2): # sb
             GenerateControlSignals(0,1,1,0,1,0,1,0,1)
-        elif fun3 != int("001",2): # sh
+        elif fun3 == int("001",2): # sh
             GenerateControlSignals(0,1,1,0,1,0,1,0,2)
-        elif fun3 != int("010",2): # sw
+        elif fun3 == int("010",2): # sw
             GenerateControlSignals(0,1,1,0,1,0,1,0,4)
         else:
             print("invalid fun3 => S format")
@@ -392,20 +393,25 @@ def Execute():
 
 def MemoryAccess():
     # =========== CHECK =============
-    global MAR,RY,PC
+    global MAR,RY,PC, MDR
     # PC update (IAG module)
-    if(MuxPC_select == 1):
+    # print("HHH", MuxPC_select)
+    
+
+    if(MuxPC_select == 0):
         PC = RZ
     else:
         if(MuxINC_select == 0):
             PC = PC + 4
         else:
             PC = PC + immed
-    # IAG module ends
+
+
     if MuxY_select == 0:
         RY = RZ
     elif MuxY_select == 1:
         MAR = str(hex(RZ))
+        MDR = RM
         RY = int(ProcessorMemoryInterface(),16)
     elif MuxY_select == 2:
         RY = PC_Temp
