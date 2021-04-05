@@ -12,8 +12,8 @@ mcFile = open("input.mc","r+")
 
 #defining global variables____________________________
 reg = [0]*32
-reg[5] = 10
-reg[6] = -22
+reg[5] = 28
+reg[6] = -3
 RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
 
 def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
@@ -106,7 +106,7 @@ def Decode():
     print("Decoding Results :-")
     print("Opcode : "+decimalToBinary(opcode, 7))
     # R format - (add,srl,sll,sub,slt,xor,sra,and,or,mul, div, rem)
-    # R format - (0110011)
+    # R format - (0110011)  
     # I format - (lb-0,lh-1,lw-2)(addi-0, andi-7, ori-6,)(jalr-0)
     # I format - (0000011)(0010011)(1100111)
     # S format - (sb, sw, sh)
@@ -369,7 +369,7 @@ def Execute():
         if(InB == 0):
             print("Error : Division by zero")
             exit(1)
-        RZ = InA/InB
+        RZ = int(InA/InB)
     elif(operation == 3): #mul
         RZ = InA*InB
     elif(operation == 4): #remainder
@@ -396,7 +396,7 @@ def Execute():
         RZ = (InA|InB)
     elif(operation == 10): #and  
         RZ = (InA&InB)
-    elif(operation == 11): #less_than  
+    elif(operation == 11): #less_than 
         RZ = (InA<InB)
     elif(operation == 12): #equal  
         RZ = (InA==InB)

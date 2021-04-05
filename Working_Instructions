@@ -4,3 +4,8 @@ ori
 add
 srl
 sll
+xor
+or
+mul
+div
+rem
