@@ -81,7 +81,6 @@ def Fetch():
     IR = ProcessorMemoryInterface()
     PC_Temp = PC + 4
     
-    PC = PC_Temp  # Adding this temporarily to check if instructions are working or not.
 
 def decimalToBinary(num, length):
     ans=""
@@ -471,4 +470,5 @@ def run_RISC_simulator():
         print(reg)
         print(dataMemory)
         print(instructionMemory)
+        print(PC)
 main()
