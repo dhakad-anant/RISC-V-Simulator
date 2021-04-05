@@ -198,11 +198,6 @@ def Decode():
             immed -= 4096
 
         if opcode==int("0000011",2): # lb/lh/lw
-            # # setting control signals ------------------------
-            # MuxB_select =  1 # i.e choose Immediate
-            # MuxY_select = 1 # i.e choose output from MDR
-            # RF_write = 1 # i.e can write at register file
-            # # ------------------------
             ALUOp[0]=1
             if fun3 == 0: #lb
                 GenerateControlSignals(1,1,1,1,0,0,1,0,1)
@@ -219,12 +214,6 @@ def Decode():
             # RM = RB         ---- DON'T CARES
             # -----------------------------------------------------------------
         elif opcode==int("0010011",2): #addi/andi/ori
-            # # setting control signals ------------------------
-            # numBytes = 4
-            # MuxB_select =  1 # i.e choose Immediate
-            # MuxY_select = 0 # i.e choose output from MDR
-            # RF_write = 1 # i.e can write at register file
-            # # ------------------------
             GenerateControlSignals(1,1,0,0,0,0,1,0,4)
             if fun3==0:#addi
                 ALUOp[0]=1
@@ -241,11 +230,6 @@ def Decode():
             # RM = RB         ---- DON'T CARES
             # -----------------------------------------------------------------
         elif opcode==int("1100111",2): #jalr **ERROR(CHECK IT)****
-            # # setting control signals ------------------------
-            # MuxB_select =  1 # i.e choose Immediate
-            # MuxY_select = 2 # i.e choose output from link register
-            # RF_write = 1 # i.e can write at register file
-            # # ------------------------
             GenerateControlSignals(1,0,2,0,0,0,0,1,4)
             if fun3==0:
                 ALUOp[0]=1
@@ -264,11 +248,6 @@ def Decode():
         immed4to0 = (int(str(IR),16) & int("0xF80",16)) >> 7
         immed11to5 = (int(str(IR),16) & int("0xFE000000",16)) >> 25
         immed = immed4to0 | immed11to5
-        # # setting control signals ------------------------
-        # MuxB_select =  1 # i.e choose Immediate
-        # MuxY_select = 0 # i.e choose output from RY(BUT IT IS A DON'T CARE BCZ YOU CAN WRITE TO RF FILE)
-        # RF_write = 0 # i.e can't write at register file
-        # # ------------------------
         ImmediateSign(12)
         ALUOp[0]=1
         if fun3 != int("000",2): # sb
@@ -337,9 +316,11 @@ def Decode():
         immed = immed | (immed_tmp & int("0x80000", 16))
         ImmediateSign(20)
         immed *= 2
-        ALUOp[0] = 1
+        ALUOp[12] = 1
+        RA = 0
+        RB = 0
         print("Immediate field : " + str(immed))
-        GenerateControlSignals(1,1,2,0,0,0,0,1,0)
+        GenerateControlSignals(1,0,2,0,0,0,0,1,0)
     else:
         print("invalid opcode")
 
@@ -352,7 +333,7 @@ def ImmediateSign(num):
     immed *= (-1)
 
 def Execute():
-    global immed,ALUOp,RZ, reg
+    global immed,ALUOp,RZ, reg,MuxINC_select
     operation = ALUOp.index(1)
     ALUOp = [0]*15
     InA = RA
@@ -397,17 +378,30 @@ def Execute():
         RZ = (InA&InB)
     elif(operation == 11): #less_than 
         RZ = (InA<InB)
+        MuxINC_select = RZ
     elif(operation == 12): #equal  
         RZ = (InA==InB)
+        MuxINC_select = RZ
     elif(operation == 13): #not_equal  
         RZ = (InA!=InB)
+        MuxINC_select = RZ
     elif(operation == 14): #greater_than_equal_to  
         RZ = (InA>=InB)
+        MuxINC_select = RZ
     # return RZ
 
 def MemoryAccess():
     # =========== CHECK =============
-    global MAR,RY
+    global MAR,RY,PC
+    # PC update (IAG module)
+    if(MuxPC_select == 1):
+        PC = RZ
+    else:
+        if(MuxINC_select == 0):
+            PC = PC + 4
+        else:
+            PC = PC + immed
+    # IAG module ends
     if MuxY_select == 0:
         RY = RZ
     elif MuxY_select == 1:
