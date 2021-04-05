@@ -12,8 +12,8 @@ mcFile = open("input.mc","r+")
 
 #defining global variables____________________________
 reg = [0]*32
-# reg[5] = 10
-# reg[6] = -1000
+reg[5] = 10
+reg[6] = -3
 RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
 
 def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
@@ -388,6 +388,9 @@ def Execute():
         # ********************ERROR***************** WRITE SRA
         pass
     elif(operation == 8): #shift_ri_lo  
+        if (InB<0):
+            print("Cannot  right shift a number negative times")
+            exit(1)
         RZ = InA>>InB
     elif(operation == 9): #or  
         RZ = (InA|InB)
