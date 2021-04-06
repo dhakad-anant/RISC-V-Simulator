@@ -84,7 +84,6 @@ def Fetch():
     
 
 def decimalToBinary(num, length):
-    print(num)
     ans=""
     while(num>0):
         if(num&1):
@@ -117,6 +116,7 @@ def Decode():
     # UJ format - jal-1101111
 
     if opcode==int("0110011",2): # R format
+        print("THIS IS R FORMAT---")
         GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
@@ -184,6 +184,7 @@ def Decode():
         # -----------------------------------------------------------------
    
     elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # I format
+        print("THIS IS I FORMAT---")
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
         immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
@@ -238,6 +239,7 @@ def Decode():
             # -----------------------------------------------------------------
 
     elif opcode==int("0100011",2): # S format
+        print("THIS IS S FORMAT---")
         RS2 = (int(str(IR),16) & int("0xF8000",16)) >> 15
         RS1 = (int(str(IR),16) & int("0x1F00000",16)) >> 20
         immed4to0 = (int(str(IR),16) & int("0xF80",16)) >> 7
@@ -261,6 +263,7 @@ def Decode():
         RM = RB
         # -----------------------------------------------------------------
     elif opcode==int("1100011",2): # SB format
+        print("THIS IS SB FORMAT---")
         RS1 = (int(IR, 16) & int("0xF8000", 16)) >> 15
         RS2 = (int(IR, 16) & int("0x1F00000", 16)) >> 20
         RA = reg[RS1]
@@ -302,7 +305,7 @@ def Decode():
             immed = 12
         GenerateControlSignals(1,1,0,0,0,0,0,0,0)
     elif opcode==int("1101111",2): # UJ format
-        print("JAL---")
+        print("THIS IS UJ FORMAT---")
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         immed = 0
@@ -316,7 +319,7 @@ def Decode():
         RA = 0
         RB = 0
         print("Immediate field : " + str(immed))
-        GenerateControlSignals(1,0,2,0,0,0,0,1,0)
+        GenerateControlSignals(1,0,2,0,0,0,1,1,0)
     else:
         print("invalid opcode")
 
@@ -377,39 +380,34 @@ def Execute():
         MuxINC_select = RZ
     elif(operation == 12): #equal  
         RZ = int(InA==InB)
-        MuxINC_select = RZ
+        # MuxINC_select = RZ
     elif(operation == 13): #not_equal  
         RZ = int(InA!=InB)
-        MuxINC_select = RZ
+        # MuxINC_select = RZ
     elif(operation == 14): #greater_than_equal_to  
         RZ = int(InA>=InB)
-        MuxINC_select = RZ
+        # MuxINC_select = RZ
     # return RZ
 
 def MemoryAccess():
     # =========== CHECK =============
     global MAR,RY,PC, MDR
-    print("--here")
-    print("pc--",PC)
     
     # PC update (IAG module)    
     if(MuxPC_select == 0):
-        print("rz",RZ)
         PC = RA
     else:
         if(MuxINC_select == 0):
             PC = PC + 4
         else:
             PC = PC + immed
-    print("----------here")
-    print("pc-----------",PC)
 
     if MuxY_select == 0:
         RY = RZ
     elif MuxY_select == 1:
         MAR = str(hex(RZ))
         MDR = RM
-        print(MAR,MDR)
+        print("MAR , MDR - ",MAR,MDR)
         RY = int(ProcessorMemoryInterface(),16)
     elif MuxY_select == 2:
         RY = PC_Temp
@@ -417,7 +415,7 @@ def MemoryAccess():
 
 def RegisterUpdate():
     global reg,RD
-    if RF_Write == 1:
+    if RF_Write == 1 and RD != 0:
         reg[RD] = RY
 
 def validateDataSegment(y):
@@ -442,7 +440,7 @@ def main():
         y = x.split('\n')[0].split()
         if flag==1:
             if validateDataSegment(y)==False:
-                print("ERROR")
+                print("ERROR : INVALID DATA SEGMENT")
                 exit(1)
             dataMemory[y[0]][0] = int(y[1],16) & int('0xFF',16)
             dataMemory[y[0]][1] = int(y[1],16) & int('0xFF00',16)
@@ -475,5 +473,5 @@ def run_RISC_simulator():
         print(reg)
         print(dataMemory)
         print(instructionMemory)
-        print(PC)
+        print("PC AFTER THIS INST -- ",PC)
 main()
