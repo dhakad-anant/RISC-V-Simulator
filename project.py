@@ -411,7 +411,7 @@ def MemoryAccess():
     if MuxY_select == 0:
         RY = RZ
     elif MuxY_select == 1:
-        MAR = str(hex(RZ))
+        MAR = str(hex(RZ)).lower()
         MDR = RM
         print("MAR , MDR - ",MAR,MDR)
         RY = int(ProcessorMemoryInterface(),16)
@@ -444,6 +444,7 @@ def main():
     for x in mcFile:
         #creating a hashmap, data segment stored
         y = x.split('\n')[0].split()
+        y[1] = y[1].lower()
         if flag==1:
             if validateDataSegment(y)==False:
                 print("ERROR : INVALID DATA SEGMENT")
@@ -458,13 +459,14 @@ def main():
         if flag==0:
             #TODO : Add Validation______
             y = x.split('\n')[0].split()
+            y[1] = y[1].lower()
             instructionMemory[y[0]][0] = hex(int(y[1],16) & int('0xFF',16))[2:]
             instructionMemory[y[0]][1] = hex((int(y[1],16) & int('0xFF00',16))>>8)[2:]
             instructionMemory[y[0]][2] = hex((int(y[1],16) & int('0xFF0000',16))>>16)[2:]
             instructionMemory[y[0]][3] = hex((int(y[1],16) & int('0xFF000000',16))>>24)[2:] 
             for i in range (4):
                 instructionMemory[y[0]][i] = '0'*(2-len(instructionMemory[y[0]][i])) + instructionMemory[y[0]][i]
-                instructionMemory[y[0]][i] = instructionMemory[y[0]][i].upper()
+                instructionMemory[y[0]][i] = instructionMemory[y[0]][i].lower()
     # run simulator 
     run_RISC_simulator()
     # exit from the code
@@ -477,7 +479,7 @@ def run_RISC_simulator():
         MemoryAccess()
         RegisterUpdate()
         print(reg)
-        print(dataMemory)
-        print(instructionMemory)
+        print({k:dataMemory[k] for k in dataMemory})
+        print({k:instructionMemory[k] for k in instructionMemory})
         print("PC AFTER THIS INST -- ",PC)
 main()

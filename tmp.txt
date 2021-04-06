@@ -1,4 +1,3 @@
-checking fatorial code
 0x0	0x10000517	auipc x10 65536	lw x10, n
 0x4	0x00052503	lw x10 0(x10)	lw x10, n
 0x8	0x00100993	addi x19 x0 1	li x19, 1 # constant

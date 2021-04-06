@@ -1,7 +1,9 @@
-1. Hardcore the register x0 to zero. If someone tries to change it our code should give error
-2. Set the stack pointer, global pointer and other necessary registers.
+1. Hardcore the register x0 to zero. If someone tries to change it our code should give error  -- done
+2. Set the stack pointer, global pointer and other necessary registers.                        -- done
 4. Add validation checks for instruction memory
 5. Add GUI
 6. In case of store instructions update the input.mc file 
-7. Add a for loop in the main function to read for all the instructions
-8. add validation for fetching from the datamemory
+7. Add a for loop in the main function to read for all the instructions                         -- done
+8. add validation for fetching from the datamemory 
+9. size of immediate field checking according to the instruction type
+10. 
