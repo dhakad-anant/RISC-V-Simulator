@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'test.ui'
+# Form implementation generated from reading ui file 'projectonlyGUI.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.2
 #
@@ -9,24 +9,27 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
-import sys
 from collections import defaultdict
-
 # Read the .mc file as input
 mcFile = open("input.mc","r+")
 # File reading completed
 
+labelNo = 0
+labelText = ""
 #defining global variables____________________________
 reg = [0]*32
-
+reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
+reg[3] = int("0x10000000",16) # pointer to begining of data segment
 ALUOp = [0]*15
-RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
-# pyuic5 -x test.ui -o test
 dataMemory = defaultdict(lambda : [0,0,0,0])
 instructionMemory = defaultdict(lambda: [0,0,0,0])
-def finalFunction():
+RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
+def project():
+    # CS204 Project
+
+
     
+
     def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
         global RF_Write, MuxB_select, MuxY_select, MuxMA_select, MuxINC_select, MuxPC_select, Mem_Read, Mem_Write,numBytes
 
@@ -91,6 +94,10 @@ def finalFunction():
         global IR,MAR,MuxMA_select, PC_Temp, PC
 
         print("Fetching the instruction")
+        labelText="Fetching the instruction"
+        ui.updateLabel(1,labelText)
+        # label = "label_"+str(labelNo)
+        # MainWindow.label_.setText(labelText)
         MAR = hex(PC)
         MuxMA_select = 1    
         IR = ProcessorMemoryInterface()
@@ -98,7 +105,6 @@ def finalFunction():
         
 
     def decimalToBinary(num, length):
-        print(num)
         ans=""
         while(num>0):
             if(num&1):
@@ -112,11 +118,13 @@ def finalFunction():
 
     def Decode():
         print("Decoding the instruction")
+        labelText="Decoding the instruction"
+        ui.updateLabel(2,labelText)
         #getting the opcode
         global opcode,immed,RS1,RS2,RD,RF_Write,MuxB_select,numBytes,RM,RA,RB, reg
         opcode = int(str(IR),16) & int("0x7f",16)
         fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
-        instruction = [0]*32
+        
         print("Decoding Results :-")
         print("Opcode : "+decimalToBinary(opcode, 7))
         # R format - (add,srl,sll,sub,slt,xor,sra,and,or,mul, div, rem)
@@ -131,6 +139,7 @@ def finalFunction():
         # UJ format - jal-1101111
 
         if opcode==int("0110011",2): # R format
+            print("THIS IS R FORMAT---")
             GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
             RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
             RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
@@ -198,6 +207,7 @@ def finalFunction():
             # -----------------------------------------------------------------
     
         elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # I format
+            print("THIS IS I FORMAT---")
             RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
             RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
             immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
@@ -252,6 +262,7 @@ def finalFunction():
                 # -----------------------------------------------------------------
 
         elif opcode==int("0100011",2): # S format
+            print("THIS IS S FORMAT---")
             RS2 = (int(str(IR),16) & int("0xF8000",16)) >> 15
             RS1 = (int(str(IR),16) & int("0x1F00000",16)) >> 20
             immed4to0 = (int(str(IR),16) & int("0xF80",16)) >> 7
@@ -274,7 +285,9 @@ def finalFunction():
             RB = reg[RS1]
             RM = RB
             # -----------------------------------------------------------------
+
         elif opcode==int("1100011",2): # SB format
+            print("THIS IS SB FORMAT---")
             RS1 = (int(IR, 16) & int("0xF8000", 16)) >> 15
             RS2 = (int(IR, 16) & int("0x1F00000", 16)) >> 20
             RA = reg[RS1]
@@ -303,20 +316,22 @@ def finalFunction():
             GenerateControlSignals(0,0,0,0,0,0,0,1,0)
 
         elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
+            print("THIS IS U FORMAT---")
             RD = (int(IR, 16) & int("0xF80", 16)) >> 7
             immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
             ImmediateSign(20)
-            if(opcode == int("0010111", 2)):
+            if(opcode == int("0010111", 2)): # AUIPC
                 ALUOp[0] = 1
                 RA = PC
                 immed = immed << 12
-            else:
+            else: #LUI
                 ALUOp[6] = 1
                 RA = immed
                 immed = 12
-            GenerateControlSignals(1,1,0,0,0,0,0,0,0)
+            GenerateControlSignals(1,1,0,0,0,0,1,0,0)
+
         elif opcode==int("1101111",2): # UJ format
-            print("JAL---")
+            print("THIS IS UJ FORMAT---")
             RD = (int(IR, 16) & int("0xF80", 16)) >> 7
             immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
             immed = 0
@@ -330,7 +345,8 @@ def finalFunction():
             RA = 0
             RB = 0
             print("Immediate field : " + str(immed))
-            GenerateControlSignals(1,0,2,0,0,0,0,1,0)
+            GenerateControlSignals(1,0,2,0,0,0,1,1,0)
+
         else:
             print("invalid opcode")
 
@@ -343,6 +359,8 @@ def finalFunction():
         immed *= (-1)
 
     def Execute():
+        labelText="Executing the instruction"
+        ui.updateLabel(3,labelText)
         global immed,ALUOp,RZ, reg,MuxINC_select
         operation = ALUOp.index(1)
         ALUOp = [0]*15
@@ -391,47 +409,46 @@ def finalFunction():
             MuxINC_select = RZ
         elif(operation == 12): #equal  
             RZ = int(InA==InB)
-            MuxINC_select = RZ
+            # MuxINC_select = RZ
         elif(operation == 13): #not_equal  
             RZ = int(InA!=InB)
-            MuxINC_select = RZ
+            # MuxINC_select = RZ
         elif(operation == 14): #greater_than_equal_to  
             RZ = int(InA>=InB)
-            MuxINC_select = RZ
+            # MuxINC_select = RZ
         # return RZ
 
     def MemoryAccess():
+        labelText="Accessing the Memory"
+        ui.updateLabel(4,labelText)
         # =========== CHECK =============
         global MAR,RY,PC, MDR
-        print("--here")
-        print("pc--",PC)
         
         # PC update (IAG module)    
         if(MuxPC_select == 0):
-            print("rz",RZ)
             PC = RA
         else:
             if(MuxINC_select == 0):
                 PC = PC + 4
             else:
                 PC = PC + immed
-        print("----------here")
-        print("pc-----------",PC)
 
         if MuxY_select == 0:
             RY = RZ
         elif MuxY_select == 1:
-            MAR = str(hex(RZ))
+            MAR = str(hex(RZ)).lower()
             MDR = RM
-            print(MAR,MDR)
+            print("MAR , MDR - ",MAR,MDR)
             RY = int(ProcessorMemoryInterface(),16)
         elif MuxY_select == 2:
             RY = PC_Temp
 
 
     def RegisterUpdate():
+        labelText="Updating the Register"
+        ui.updateLabel(5,labelText)
         global reg,RD
-        if RF_Write == 1:
+        if RF_Write == 1 and RD != 0:
             reg[RD] = RY
 
     def validateDataSegment(y):
@@ -454,9 +471,10 @@ def finalFunction():
         for x in mcFile:
             #creating a hashmap, data segment stored
             y = x.split('\n')[0].split()
+            y[1] = y[1].lower()
             if flag==1:
                 if validateDataSegment(y)==False:
-                    print("ERROR")
+                    print("ERROR : INVALID DATA SEGMENT")
                     exit(1)
                 dataMemory[y[0]][0] = int(y[1],16) & int('0xFF',16)
                 dataMemory[y[0]][1] = int(y[1],16) & int('0xFF00',16)
@@ -468,17 +486,18 @@ def finalFunction():
             if flag==0:
                 #TODO : Add Validation______
                 y = x.split('\n')[0].split()
+                y[1] = y[1].lower()
                 instructionMemory[y[0]][0] = hex(int(y[1],16) & int('0xFF',16))[2:]
                 instructionMemory[y[0]][1] = hex((int(y[1],16) & int('0xFF00',16))>>8)[2:]
                 instructionMemory[y[0]][2] = hex((int(y[1],16) & int('0xFF0000',16))>>16)[2:]
                 instructionMemory[y[0]][3] = hex((int(y[1],16) & int('0xFF000000',16))>>24)[2:] 
                 for i in range (4):
                     instructionMemory[y[0]][i] = '0'*(2-len(instructionMemory[y[0]][i])) + instructionMemory[y[0]][i]
-                    instructionMemory[y[0]][i] = instructionMemory[y[0]][i].upper()
+                    instructionMemory[y[0]][i] = instructionMemory[y[0]][i].lower()
         # run simulator 
         run_RISC_simulator()
         # exit from the code
-    
+
     def run_RISC_simulator():
         while hex(PC) in instructionMemory:
             Fetch()
@@ -487,64 +506,110 @@ def finalFunction():
             MemoryAccess()
             RegisterUpdate()
             print(reg)
-            print(dataMemory)
-            print(instructionMemory)
-            print(PC)
+            print({k:dataMemory[k] for k in dataMemory})
+            print({k:instructionMemory[k] for k in instructionMemory})
+            print("PC AFTER THIS INST -- ",PC)
     main()
-    return
+
+
 
 class Ui_MainWindow(object):
-    def button_clicked(self):
-        print("button clicked1")
-        finalFunction()
+    def updateLabel(self,labelNo,labelText):
+        # self.label_1.setText("1. Not Here")
+        # self.label_2.setText("2. Not Here")
+        # self.label_3.setText("3. Not Here")
+        # self.label_4.setText("4. Not Here")
+        # self.label_5.setText("5. Not Here")
+        if labelNo==1:
+            self.label_1.setText(labelText)
+        elif labelNo==2:
+            self.label_2.setText(labelText)
+        elif labelNo==3:
+            self.label_3.setText(labelText)
+        elif labelNo==4:
+            self.label_4.setText(labelText)
+        elif labelNo==5:
+            self.label_5.setText(labelText)
         
+    def button_clicked(self):
+        project()
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
-        font = QtGui.QFont()
-        font.setPointSize(22)
-        MainWindow.setFont(font)
+        MainWindow.resize(851, 715)
         MainWindow.setAutoFillBackground(False)
+        MainWindow.setStyleSheet("background-color: rgb(48, 48, 48);")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(300, 210, 221, 81))
+        self.pushButton.setGeometry(QtCore.QRect(622, 150, 121, 51))
         font = QtGui.QFont()
-        font.setPointSize(22)
+        font.setFamily("Corbel")
+        font.setPointSize(14)
         self.pushButton.setFont(font)
-        self.pushButton.setAutoFillBackground(False)
+        self.pushButton.setStyleSheet("background-color: rgb(255, 255, 255);")
         self.pushButton.setObjectName("pushButton")
+        self.pushButton.clicked.connect(self.button_clicked)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.label_1 = QtWidgets.QLabel(self.centralwidget)
+        self.label_1.setGeometry(QtCore.QRect(50, 170, 341, 41))
+        self.label_1.setObjectName("label_1")
+        self.label_2 = QtWidgets.QLabel(self.centralwidget)
+        self.label_2.setGeometry(QtCore.QRect(50, 250, 341, 41))
+        self.label_2.setObjectName("label_2")
+        self.label_3 = QtWidgets.QLabel(self.centralwidget)
+        self.label_3.setGeometry(QtCore.QRect(50, 330, 341, 41))
+        self.label_3.setObjectName("label_3")
+        self.label_4 = QtWidgets.QLabel(self.centralwidget)
+        self.label_4.setGeometry(QtCore.QRect(50, 410, 341, 41))
+        self.label_4.setObjectName("label_4")
+        self.label_5 = QtWidgets.QLabel(self.centralwidget)
+        self.label_5.setGeometry(QtCore.QRect(50, 490, 341, 41))
+        self.label_5.setObjectName("label_5")
+        self.label_1.setFont(font)
+        self.label_1.setStyleSheet("background: rgb(255, 255, 255)")
+        self.label_2.setFont(font)
+        self.label_2.setStyleSheet("background: rgb(255, 255, 255)")
+        self.label_3.setFont(font)
+        self.label_3.setStyleSheet("background: rgb(255, 255, 255)")
+        self.label_4.setFont(font)
+        self.label_4.setStyleSheet("background: rgb(255, 255, 255)")
+        self.label_5.setFont(font)
+        self.label_5.setStyleSheet("background: rgb(255, 255, 255)")
+        self.label_1.setText("")
+        self.label_2.setText("")
+        self.label_3.setText("")
+        self.label_4.setText("")
+        self.label_5.setText("")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 56))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 851, 26))
         self.menubar.setObjectName("menubar")
-        self.menuFile = QtWidgets.QMenu(self.menubar)
-        self.menuFile.setObjectName("menuFile")
-        self.menuEdit = QtWidgets.QMenu(self.menubar)
-        self.menuEdit.setObjectName("menuEdit")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-        self.menubar.addAction(self.menuFile.menuAction())
-        self.menubar.addAction(self.menuEdit.menuAction())
-        self.pushButton.clicked.connect(self.button_clicked)
+
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("PROJECT", "MainWindow"))
         self.pushButton.setText(_translate("MainWindow", "RUN"))
-        self.menuFile.setTitle(_translate("MainWindow", "File"))
-        self.menuEdit.setTitle(_translate("MainWindow", "Edit"))
+        self.label_1.setText(_translate("MainWindow", ""))
+        self.label_2.setText(_translate("MainWindow", ""))
+        self.label_3.setText(_translate("MainWindow", ""))
+        self.label_4.setText(_translate("MainWindow", ""))
+        self.label_5.setText(_translate("MainWindow", ""))
 
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+
+import sys
+app = QtWidgets.QApplication(sys.argv)
+MainWindow = QtWidgets.QMainWindow()
+ui = Ui_MainWindow()
+ui.setupUi(MainWindow)
+MainWindow.show()
+sys.exit(app.exec_())
+
