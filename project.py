@@ -9,7 +9,7 @@ mcFile = open("input.mc","r+")
 
 #defining global variables____________________________
 reg = [0]*32
-reg[5] = int("0x10000000",16)
+# reg[5] = int("0x10000000",16)
 RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
 
 def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
@@ -117,12 +117,6 @@ def Decode():
     # UJ format - jal-1101111
 
     if opcode==int("0110011",2): # R format
-        # # setting control signals ------------------------
-        # MuxB_select =  0 # i.e choose RB
-        # MuxY_select = 0 # i.e choose output from RZ
-        # RF_write = 1 # i.e can write at register file
-        # numBytes = 4
-        # # ------------------------
         GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
@@ -231,7 +225,8 @@ def Decode():
             # RM = RB         ---- DON'T CARES
             # -----------------------------------------------------------------
         elif opcode==int("1100111",2): #jalr **ERROR(CHECK IT)****
-            GenerateControlSignals(1,0,2,0,0,0,0,1,4)
+            print("======== JALR CHAL GYAA ========")
+            GenerateControlSignals(1,1,2,0,0,0,0,1,4)
             if fun3==0:
                 ALUOp[0]=1
             else:
@@ -239,6 +234,7 @@ def Decode():
                 exit(1)
             #setting ra rb rm -------------------------------------------------
             RA = reg[RS1]
+            print('=>',RS1,RD)
             # RB = reg[RS2]   ---- DON'T CARES
             # RM = RB         ---- DON'T CARES
             # -----------------------------------------------------------------
@@ -308,6 +304,7 @@ def Decode():
             immed = 12
         GenerateControlSignals(1,1,0,0,0,0,0,0,0)
     elif opcode==int("1101111",2): # UJ format
+        print('=== JAL CHALAA ===')
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         immed = 0
@@ -317,7 +314,7 @@ def Decode():
         immed = immed | (immed_tmp & int("0x80000", 16))
         ImmediateSign(20)
         immed *= 2
-        ALUOp[12] = 1
+        ALUOp[0] = 1
         RA = 0
         RB = 0
         print("Immediate field : " + str(immed))
@@ -378,31 +375,32 @@ def Execute():
     elif(operation == 10): #and  
         RZ = (InA&InB)
     elif(operation == 11): #less_than 
-        RZ = (InA<InB)
+        RZ = int(InA<InB)
         MuxINC_select = RZ
     elif(operation == 12): #equal  
-        RZ = (InA==InB)
+        RZ = int(InA==InB)
         MuxINC_select = RZ
     elif(operation == 13): #not_equal  
-        RZ = (InA!=InB)
+        RZ = int(InA!=InB)
         MuxINC_select = RZ
     elif(operation == 14): #greater_than_equal_to  
-        RZ = (InA>=InB)
+        RZ = int(InA>=InB)
         MuxINC_select = RZ
     # return RZ
 
 def MemoryAccess():
     # =========== CHECK =============
     global MAR,RY,PC, MDR
+    
     # PC update (IAG module)    
     if(MuxPC_select == 0):
-        PC = RZ
+        PC = RY
+
     else:
         if(MuxINC_select == 0):
             PC = PC + 4
         else:
             PC = PC + immed
-
 
     if MuxY_select == 0:
         RY = RZ
@@ -417,7 +415,7 @@ def MemoryAccess():
 
 def RegisterUpdate():
     global reg,RD
-    if RF_Write == 1:
+    if RF_Write == 1 and RD != 0:
         reg[RD] = RY
 
 def validateDataSegment(y):
