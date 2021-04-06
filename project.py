@@ -9,7 +9,9 @@ mcFile = open("input.mc","r+")
 
 #defining global variables____________________________
 reg = [0]*32
-# reg[5] = int("0x10000000",16)
+reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
+reg[3] = int("0x10000000",16) # pointer to begining of data segment
+
 RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
 
 def GenerateControlSignals(reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
@@ -101,7 +103,7 @@ def Decode():
     global opcode,immed,RS1,RS2,RD,RF_Write,MuxB_select,numBytes,RM,RA,RB, reg
     opcode = int(str(IR),16) & int("0x7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
-    instruction = [0]*32
+    
     print("Decoding Results :-")
     print("Opcode : "+decimalToBinary(opcode, 7))
     # R format - (add,srl,sll,sub,slt,xor,sra,and,or,mul, div, rem)
@@ -262,6 +264,7 @@ def Decode():
         RB = reg[RS1]
         RM = RB
         # -----------------------------------------------------------------
+
     elif opcode==int("1100011",2): # SB format
         print("THIS IS SB FORMAT---")
         RS1 = (int(IR, 16) & int("0xF8000", 16)) >> 15
@@ -292,18 +295,20 @@ def Decode():
         GenerateControlSignals(0,0,0,0,0,0,0,1,0)
 
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
+        print("THIS IS U FORMAT---")
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         ImmediateSign(20)
-        if(opcode == int("0010111", 2)):
+        if(opcode == int("0010111", 2)): # AUIPC
             ALUOp[0] = 1
             RA = PC
             immed = immed << 12
-        else:
+        else: #LUI
             ALUOp[6] = 1
             RA = immed
             immed = 12
-        GenerateControlSignals(1,1,0,0,0,0,0,0,0)
+        GenerateControlSignals(1,1,0,0,0,0,1,0,0)
+
     elif opcode==int("1101111",2): # UJ format
         print("THIS IS UJ FORMAT---")
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
@@ -320,6 +325,7 @@ def Decode():
         RB = 0
         print("Immediate field : " + str(immed))
         GenerateControlSignals(1,0,2,0,0,0,1,1,0)
+
     else:
         print("invalid opcode")
 
