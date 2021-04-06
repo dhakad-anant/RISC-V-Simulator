@@ -1,0 +1,19 @@
+0x0	0x10000517	auipc x10 65536	lw x10, n
+0x4	0x00052503	lw x10 0(x10)	lw x10, n
+0x8	0x00100993	addi x19 x0 1	li x19, 1 # constant
+0xc	0x008000EF	jal x1 8	jal x1, fact
+0x10 0x02000C63	beq x0 x0 56	beq x0, x0, exit
+0x14 0xFF810113	addi x2 x2 -8	addi sp, sp, -8
+0x18 0x00A12023	sw x10 0(x2)	sw x10, 0(sp) # saving current n on the stack
+0x1c 0x00112223	sw x1 4(x2)	sw x1, 4(sp) # saving current return address on the stack
+0x20 0x00A9C663	blt x19 x10 12	bgt x10, x19, else # branch if x10 > x19 ( n > 1 )
+0x24 0x00810113	addi x2 x2 8	addi sp, sp, 8
+0x28 0x00008067	jalr x0 x1 0	jalr x0, x1, 0
+0x2c 0xFFF50513	addi x10 x10 -1	addi x10, x10, -1
+0x30 0xFE5FF0EF	jal x1 -28	jal x1, fact
+0x34 0x00012A03	lw x20 0(x2)	lw x20, 0(sp) # retrieving current n from the stack # x20 = n
+0x38 0x00412083	lw x1 4(x2)	lw x1, 4(sp) # retrieving current return address from the stack
+0x3c 0x00810113	addi x2 x2 8	addi sp, sp, 8
+0x40 0x03450533	mul x10 x10 x20	mul x10, x10, x20 # currans = prevans*n
+0x44 0x00008067	jalr x0 x1 0	jalr x0, x1, 0
+0x48 $
