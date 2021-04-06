@@ -69,10 +69,12 @@ def ProcessorMemoryInterface():
             return '0x1'
     else:
         ans = instructionMemory[MAR]
-        ans.reverse()
-        ans = (''.join(ans))
-        ans = '0x'+ans
-        return ans
+        newans = ""
+        x=len(ans)
+        for i in range(len(ans)):
+            newans += ans[x-1-i]
+        newans = '0x'+newans
+        return newans
 
 def Fetch():
     #Pc, ir
@@ -100,7 +102,8 @@ def decimalToBinary(num, length):
 def Decode():
     print("Decoding the instruction")
     #getting the opcode
-    global opcode,immed,RS1,RS2,RD,RF_Write,MuxB_select,numBytes,RM,RA,RB, reg
+    global opcode,immed,RS1,RS2,RD,RF_Write,MuxB_select,numBytes,RM,RA,RB,reg,ALUOp
+    ALUOp = [0]*15
     opcode = int(str(IR),16) & int("0x7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
     
@@ -292,7 +295,7 @@ def Decode():
         else:
             print("Invalid fun3 for SB Format instruction. Terminating the program.")
             exit(1)
-        GenerateControlSignals(0,0,0,0,0,0,0,1,0)
+        GenerateControlSignals(0,0,0,0,0,0,1,1,0)
 
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
         print("THIS IS U FORMAT---")
@@ -386,13 +389,13 @@ def Execute():
         MuxINC_select = RZ
     elif(operation == 12): #equal  
         RZ = int(InA==InB)
-        # MuxINC_select = RZ
+        MuxINC_select = RZ
     elif(operation == 13): #not_equal  
         RZ = int(InA!=InB)
-        # MuxINC_select = RZ
+        MuxINC_select = RZ
     elif(operation == 14): #greater_than_equal_to  
         RZ = int(InA>=InB)
-        # MuxINC_select = RZ
+        MuxINC_select = RZ
     # return RZ
 
 def MemoryAccess():
