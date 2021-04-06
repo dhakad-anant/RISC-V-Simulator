@@ -462,12 +462,9 @@ def main():
         if flag==0:
             #TODO : Add Validation______
             y = x.split('\n')[0].split()
-            y[1] = y[1].lower()
-            instructionMemory[y[0]][0] = hex(int(y[1],16) & int('0xFF',16))[2:]
-            instructionMemory[y[0]][1] = hex((int(y[1],16) & int('0xFF00',16))>>8)[2:]
-            instructionMemory[y[0]][2] = hex((int(y[1],16) & int('0xFF0000',16))>>16)[2:]
-            instructionMemory[y[0]][3] = hex((int(y[1],16) & int('0xFF000000',16))>>24)[2:] 
+            y[1] = y[1].lower() 
             for i in range (4):
+                instructionMemory[y[0]][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
                 instructionMemory[y[0]][i] = '0'*(2-len(instructionMemory[y[0]][i])) + instructionMemory[y[0]][i]
                 instructionMemory[y[0]][i] = instructionMemory[y[0]][i].lower()
     # run simulator 
