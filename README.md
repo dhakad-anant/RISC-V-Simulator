@@ -16,6 +16,7 @@ RISC-V-Simulator
   |- docs
       |-
       |- documentation.docx
+  |-
   |- test
       |-
       |- bubble_machine_code.mc 
@@ -24,6 +25,7 @@ RISC-V-Simulator
       |- factorialcode.txt
       |- fibonacci_machine_code.mc
       |- fibonaccicode.txt
+  |-
   |- ProjectGUI.py 
   |- requirements.txt
   |- README.md
