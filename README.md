@@ -14,14 +14,14 @@ Directory Structure:
 RISC-V-Simulator
   |
   |- doc
-        |- Documentation.docx
+      |- Documentation.docx
   |- test
-        |- bubble_machine_code.mc 
-        |- bubblecode.txt
-        |- factorial_machine_code.mc
-        |- factorialcode.txt
-        |- fibonacci_machine_code.mc
-        |- fibonaccicode.txt
+      |- bubble_machine_code.mc 
+      |- bubblecode.txt
+      |- factorial_machine_code.mc
+      |- factorialcode.txt
+      |- fibonacci_machine_code.mc
+      |- fibonaccicode.txt
   |- 
   |- ProjectGUI.py 
   |- Requirements.txt
