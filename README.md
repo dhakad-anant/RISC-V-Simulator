@@ -31,6 +31,7 @@ RISC-V-Simulator
   |- README.md
   |- input.mc
   |- output.mc
+  |- output.txt
 
 # How to run
 ------------
