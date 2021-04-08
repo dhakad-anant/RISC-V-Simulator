@@ -3,8 +3,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 from collections import defaultdict
 
 import sys ,os
-# Read the .mc file as input
-mcFile = open("input.mc","r")
+
 # File reading completed
 
 #defining global variables____________________________
@@ -890,7 +889,8 @@ def validateInstruction(y):
 
 def main():
 
-
+    # Read the .mc file as input
+    mcFile = open("input.mc","r")
     # load the data segment
     flag = 0
     for x in mcFile:
@@ -960,10 +960,24 @@ def run_RISC_simulator():
             isStepClicked=0
             flag=0
         UpdateFile("output.mc")
-    print(reg)
-    print({k:dataMemory[k] for k in dataMemory})
-    print({k:instructionMemory[k] for k in instructionMemory})
+    print("============= REGISTERS =============")
+    for i in range (len(reg)):
+        print('x'+str(i)+' =',reg[i])
+    print()
+    print("============= DATA MEMORY =============")
+    for i in dataMemory:
+        print(i+' =',dataMemory[i])
+    print()
+    print("============= INSTRUCTION MEMORY =============")
+    for i in instructionMemory:
+        print(i+' =',instructionMemory[i])
+    print()
+    print("PC = ",hex(PC))
+    print()
     UpdateFile("output.mc")
+    if hex(PC) not in instructionMemory:
+        print("PROGRAM FULLY EXECUTED")
+        exit(0)
 app = QtWidgets.QApplication(sys.argv)
 MainWindow = QtWidgets.QMainWindow()
 ui = Ui_MainWindow()
