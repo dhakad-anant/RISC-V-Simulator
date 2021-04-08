@@ -1,5 +1,4 @@
 # CS204 Project
-
 from PyQt5 import QtCore, QtGui, QtWidgets
 from collections import defaultdict
 
@@ -26,6 +25,16 @@ isStepClicked = 0
 import sys ,os
 run = 0
 
+def resetButton():
+    init()
+    clk=0
+    ui.updateRegisters(reg,clk)
+    ui.label_41.setText("")
+    ui.label_2.setText("")
+    ui.label_3.setText("")
+    ui.label_4.setText("")
+    ui.label_5.setText("")
+    main()
 
 class Ui_MainWindow(object):
 
@@ -140,6 +149,7 @@ class Ui_MainWindow(object):
 
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_4.setGeometry(QtCore.QRect(550, 100, 160, 51))
+        self.pushButton_4.clicked.connect(resetButton)
         font = QtGui.QFont()
         font.setFamily("Corbel")
         font.setPointSize(14)
@@ -360,49 +370,49 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.pushButton.setText(_translate("MainWindow", "RUN"))
-        self.label.setText(_translate("MainWindow", "TextLabel"))
-        self.label_2.setText(_translate("MainWindow", "TextLabel"))
-        self.label_3.setText(_translate("MainWindow", "TextLabel"))
-        self.label_4.setText(_translate("MainWindow", "TextLabel"))
-        self.label_5.setText(_translate("MainWindow", "TextLabel"))
+        self.label.setText(_translate("MainWindow", ""))
+        self.label_2.setText(_translate("MainWindow", ""))
+        self.label_3.setText(_translate("MainWindow", ""))
+        self.label_4.setText(_translate("MainWindow", ""))
+        self.label_5.setText(_translate("MainWindow", ""))
         self.pushButton_2.setText(_translate("MainWindow", "STEP"))
         self.pushButton_4.setText(_translate("MainWindow", "RESET"))
-        self.label_6.setText(_translate("MainWindow", "TextLabel"))
-        self.label_8.setText(_translate("MainWindow", "TextLabel"))
-        self.label_7.setText(_translate("MainWindow", "TextLabel"))
-        self.label_9.setText(_translate("MainWindow", "TextLabel"))
-        self.label_10.setText(_translate("MainWindow", "TextLabel"))
-        self.label_11.setText(_translate("MainWindow", "TextLabel"))
-        self.label_12.setText(_translate("MainWindow", "TextLabel"))
-        self.label_13.setText(_translate("MainWindow", "TextLabel"))
-        self.label_14.setText(_translate("MainWindow", "TextLabel"))
-        self.label_15.setText(_translate("MainWindow", "TextLabel"))
-        self.label_16.setText(_translate("MainWindow", "TextLabel"))
-        self.label_17.setText(_translate("MainWindow", "TextLabel"))
-        self.label_18.setText(_translate("MainWindow", "TextLabel"))
-        self.label_19.setText(_translate("MainWindow", "TextLabel"))
-        self.label_20.setText(_translate("MainWindow", "TextLabel"))
-        self.label_21.setText(_translate("MainWindow", "TextLabel"))
-        self.label_22.setText(_translate("MainWindow", "TextLabel"))
-        self.label_23.setText(_translate("MainWindow", "TextLabel"))
-        self.label_24.setText(_translate("MainWindow", "TextLabel"))
-        self.label_25.setText(_translate("MainWindow", "TextLabel"))
-        self.label_26.setText(_translate("MainWindow", "TextLabel"))
-        self.label_27.setText(_translate("MainWindow", "TextLabel"))
-        self.label_28.setText(_translate("MainWindow", "TextLabel"))
-        self.label_29.setText(_translate("MainWindow", "TextLabel"))
-        self.label_30.setText(_translate("MainWindow", "TextLabel"))
-        self.label_31.setText(_translate("MainWindow", "TextLabel"))
-        self.label_32.setText(_translate("MainWindow", "TextLabel"))
-        self.label_33.setText(_translate("MainWindow", "TextLabel"))
-        self.label_34.setText(_translate("MainWindow", "TextLabel"))
-        self.label_35.setText(_translate("MainWindow", "TextLabel"))
-        self.label_36.setText(_translate("MainWindow", "TextLabel"))
-        self.label_37.setText(_translate("MainWindow", "TextLabel"))
-        self.label_38.setText(_translate("MainWindow", "TextLabel"))
-        self.label_39.setText(_translate("MainWindow", "TextLabel"))
-        self.label_40.setText(_translate("MainWindow", "TextLabel"))
-        self.label_41.setText(_translate("MainWindow", "TextLabel"))
+        self.label_6.setText(_translate("MainWindow", ""))
+        self.label_8.setText(_translate("MainWindow", ""))
+        self.label_7.setText(_translate("MainWindow", ""))
+        self.label_9.setText(_translate("MainWindow", ""))
+        self.label_10.setText(_translate("MainWindow", ""))
+        self.label_11.setText(_translate("MainWindow", ""))
+        self.label_12.setText(_translate("MainWindow", ""))
+        self.label_13.setText(_translate("MainWindow", ""))
+        self.label_14.setText(_translate("MainWindow", ""))
+        self.label_15.setText(_translate("MainWindow", ""))
+        self.label_16.setText(_translate("MainWindow", ""))
+        self.label_17.setText(_translate("MainWindow", ""))
+        self.label_18.setText(_translate("MainWindow", ""))
+        self.label_19.setText(_translate("MainWindow", ""))
+        self.label_20.setText(_translate("MainWindow", ""))
+        self.label_21.setText(_translate("MainWindow", ""))
+        self.label_22.setText(_translate("MainWindow", ""))
+        self.label_23.setText(_translate("MainWindow", ""))
+        self.label_24.setText(_translate("MainWindow", ""))
+        self.label_25.setText(_translate("MainWindow", ""))
+        self.label_26.setText(_translate("MainWindow", ""))
+        self.label_27.setText(_translate("MainWindow", ""))
+        self.label_28.setText(_translate("MainWindow", ""))
+        self.label_29.setText(_translate("MainWindow", ""))
+        self.label_30.setText(_translate("MainWindow", ""))
+        self.label_31.setText(_translate("MainWindow", ""))
+        self.label_32.setText(_translate("MainWindow", ""))
+        self.label_33.setText(_translate("MainWindow", ""))
+        self.label_34.setText(_translate("MainWindow", ""))
+        self.label_35.setText(_translate("MainWindow", ""))
+        self.label_36.setText(_translate("MainWindow", ""))
+        self.label_37.setText(_translate("MainWindow", ""))
+        self.label_38.setText(_translate("MainWindow", ""))
+        self.label_39.setText(_translate("MainWindow", ""))
+        self.label_40.setText(_translate("MainWindow", ""))
+        self.label_41.setText(_translate("MainWindow", ""))
 
 
 # def fun():
@@ -864,13 +874,9 @@ def validateDataSegment(y):
         return False 
     return True
 
+# global ui
+
 def main():
-    global ui
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
 
 
     # load the data segment
@@ -899,12 +905,10 @@ def main():
                 instructionMemory[y[0]][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
                 instructionMemory[y[0]][i] = '0'*(2-len(instructionMemory[y[0]][i])) + instructionMemory[y[0]][i]
                 instructionMemory[y[0]][i] = instructionMemory[y[0]][i].lower()
-    # run simulator 
 
-    # run_RISC_simulator()
     
-    # exit from the code
-    sys.exit(app.exec_())
+    
+    
 
 
 def UpdateFile(filename):
@@ -934,7 +938,7 @@ def run_RISC_simulator():
         RegisterUpdate()
         clk+=1
         ui.updateRegisters(reg,clk)
-        ui.errorUpdate("ERROR : INVALID DATA SEGMENT")
+        
         if isStepClicked==1:
             isStepClicked=0
             flag=0
@@ -943,4 +947,10 @@ def run_RISC_simulator():
     print({k:dataMemory[k] for k in dataMemory})
     print({k:instructionMemory[k] for k in instructionMemory})
     UpdateFile("input.mc")
+app = QtWidgets.QApplication(sys.argv)
+MainWindow = QtWidgets.QMainWindow()
+ui = Ui_MainWindow()
+ui.setupUi(MainWindow)
+MainWindow.show()
 main()
+sys.exit(app.exec_())
