@@ -81,11 +81,12 @@ def Fetch():
     #Pc, ir
     global IR,MAR,MuxMA_select, PC_Temp, PC
 
-    print("Fetching the instruction")
+    
     MAR = hex(PC)
     MuxMA_select = 1    
     IR = ProcessorMemoryInterface()
     PC_Temp = PC + 4
+    print("Fetching the instruction",IR,"from address ",PC)
     
 
 def decimalToBinary(num, length):
@@ -120,7 +121,7 @@ def Decode():
     # SB format - (1100011) f3 - beq - 000, bne - 001, blt - 100, bge - 101
     # U format - auipc-0010111, lui-0110111
     # UJ format - jal-1101111
-
+    operationName = ""
     if opcode==int("0110011",2): # R format
         print("THIS IS R FORMAT---")
         GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
@@ -128,32 +129,40 @@ def Decode():
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
         RS2 = (int(IR,16) & int('0x1F00000',16)) >> 20 # setting rs2 register
         fun7 = (int(IR,16) & int('0xFE000000',16)) >> 25
+        
         if fun3 == 0:  # add/sub/mul
             if fun7 == 0: # add 
+                operationName="ADD"
                 ALUOp[0]=1
             elif fun7 == 32: # subtract
+                operationName="SUB"
                 ALUOp[1]=1
             elif fun7==1: # mul
+                operationName="MUL"
                 ALUOp[3]=1 
             else:
                 print("Invalid Func7 for Add/Sub")
                 exit(1)
         elif fun3==7: # and
             if fun7==0:
+                operationName="AND"
                 ALUOp[10]=1
             else:
                 print("Invalid Fun7 for AND")
                 exit(1)
         elif fun3 == 6: # or/remainder
             if fun7==0: # or
+                operationName="OR"
                 ALUOp[9]=1
             elif fun7==1: # remainder
+                operationName="REM"
                 ALUOp[4]=1
             else:
                 print("Invalid Func7 for OR/REM")
                 exit(1)
         elif fun3 == 1: # sll - shift_left
             if fun7==0:
+                operationName="Shift Left"
                 ALUOp[6]=1
             else:
                 print("Invalid Func7 for SLL")
@@ -162,20 +171,25 @@ def Decode():
             if fun7==0:
                 ALUOp[11]=1
             else:
+                operationName="SLT"
                 print("Invalid Func7 for SLT")
                 exit(1)
         elif fun3 == 5: # srl/sra
             if fun7==32: # shift_ri_ari
+                operationName="SRA"
                 ALUOp[7]=1
             elif fun7==0: #shift_ri_lo
+                operationName="SRL"
                 ALUOp[8]=1
             else:
                 print("Invalid Func7 for SRA/SRL")
                 exit(1)
         elif fun3 == 4: #xor/div
             if fun7==0: # xor
+                operationName="XOR"
                 ALUOp[5]=1
             elif fun7==1: #div
+                operationName="DIV"
                 ALUOp[2]=1
             else:
                 print("Invalid Func7 for XOR/div")
@@ -183,6 +197,7 @@ def Decode():
         else:
             print("fun3 not matching in R format")
             exit(1)
+        
         #setting ra rb rm -------------------------------------------------
         RA = reg[RS1]
         RB = reg[RS2] 
@@ -202,10 +217,13 @@ def Decode():
         if opcode==int("0000011",2): # lb/lh/lw
             ALUOp[0]=1
             if fun3 == 0: #lb
+                operationName="lb"
                 GenerateControlSignals(1,1,1,1,0,0,1,0,1)
             elif fun3 == 1: #lh
+                operationName="lh"
                 GenerateControlSignals(1,1,1,1,0,0,1,0,2)
             elif fun3 == 2: #lw
+                operationName="lw"
                 GenerateControlSignals(1,1,1,1,0,0,1,0,4)
             else:
                 print("Wrong fun3 for lb/lh/lw")
@@ -218,10 +236,13 @@ def Decode():
         elif opcode==int("0010011",2): #addi/andi/ori
             GenerateControlSignals(1,1,0,0,0,0,1,0,4)
             if fun3==0:#addi
+                operationName="addi"
                 ALUOp[0]=1
             elif fun3==7:#andi
+                operationName="andi"
                 ALUOp[10]=1
             elif fun3==6:#ori
+                operationName="ori"
                 ALUOp[9]=1
             else:
                 print("Error fun3 not matching for addi/andi/ori")
@@ -234,6 +255,7 @@ def Decode():
         elif opcode==int("1100111",2): #jalr **ERROR(CHECK IT)****
             GenerateControlSignals(1,0,2,0,0,0,0,1,4)
             if fun3==0:
+                operationName="jalr"
                 ALUOp[0]=1
             else:
                 print("Error wrong fun3 for jalr")
@@ -254,10 +276,13 @@ def Decode():
         ImmediateSign(12)
         ALUOp[0]=1
         if fun3 == int("000",2): # sb
+            operationName="sb"
             GenerateControlSignals(0,1,1,0,1,0,1,0,1)
         elif fun3 == int("001",2): # sh
+            operationName="sh"
             GenerateControlSignals(0,1,1,0,1,0,1,0,2)
         elif fun3 == int("010",2): # sw
+            operationName="sw"
             GenerateControlSignals(0,1,1,0,1,0,1,0,4)
         else:
             print("invalid fun3 => S format")
@@ -307,6 +332,7 @@ def Decode():
             ALUOp[0] = 1
             RA = PC
             immed = immed << 12
+            operationName="auipc"
         else: #LUI
             ALUOp[6] = 1
             RA = immed
@@ -329,10 +355,11 @@ def Decode():
         RB = 0
         print("Immediate field : " + str(immed))
         GenerateControlSignals(1,0,2,0,0,0,1,1,0)
-
+        
     else:
         print("invalid opcode")
-
+    print("the operation is ",operationName)
+    
 def ImmediateSign(num):
     global immed
     if(immed & 2**(num-1) == 0):
