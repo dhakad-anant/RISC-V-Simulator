@@ -969,7 +969,7 @@ def main():
 
 def UpdateFile(filename):
     mcFile = open(filename,"w")
-    i = 0
+    i = '0x0'
     for i in instructionMemory:
         curr = '0x' + (''.join(instructionMemory[i][::-1]))
         mcFile.write (i+' '+curr+"\n")
@@ -999,17 +999,30 @@ def run_RISC_simulator():
         if isStepClicked==1:
             isStepClicked=0
             flag=0
-        UpdateFile("output.mc")
+    UpdateFile("output.mc")
+    outFile = open("output.txt",'w')
     print("============= REGISTERS =============")
+    outFile.write("============= REGISTERS =============\n")
     for i in range (len(reg)):
         print('x'+str(i)+' =',reg[i])
+        outFile.write('x'+str(i)+' = '+str(reg[i])+'\n')
     print()
+    outFile.write('\n')
     print("============= DATA MEMORY =============")
+    outFile.write("============= DATA MEMORY =============\n")
+
     for i in dataMemory:
         print(i+' =',dataMemory[i])
+        currStr = i + " = "
+        for j in dataMemory[i]:
+            currStr += hex(j)+' '
+        outFile.write(currStr+ '\n')
     print()
+    outFile.write('\n')
     print("PC = ",hex(PC))
+    outFile.write("PC = "+hex(PC))
     print()
+    outFile.write('\n')
     UpdateFile("output.mc")
     if hex(PC) not in instructionMemory:
         print("PROGRAM EXECUTED SUCCESSFULLY")
