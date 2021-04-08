@@ -1,9 +1,7 @@
 # RISC-V-Simulator
 CS204 Project
 
-================================================
 Functional Simulator for RISCV Processor
-================================================
 
 README
 
@@ -33,7 +31,7 @@ RISC-V-Simulator
 
 # How to run
 ------------
-cd to the directory where requirements.txt is located.
-run: pip install -r requirements.txt in your shell
-run: python ProjectGUI.py
+1. cd to the directory where requirements.txt is located.
+2. run: pip install -r requirements.txt in your shell
+3. run: python ProjectGUI.py
 ------------
