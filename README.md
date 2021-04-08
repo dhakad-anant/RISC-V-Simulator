@@ -13,8 +13,8 @@ Directory Structure:
 --------------------
 RISC-V-Simulator
   |
-  |- doc
-      |- Documentation.docx
+  |- docs
+      |- documentation.docx
   |- test
       |- bubble_machine_code.mc 
       |- bubblecode.txt
