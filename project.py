@@ -330,7 +330,7 @@ def Decode():
         ALUOp[12] = 1
         RA = 0
         RB = 0
-        print("Immediate field : " + str(immed))
+        # print("Immediate field : " + str(immed))
         GenerateControlSignals(1,0,2,0,0,0,1,1,0)
 
     else:
@@ -487,8 +487,8 @@ def main():
     run_RISC_simulator()
     # exit from the code
 
-def UpdateFile(): # incomplete
-    mcFile = open("output.mc","w")
+def UpdateFile(filename):
+    mcFile = open(filename,"w")
     for i in instructionMemory:
         curr = '0x' + (''.join(instructionMemory[i][::-1]))
         mcFile.write (i+' '+curr+"\n")
@@ -501,7 +501,7 @@ def UpdateFile(): # incomplete
         for j in dataMemory[i][::-1]:
             curr += '0'*(2-len(hex(j)[2:])) + hex(j)[2:]
         mcFile.write(i+' '+curr+'\n')
-    pass
+    
 
 def run_RISC_simulator():
     while hex(PC) in instructionMemory:
@@ -510,10 +510,9 @@ def run_RISC_simulator():
         Execute()
         MemoryAccess()
         RegisterUpdate()
+        UpdateFile("output.mc")
     print(reg)
     print({k:dataMemory[k] for k in dataMemory})
     print({k:instructionMemory[k] for k in instructionMemory})
-    print("PC AFTER THIS INST -- ",hex(PC))
-    UpdateFile()
-
+    UpdateFile("input.mc")
 main()
