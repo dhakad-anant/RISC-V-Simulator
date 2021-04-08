@@ -4,7 +4,7 @@
 from collections import defaultdict
 
 # Read the .mc file as input
-mcFile = open("input.mc","r+")
+mcFile = open("input.mc","r")
 # File reading completed
 
 #defining global variables____________________________
@@ -63,6 +63,7 @@ def ProcessorMemoryInterface():
             for i in temp:
                 curr =  hex(i)[2:]
                 ans += '0'*(2-len(curr)) + curr
+                
             return ans
         elif Mem_Write == 1:
             for i in range (numBytes):
@@ -81,7 +82,7 @@ def Fetch():
     #Pc, ir
     global IR,MAR,MuxMA_select, PC_Temp, PC
 
-    print("Fetching the instruction")
+    # print("Fetching the instruction")
     MAR = hex(PC)
     MuxMA_select = 1    
     IR = ProcessorMemoryInterface()
@@ -101,15 +102,13 @@ def decimalToBinary(num, length):
     return ans[::-1]   
 
 def Decode():
-    print("Decoding the instruction")
+    # print("Decoding the instruction")
     #getting the opcode
     global opcode,immed,RS1,RS2,RD,RF_Write,MuxB_select,numBytes,RM,RA,RB,reg,ALUOp
     ALUOp = [0]*15
     opcode = int(str(IR),16) & int("0x7f",16)
     fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
     
-    print("Decoding Results :-")
-    print("Opcode : "+decimalToBinary(opcode, 7))
     # R format - (add,srl,sll,sub,slt,xor,sra,and,or,mul, div, rem)
     # R format - (0110011)  
     # I format - (lb-0,lh-1,lw-2)(addi-0, andi-7, ori-6,)(jalr-0)
@@ -122,7 +121,6 @@ def Decode():
     # UJ format - jal-1101111
 
     if opcode==int("0110011",2): # R format
-        print("THIS IS R FORMAT---")
         GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
@@ -190,7 +188,6 @@ def Decode():
         # -----------------------------------------------------------------
    
     elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # I format
-        print("THIS IS I FORMAT---")
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
         RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
         immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
@@ -245,7 +242,6 @@ def Decode():
             # -----------------------------------------------------------------
 
     elif opcode==int("0100011",2): # S format
-        print("THIS IS S FORMAT---")
         RS2 = (int(str(IR),16) & int("0xF8000",16)) >> 15
         RS1 = (int(str(IR),16) & int("0x1F00000",16)) >> 20
         immed4to0 = (int(str(IR),16) & int("0xF80",16)) >> 7
@@ -270,7 +266,6 @@ def Decode():
         # -----------------------------------------------------------------
 
     elif opcode==int("1100011",2): # SB format
-        print("THIS IS SB FORMAT---")
         RS1 = (int(IR, 16) & int("0xF8000", 16)) >> 15
         RS2 = (int(IR, 16) & int("0x1F00000", 16)) >> 20
         RA = reg[RS1]
@@ -299,7 +294,6 @@ def Decode():
         GenerateControlSignals(0,0,0,0,0,0,1,1,0)
 
     elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
-        print("THIS IS U FORMAT---")
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         ImmediateSign(20)
@@ -314,7 +308,6 @@ def Decode():
         GenerateControlSignals(1,1,0,0,0,0,1,0,0)
 
     elif opcode==int("1101111",2): # UJ format
-        print("THIS IS UJ FORMAT---")
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         immed = 0
@@ -428,8 +421,9 @@ def MemoryAccess():
     elif MuxY_select == 1:
         MAR = str(hex(RZ)).lower()
         MDR = RM
-        print("MAR , MDR - ",MAR,MDR)
         RY = int(ProcessorMemoryInterface(),16)
+        if RY > 2**31 - 1:
+            RY = -(2**32 - RY)
     elif MuxY_select == 2:
         RY = PC_Temp
 
@@ -464,10 +458,10 @@ def main():
             if validateDataSegment(y)==False:
                 print("ERROR : INVALID DATA SEGMENT")
                 exit(1)
-            dataMemory[y[0]][0] = int(y[1],16) & int('0xFF',16)
-            dataMemory[y[0]][1] = int(y[1],16) & int('0xFF00',16)
-            dataMemory[y[0]][2] = int(y[1],16) & int('0xFF0000',16)
-            dataMemory[y[0]][3] = int(y[1],16) & int('0xFF000000',16)
+            dataMemory[y[0]][0] = (int(y[1],16) & int('0xFF',16))
+            dataMemory[y[0]][1] = (int(y[1],16) & int('0xFF00',16))>>8
+            dataMemory[y[0]][2] = (int(y[1],16) & int('0xFF0000',16))>>16
+            dataMemory[y[0]][3] = (int(y[1],16) & int('0xFF000000',16))>>24
 
         if '$' in y:
             flag = 1    
@@ -484,10 +478,13 @@ def main():
     # exit from the code
 
 def UpdateFile(): # incomplete
-    mcFile = open("input.mc","w+")
-
-    for x in mcFile:
-        print(x)
+    mcFile = open("output.mc","w")
+    mcFile.write ("================ DATA MEMORY ================\n")
+    for i in dataMemory:
+        curr = '0x'
+        for j in dataMemory[i][::-1]:
+            curr += '0'*(2-len(hex(j)[2:])) + hex(j)[2:]
+        mcFile.write(i+' '+curr+'\n')
     pass
 
 def run_RISC_simulator():
@@ -497,11 +494,10 @@ def run_RISC_simulator():
         Execute()
         MemoryAccess()
         RegisterUpdate()
-        print(reg)
-        print({k:dataMemory[k] for k in dataMemory})
-        print({k:instructionMemory[k] for k in instructionMemory})
-        print("PC AFTER THIS INST -- ",hex(PC))
-    
+    print(reg)
+    print({k:dataMemory[k] for k in dataMemory})
+    print({k:instructionMemory[k] for k in instructionMemory})
+    print("PC AFTER THIS INST -- ",hex(PC))
     UpdateFile()
 
 main()
