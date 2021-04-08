@@ -1,0 +1,44 @@
+.data 
+arr : .word 4 2 1 12 3 -5 8 -10
+len : .word 8
+
+.text
+lw x11, len # length of the array # n 
+la x10, arr # base address of array
+addi x12, x10, 0 # base address of array
+li x19, 2 # constant
+addi x31, x0, 2
+
+jal x1, Bubble_sort
+beq x0, x0, exit
+
+Bubble_sort:
+addi sp, sp, -4
+sw x1, 0(sp) # storing current return address
+# sw x11, 4(sp)
+bge x11, x19 else # branch if n>=2 (x11>=x19)
+beq x0, x0, end_bubble_sort
+else:
+addi x11, x11, -1 # n = n-1
+li x20, 0 # initializing i = 0
+for:
+beq x20, x11 endfor # if i == n-1 break;
+sll x21, x20, x31 # x21 = i*4 (for getting the offset)
+add x21, x21, x10 # x21 = &arr[i]
+lw x22, 0(x21) # x22 = arr[i]
+lw x23, 4(x21) # x23 = arr[i+1]
+# (arr[i] > arr[i+1])
+bge x23, x22 donotswap # if arr[i+1] >= arr[i] donotswap
+sw x22, 4(x21) # swaping
+sw x23, 0(x21) # swaping
+donotswap:
+addi x20, x20, 1 # i = i+1
+beq x0, x0, for 
+endfor:
+jal x1, Bubble_sort
+end_bubble_sort:
+lw x1, 0(sp)  # retrieving current return address
+addi sp, sp, 4
+jalr x0, x1, 0
+
+exit:
