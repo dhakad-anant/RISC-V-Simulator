@@ -25,6 +25,7 @@ import sys ,os
 run = 0
 
 def resetButton():
+    global clk
     init()
     clk=0
     ui.updateRegisters(reg,clk)
@@ -33,6 +34,8 @@ def resetButton():
     ui.label_3.setText("")
     ui.label_4.setText("")
     ui.label_5.setText("")
+    ui.label_40.setText("")
+    ui.label_42.setText("")
     main()
 
 class Ui_MainWindow(object):
@@ -301,17 +304,22 @@ class Ui_MainWindow(object):
         self.label_39.setGeometry(QtCore.QRect(1100, 920, 291, 41))
         self.label_39.setStyleSheet("background: rgb(255, 255, 255)")
         self.label_39.setObjectName("label_39")
-        self.label_40 = QtWidgets.QLabel(self.centralwidget)
-        self.label_40.setGeometry(QtCore.QRect(60, 810, 801, 41))
+        self.label_42 = QtWidgets.QLabel(self.centralwidget)
+        self.label_42.setGeometry(QtCore.QRect(60, 810, 801, 41))
         font = QtGui.QFont()
         font.setPointSize(10)
-        self.label_40.setFont(font)
-        self.label_40.setStyleSheet("background: rgb(255, 255, 255)")
-        self.label_40.setObjectName("label_40")
+        self.label_42.setFont(font)
+        self.label_42.setStyleSheet("background: rgb(255, 255, 255)")
+        self.label_42.setObjectName("label_40")
         self.label_41 = QtWidgets.QLabel(self.centralwidget)
         self.label_41.setGeometry(QtCore.QRect(210, 240, 500, 60))
         self.label_41.setStyleSheet("background: rgb(255, 255, 255)")
         self.label_41.setObjectName("label_41")
+
+        self.label_40 = QtWidgets.QLabel(self.centralwidget)
+        self.label_40.setGeometry(QtCore.QRect(60, 900, 801, 41))
+        self.label_40.setStyleSheet("background: rgb(255, 255, 255)")
+        
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1938, 26))
@@ -538,7 +546,7 @@ def Decode():
     # SB format - (1100011) f3 - beq - 000, bne - 001, blt - 100, bge - 101
     # U format - auipc-0010111, lui-0110111
     # UJ format - jal-1101111
-
+    message = ""
     if opcode==int("0110011",2): # R format
         GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
         RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
@@ -549,15 +557,19 @@ def Decode():
             if fun7 == 0: 
                 # add 
                 ALUOp[0]=1
+                message = "This is ADD instruction."
             elif fun7 == 32: # subtract
                 ALUOp[1]=1
+                message = "This is SUB instruction."
             elif fun7==1: # mul
                 ALUOp[3]=1 
+                message = "This is MUL instruction."
             else:
                 print("Invalid Func7 for Add/Sub")
                 ui.errorUpdate("Invalid Func7 for Add/Sub")
                 exit(1)
         elif fun3==7: # and
+            message = "This is AND instruction."
             if fun7==0:
                 ALUOp[10]=1
             else:
@@ -566,9 +578,11 @@ def Decode():
                 exit(1)
         elif fun3 == 6: # or/remainder
             if fun7==0: # or
+                message = "This is OR instruction."
                 ALUOp[9]=1
             elif fun7==1: # remainder
                 ALUOp[4]=1
+                message = "This is REMAINDER instruction."
             else:
                 print("Invalid Func7 for OR/REM")
                 ui.errorUpdate("Invalid Func7 for Add/Sub")
@@ -576,11 +590,13 @@ def Decode():
         elif fun3 == 1: # sll - shift_left
             if fun7==0:
                 ALUOp[6]=1
+                message = "This is SLL instruction."
             else:
                 print("Invalid Func7 for SLL")
                 ui.errorUpdate("Invalid Func7 for SLL")
                 exit(1)
         elif fun3 == 2: # slt - set_if_less_than
+            message = "This is SLT instruction."
             if fun7==0:
                 ALUOp[11]=1
             else:
@@ -589,8 +605,10 @@ def Decode():
                 exit(1)
         elif fun3 == 5: # srl/sra
             if fun7==32: # shift_ri_ari
+                message = "This is SRA instruction."
                 ALUOp[7]=1
             elif fun7==0: #shift_ri_lo
+                message = "This is SRL instruction."
                 ALUOp[8]=1
             else:
                 print("Invalid Func7 for SRA/SRL")
@@ -598,8 +616,10 @@ def Decode():
                 exit(1)
         elif fun3 == 4: #xor/div
             if fun7==0: # xor
+                message = "This is XOR instruction."
                 ALUOp[5]=1
             elif fun7==1: #div
+                message = "This is DIV instruction."
                 ALUOp[2]=1
             else:
                 ui.errorUpdate("Invalid Func7 for XOR/div")
@@ -621,14 +641,17 @@ def Decode():
         #  ADDING CONSTRAINTS ON IMMEDIATE
         if immed>2047:
             immed -= 4096
-
+        
         if opcode==int("0000011",2): # lb/lh/lw
             ALUOp[0]=1
             if fun3 == 0: #lb
+                message = "This is LB instruction."
                 GenerateControlSignals(1,1,1,1,0,0,1,0,1)
             elif fun3 == 1: #lh
+                message = "This is LH instruction."
                 GenerateControlSignals(1,1,1,1,0,0,1,0,2)
             elif fun3 == 2: #lw
+                message = "This is LW instruction."
                 GenerateControlSignals(1,1,1,1,0,0,1,0,4)
             else:
                 ui.errorUpdate("Wrong fun3 for lb/lh/lw")
@@ -641,10 +664,13 @@ def Decode():
         elif opcode==int("0010011",2): #addi/andi/ori
             GenerateControlSignals(1,1,0,0,0,0,1,0,4)
             if fun3==0:#addi
+                message = "This is ADDI instruction."
                 ALUOp[0]=1
             elif fun3==7:#andi
+                message = "This is ANDI instruction."
                 ALUOp[10]=1
             elif fun3==6:#ori
+                message = "This is ORI instruction."
                 ALUOp[9]=1
             else:
                 ui.errorUpdate("Error fun3 not matching for addi/andi/ori")
@@ -655,6 +681,7 @@ def Decode():
             # RM = RB         ---- DON'T CARES
             # -----------------------------------------------------------------
         elif opcode==int("1100111",2): #jalr **ERROR(CHECK IT)****
+            message = "This is JALR instruction."
             GenerateControlSignals(1,0,2,0,0,0,0,1,4)
             if fun3==0:
                 ALUOp[0]=1
@@ -676,10 +703,13 @@ def Decode():
         ImmediateSign(12)
         ALUOp[0]=1
         if fun3 == int("000",2): # sb
+            message = "This is SB instruction."
             GenerateControlSignals(0,1,1,0,1,0,1,0,1)
         elif fun3 == int("001",2): # sh
+            message = "This is SH instruction."
             GenerateControlSignals(0,1,1,0,1,0,1,0,2)
         elif fun3 == int("010",2): # sw
+            message = "This is SW instruction."
             GenerateControlSignals(0,1,1,0,1,0,1,0,4)
         else:
             ui.errorUpdate("invalid fun3 => S format")
@@ -707,12 +737,16 @@ def Decode():
         immed *= 2
         # Setting control Signals
         if(fun3 == 0):
+            message = "This is BEQ instruction."
             ALUOp[12] = 1
         elif(fun3 == 1):
+            message = "This is BNE instruction."
             ALUOp[13] = 1
         elif(fun3 == 4):
+            message = "This is BLT instruction."
             ALUOp[11] = 1
         elif(fun3 == 5):
+            message = "This is BGE instruction."
             ALUOp[14] = 1
         else:
             ui.errorUpdate("Invalid fun3 for SB Format instruction. Terminating the program.")
@@ -724,16 +758,19 @@ def Decode():
         immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         ImmediateSign(20)
         if(opcode == int("0010111", 2)): # AUIPC
+            message = "This is AUIPC instruction."
             ALUOp[0] = 1
             RA = PC
             immed = immed << 12
         else: #LUI
+            message = "This is LUI instruction."
             ALUOp[6] = 1
             RA = immed
             immed = 12
         GenerateControlSignals(1,1,0,0,0,0,1,0,0)
 
     elif opcode==int("1101111",2): # UJ format
+        message = "This is JALR instruction."
         RD = (int(IR, 16) & int("0xF80", 16)) >> 7
         immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
         immed = 0
@@ -751,6 +788,9 @@ def Decode():
 
     else:
         print("invalid opcode")
+
+    print(message)
+    ui.label_42.setText(message)
 
 def ImmediateSign(num):
     global immed
@@ -968,16 +1008,13 @@ def run_RISC_simulator():
     for i in dataMemory:
         print(i+' =',dataMemory[i])
     print()
-    print("============= INSTRUCTION MEMORY =============")
-    for i in instructionMemory:
-        print(i+' =',instructionMemory[i])
-    print()
     print("PC = ",hex(PC))
     print()
     UpdateFile("output.mc")
     if hex(PC) not in instructionMemory:
-        print("PROGRAM FULLY EXECUTED")
-        exit(0)
+        print("PROGRAM EXECUTED SUCCESSFULLY")
+        ui.label_40.setText("PROGRAM EXECUTED SUCCESSFULLY")
+
 app = QtWidgets.QApplication(sys.argv)
 MainWindow = QtWidgets.QMainWindow()
 ui = Ui_MainWindow()
