@@ -479,8 +479,14 @@ def main():
 
 def UpdateFile(): # incomplete
     mcFile = open("output.mc","w")
-    mcFile.write ("================ DATA MEMORY ================\n")
+    for i in instructionMemory:
+        curr = '0x' + (''.join(instructionMemory[i][::-1]))
+        mcFile.write (i+' '+curr+"\n")
+    i = hex(int(i,16) + 4)
+    mcFile.write(i+' $\n')
     for i in dataMemory:
+        if i== '0x7fffffec':
+            break
         curr = '0x'
         for j in dataMemory[i][::-1]:
             curr += '0'*(2-len(hex(j)[2:])) + hex(j)[2:]
