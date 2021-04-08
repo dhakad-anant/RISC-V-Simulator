@@ -43,7 +43,7 @@ def project():
         MuxINC_select = MuxINC
         numBytes = numB
 
-    
+    ALUOp = [0]*15
     #instructions
     # add 0, sub 1, div 2, mul 3, remainder 4, xor 5,
     # shift_left 6, shift_right_ari 7,shift_ri_lo 8, or 9,
@@ -65,7 +65,8 @@ def project():
 
     #________________________
 
-    
+    dataMemory = defaultdict(lambda : [0,0,0,0])
+    instructionMemory = defaultdict(lambda: [0,0,0,0])
 
     def ProcessorMemoryInterface():
         # Set MAR in Fetch
@@ -84,20 +85,18 @@ def project():
                 return '0x1'
         else:
             ans = instructionMemory[MAR]
-            ans.reverse()
-            ans = (''.join(ans))
-            ans = '0x'+ans
-            return ans
+            newans = ""
+            x=len(ans)
+            for i in range(len(ans)):
+                newans += ans[x-1-i]
+            newans = '0x'+newans
+            return newans
 
     def Fetch():
         #Pc, ir
         global IR,MAR,MuxMA_select, PC_Temp, PC
 
         print("Fetching the instruction")
-        labelText="Fetching the instruction"
-        ui.updateLabel(1,labelText)
-        # label = "label_"+str(labelNo)
-        # MainWindow.label_.setText(labelText)
         MAR = hex(PC)
         MuxMA_select = 1    
         IR = ProcessorMemoryInterface()
@@ -106,22 +105,15 @@ def project():
 
     def decimalToBinary(num, length):
         ans=""
-        while(num>0):
-            if(num&1):
-                ans+='1'
-            else:
-                ans+='0'
-            num = num//2
-        for i in range(length-len(ans)):
-            ans+='0'
-        return ans[::-1]   
+        ans = bin(num)[2:]
+        ans = '0'*(length - len(ans)) + ans
+        return ans
 
     def Decode():
         print("Decoding the instruction")
-        labelText="Decoding the instruction"
-        ui.updateLabel(2,labelText)
         #getting the opcode
-        global opcode,immed,RS1,RS2,RD,RF_Write,MuxB_select,numBytes,RM,RA,RB, reg
+        global opcode,immed,RS1,RS2,RD,RF_Write,MuxB_select,numBytes,RM,RA,RB,reg,ALUOp
+        ALUOp = [0]*15
         opcode = int(str(IR),16) & int("0x7f",16)
         fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
         
@@ -313,7 +305,7 @@ def project():
             else:
                 print("Invalid fun3 for SB Format instruction. Terminating the program.")
                 exit(1)
-            GenerateControlSignals(0,0,0,0,0,0,0,1,0)
+            GenerateControlSignals(0,0,0,0,0,0,1,1,0)
 
         elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
             print("THIS IS U FORMAT---")
@@ -359,8 +351,6 @@ def project():
         immed *= (-1)
 
     def Execute():
-        labelText="Executing the instruction"
-        ui.updateLabel(3,labelText)
         global immed,ALUOp,RZ, reg,MuxINC_select
         operation = ALUOp.index(1)
         ALUOp = [0]*15
@@ -409,18 +399,16 @@ def project():
             MuxINC_select = RZ
         elif(operation == 12): #equal  
             RZ = int(InA==InB)
-            # MuxINC_select = RZ
+            MuxINC_select = RZ
         elif(operation == 13): #not_equal  
             RZ = int(InA!=InB)
-            # MuxINC_select = RZ
+            MuxINC_select = RZ
         elif(operation == 14): #greater_than_equal_to  
             RZ = int(InA>=InB)
-            # MuxINC_select = RZ
+            MuxINC_select = RZ
         # return RZ
 
     def MemoryAccess():
-        labelText="Accessing the Memory"
-        ui.updateLabel(4,labelText)
         # =========== CHECK =============
         global MAR,RY,PC, MDR
         
@@ -445,8 +433,6 @@ def project():
 
 
     def RegisterUpdate():
-        labelText="Updating the Register"
-        ui.updateLabel(5,labelText)
         global reg,RD
         if RF_Write == 1 and RD != 0:
             reg[RD] = RY
@@ -486,12 +472,9 @@ def project():
             if flag==0:
                 #TODO : Add Validation______
                 y = x.split('\n')[0].split()
-                y[1] = y[1].lower()
-                instructionMemory[y[0]][0] = hex(int(y[1],16) & int('0xFF',16))[2:]
-                instructionMemory[y[0]][1] = hex((int(y[1],16) & int('0xFF00',16))>>8)[2:]
-                instructionMemory[y[0]][2] = hex((int(y[1],16) & int('0xFF0000',16))>>16)[2:]
-                instructionMemory[y[0]][3] = hex((int(y[1],16) & int('0xFF000000',16))>>24)[2:] 
+                y[1] = y[1].lower() 
                 for i in range (4):
+                    instructionMemory[y[0]][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
                     instructionMemory[y[0]][i] = '0'*(2-len(instructionMemory[y[0]][i])) + instructionMemory[y[0]][i]
                     instructionMemory[y[0]][i] = instructionMemory[y[0]][i].lower()
         # run simulator 
@@ -506,8 +489,8 @@ def project():
             MemoryAccess()
             RegisterUpdate()
             print(reg)
-            print({k:dataMemory[k] for k in dataMemory})
-            print({k:instructionMemory[k] for k in instructionMemory})
+            # print({k:dataMemory[k] for k in dataMemory})
+            # print({k:instructionMemory[k] for k in instructionMemory})
             print("PC AFTER THIS INST -- ",PC)
     main()
 

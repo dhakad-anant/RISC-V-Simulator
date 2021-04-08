@@ -47,6 +47,7 @@ def sra(number,times):     #correct function
         twosCompli = - (int(twosCompli,2) + 1)
         return twosCompli
 
+
 #________________________
 
 dataMemory = defaultdict(lambda : [0,0,0,0])
@@ -398,11 +399,8 @@ def Execute():
         MuxINC_select = RZ
     # return RZ
 
-def MemoryAccess():
-    # =========== CHECK =============
-    global MAR,RY,PC, MDR
-    
-    # PC update (IAG module)    
+def IAG():
+    global PC
     if(MuxPC_select == 0):
         PC = RA
     else:
@@ -410,6 +408,20 @@ def MemoryAccess():
             PC = PC + 4
         else:
             PC = PC + immed
+    
+def MemoryAccess():
+    # =========== CHECK =============
+    global MAR,RY,PC, MDR
+    
+    # PC update (IAG module)    
+    # if(MuxPC_select == 0):
+    #     PC = RA
+    # else:
+    #     if(MuxINC_select == 0):
+    #         PC = PC + 4
+    #     else:
+    #         PC = PC + immed
+    IAG()
 
     if MuxY_select == 0:
         RY = RZ
@@ -458,7 +470,7 @@ def main():
             dataMemory[y[0]][3] = int(y[1],16) & int('0xFF000000',16)
 
         if '$' in y:
-            flag = 1
+            flag = 1    
         if flag==0:
             #TODO : Add Validation______
             y = x.split('\n')[0].split()
@@ -471,6 +483,13 @@ def main():
     run_RISC_simulator()
     # exit from the code
 
+def UpdateFile(): # incomplete
+    mcFile = open("input.mc","w+")
+
+    for x in mcFile:
+        print(x)
+    pass
+
 def run_RISC_simulator():
     while hex(PC) in instructionMemory:
         Fetch()
@@ -481,5 +500,8 @@ def run_RISC_simulator():
         print(reg)
         print({k:dataMemory[k] for k in dataMemory})
         print({k:instructionMemory[k] for k in instructionMemory})
-        print("PC AFTER THIS INST -- ",PC)
+        print("PC AFTER THIS INST -- ",hex(PC))
+    
+    UpdateFile()
+
 main()
