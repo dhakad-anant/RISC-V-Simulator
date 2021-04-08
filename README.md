@@ -12,19 +12,22 @@ Table of contents
 Directory Structure:
 --------------------
 RISC-V-Simulator
-  |
+  |-
   |- docs
+      |-
       |- documentation.docx
+  |-
   |- test
+      |-
       |- bubble_machine_code.mc 
       |- bubblecode.txt
       |- factorial_machine_code.mc
       |- factorialcode.txt
       |- fibonacci_machine_code.mc
       |- fibonaccicode.txt
-  |- 
+  |-
   |- ProjectGUI.py 
-  |- Requirements.txt
+  |- requirements.txt
   |- README.md
   |- input.mc
   |- output.mc
