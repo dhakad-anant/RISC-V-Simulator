@@ -1,1 +1,55 @@
+# void fib(int n){
+# 	if(n<=1)return n;
+#   return fib(n-1)+fib(n-2);
+# }
+# a, b, a+b, a+2b, 2a+3b, ...
+# 0, 1, 1, 2, 3, 5, 8, 13, ...
+# for a=1,b=3
+# 1, 3, 4, 7, 11, 18, ..
+.data 
+n : .word 4
+a : .word 1
+b : .word 3
 
+.text
+lw x19, n # final ans will also be stored here.
+li x5, 0 # constant
+li x6, 1 # constant
+lw x20, a
+lw x21, b
+li x22, 2 # constant
+
+jal x1, fib
+beq x0, x0, exit
+
+fib:
+addi sp, sp, -8
+sw x1, 4(sp) # storing current return address
+sw x19, 0(sp) # storing current n 
+bge x19, x22, else # branch if x19 >= x22 # x19 >= 2
+beq x19, x6, assignb
+addi x19, x20, 0
+j skipassignb
+assignb:
+addi x19, x21, 0
+skipassignb:
+addi sp, sp, 8
+jalr x0, x1, 0
+else:
+addi x19, x19, -1 # n = n-1
+jal x1, fib # calling fib(n-1)
+
+addi x23, x19, 0 # x23 = partial ans # x23 = fib(n-1)
+lw x19, 0(sp) # retrieving current n
+# addi sp, sp, -4
+sw x23, 0(sp) # saving partial ans
+addi x19, x19, -2 # n = n-1
+jal x1, fib # calling fib(n-2)
+# now here x19 contain fib(n-2) and top of stack contains fib(n-1)
+lw x23, 0(sp) # retrieving fib(n-1)
+lw x1, 4(sp)
+addi sp, sp, 8
+add x19, x19, x23
+jalr x0, x1, 0
+
+exit:
