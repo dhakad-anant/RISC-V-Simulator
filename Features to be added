@@ -1,4 +1,0 @@
-4. Add validation checks for instruction memory
-5. Add GUI
-8. add validation for fetching from the datamemory 
-9. size of immediate field checking according to the instruction type
