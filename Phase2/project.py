@@ -98,10 +98,10 @@ class CPU:
         #Pc, ir
     
         # print("Fetching the instruction")
-        MAR = hex(PC)
-        MuxMA_select = 1    
-        IR = ProcessorMemoryInterface()
-        PC_Temp = PC + 4
+        self.MAR = hex(self.PC)
+        self.MuxMA_select = 1    
+        self.IR = self.ProcessorMemoryInterface()
+        self.PC_Temp = self.PC + 4
         
 
     def decimalToBinary(self,num, length):
