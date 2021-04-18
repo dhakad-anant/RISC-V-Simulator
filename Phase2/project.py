@@ -21,7 +21,6 @@ class CPU:
 
 
     def GenerateControlSignals(self,reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
-        
 
         self.RF_Write = reg_write
         self.MuxB_select = MuxB
@@ -71,9 +70,9 @@ class CPU:
 
     def ProcessorMemoryInterface(self):
         # Set MAR in Fetch
-        if MuxMA_select == 0:
-            if Mem_Read == 1:
-                temp = dataMemory[MAR][:numBytes]
+        if self.MuxMA_select == 0:
+            if self.Mem_Read == 1:
+                temp = self.dataMemory[self.MAR][:self.numBytes]
                 temp.reverse()
                 ans = '0x'
                 for i in temp:
@@ -81,12 +80,12 @@ class CPU:
                     ans += '0'*(2-len(curr)) + curr
                     
                 return ans
-            elif Mem_Write == 1:
-                for i in range (numBytes):
-                    dataMemory[MAR][i] = (MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
+            elif self.Mem_Write == 1:
+                for i in range (self.numBytes):
+                    self.dataMemory[self.MAR][i] = (self.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
                 return '0x1'
         else:
-            ans = instructionMemory[MAR]
+            ans = self.instructionMemory[self.MAR]
             newans = ""
             x=len(ans)
             for i in range(len(ans)):
@@ -382,11 +381,11 @@ class CPU:
 
     def ImmediateSign(self,num):
         
-        if(immed & 2**(num-1) == 0):
+        if(self.immed & 2**(num-1) == 0):
             return
-        immed = immed ^ (2**num-1)
-        immed += 1
-        immed *= (-1)
+        self.immed = self.immed ^ (2**num-1)
+        self.immed += 1
+        self.immed *= (-1)
 
     def Execute(self):
         
@@ -448,13 +447,13 @@ class CPU:
 
     def IAG(self):
         
-        if(MuxPC_select == 0):
-            PC = RA
+        if(self.MuxPC_select == 0):
+            self.PC = self.RA
         else:
-            if(MuxINC_select == 0):
-                PC = PC + 4
+            if(self.MuxINC_select == 0):
+                self.PC = self.PC + 4
             else:
-                PC = PC + immed
+                self.PC = self.PC + self.immed
         
     def MemoryAccess(self):
         # =========== CHECK =============
@@ -482,8 +481,8 @@ class CPU:
 
 
     def RegisterUpdate(self):
-        if RF_Write == 1 and RD != 0:
-            reg[RD] = RY
+        if self.RF_Write == 1 and self.RD != 0:
+            self.reg[self.RD] = self.RY
 
     def validateDataSegment(self,y):
         if len(y)!=2:
