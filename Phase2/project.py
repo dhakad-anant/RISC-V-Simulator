@@ -23,15 +23,15 @@ class CPU:
     def GenerateControlSignals(self,reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
         
 
-        RF_Write = reg_write
-        MuxB_select = MuxB
-        MuxY_select = MuxY
-        Mem_Write = MemWrite
-        Mem_Read = MemRead
-        MuxMA_select = MuxMA
-        MuxPC_select = MuxPC
-        MuxINC_select = MuxINC
-        numBytes = numB
+        self.RF_Write = reg_write
+        self.MuxB_select = MuxB
+        self.MuxY_select = MuxY
+        self.Mem_Write = MemWrite
+        self.Mem_Read = MemRead
+        self.MuxMA_select = MuxMA
+        self.MuxPC_select = MuxPC
+        self.MuxINC_select = MuxINC
+        self.numBytes = numB
 
     ALUOp = [0]*15
     #instructions
@@ -390,60 +390,60 @@ class CPU:
 
     def Execute(self):
         
-        operation = ALUOp.index(1)
-        ALUOp = [0]*15
-        InA = RA
-        if(MuxB_select == 1):
-            InB = immed
+        self.operation = self.ALUOp.index(1)
+        self.ALUOp = [0]*15
+        self.InA = self.RA
+        if(self.MuxB_select == 1):
+            self.InB = self.immed
         else:
-            InB = RB
-        if(operation == 0): #add
-            RZ = InA + InB
-        elif(operation == 1): #sub
-            RZ = InA - InB
-        elif(operation == 2): #div
-            if(InB == 0):
+            self.InB = self.RB
+        if(self.operation == 0): #add
+            self.RZ = self.InA + self.InB
+        elif(self.operation == 1): #sub
+            self.RZ = self.InA - self.InB
+        elif(self.operation == 2): #div
+            if(self.InB == 0):
                 
                 exit(1)
-            RZ = int(InA/InB)
-        elif(operation == 3): #mul
-            RZ = InA*InB
-        elif(operation == 4): #remainder
-            if(InB == 0):
+            self.RZ = int(self.InA/self.InB)
+        elif(self.operation == 3): #mul
+            self.RZ = self.InA*self.InB
+        elif(self.operation == 4): #remainder
+            if(self.InB == 0):
                 
                 exit(1)
-            RZ = InA%InB
-        elif(operation == 5): #xor
-            RZ = InA^InB
-        elif(operation == 6): #shift_left
-            if (InB<0):
+            self.RZ = self.InA%self.InB
+        elif(self.operation == 5): #xor
+            self.RZ = self.InA^self.InB
+        elif(self.operation == 6): #shift_left
+            if (self.InB<0):
                 
                 exit(1)
-            RZ = InA<<InB
-        elif(operation == 7): #shift_right_ari 
+            self.RZ = self.InA<<self.InB
+        elif(self.operation == 7): #shift_right_ari 
             # *******ERROR****** WRITE SRA
             pass
-        elif(operation == 8): #shift_ri_lo  
-            if (InB<0):
+        elif(self.operation == 8): #shift_ri_lo  
+            if (self.InB<0):
                 
                 exit(1)
-            RZ = InA>>InB
-        elif(operation == 9): #or  
-            RZ = (InA|InB)
-        elif(operation == 10): #and  
-            RZ = (InA&InB)
-        elif(operation == 11): #less_than 
-            RZ = int(InA<InB)
-            MuxINC_select = RZ
-        elif(operation == 12): #equal  
-            RZ = int(InA==InB)
-            MuxINC_select = RZ
-        elif(operation == 13): #not_equal  
-            RZ = int(InA!=InB)
-            MuxINC_select = RZ
-        elif(operation == 14): #greater_than_equal_to  
-            RZ = int(InA>=InB)
-            MuxINC_select = RZ
+            self.RZ = self.InA>>self.InB
+        elif(self.operation == 9): #or  
+            self.RZ = (self.InA|self.InB)
+        elif(self.operation == 10): #and  
+            self.RZ = (self.InA&self.InB)
+        elif(self.operation == 11): #less_than 
+            self.RZ = int(self.InA<self.InB)
+            self.MuxINC_select = self.RZ
+        elif(self.operation == 12): #equal  
+            self.RZ = int(self.InA==self.InB)
+            self.MuxINC_select = self.RZ
+        elif(self.operation == 13): #not_equal  
+            self.RZ = int(self.InA!=self.InB)
+            self.MuxINC_select = self.RZ
+        elif(self.operation == 14): #greater_than_equal_to  
+            self.RZ = int(self.InA>=self.InB)
+            self.MuxINC_select = self.RZ
         # return RZ
 
     def IAG(self):
