@@ -140,11 +140,11 @@ class CPU:
                     self.instructionMemory[y[0]][i] = '0'*(2-len(self.instructionMemory[y[0]][i])) + self.instructionMemory[y[0]][i]
                     self.instructionMemory[y[0]][i] = self.instructionMemory[y[0]][i].lower()
 
-    def ProcessorMemoryInterface(self, MAR, numBytes, MDR, MuxMA_select, Mem_Read, Mem_Write):
+    def ProcessorMemoryInterface(self, state):
         # Set MAR in Fetch
-        if MuxMA_select == 0:
-            if Mem_Read == 1:
-                temp = self.dataMemory[MAR][:numBytes]
+        if state.MuxMA_select == 0:
+            if state.Mem_Read == 1:
+                temp = self.dataMemory[state.MAR][:state.numBytes]
                 temp.reverse()
                 ans = '0x'
                 for i in temp:
@@ -152,18 +152,10 @@ class CPU:
                     ans += '0'*(2-len(curr)) + curr
                     
                 return ans
-            elif Mem_Write == 1:
-                for i in range (numBytes):
-                    self.dataMemory[MAR][i] = (MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
+            elif state.Mem_Write == 1:
+                for i in range (state.numBytes):
+                    self.dataMemory[state.MAR][i] = (state.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
                 return '0x1'
-        else:
-            ans = self.instructionMemory[MAR]
-            newans = ""
-            x=len(ans)
-            for i in range(len(ans)):
-                newans += ans[x-1-i]
-            newans = '0x'+newans
-            return newans
 
     def GenerateControlSignals(self,reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB,state):
 
@@ -518,16 +510,6 @@ class CPU:
                 state.PC = state.PC + state.immed
         
     def MemoryAccess(self,state):
-        # =========== CHECK =============
-
-        # PC update (IAG module)    
-        # if(MuxPC_select == 0):
-        #     PC = RA
-        # else:
-        #     if(MuxINC_select == 0):
-        #         PC = PC + 4
-        #     else:
-        #         PC = PC + immed
         self.IAG(state)
 
         if state.MuxY_select == 0:
@@ -535,7 +517,7 @@ class CPU:
         elif state.MuxY_select == 1:
             state.MAR = str(hex(state.RZ)).lower()
             state.MDR = state.RM
-            state.RY = int(state.ProcessorMemoryInterface(),16)
+            state.RY = int(self.ProcessorMemoryInterface(state),16)
             if RY > 2**31 - 1:
                 RY = -(2**32 - RY)
         elif state.MuxY_select == 2:
