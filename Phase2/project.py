@@ -6,7 +6,7 @@ import sys ,os
 
 class CPU:
 
-    def __init__(self):
+    def __init__(state):
         ALUOp = [0]*15
         reg = [0]*32
         reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
@@ -22,17 +22,17 @@ class CPU:
         run = 0
 
 
-    def GenerateControlSignals(self,reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
+    def GenerateControlSignals(state,reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
 
-        self.RF_Write = reg_write
-        self.MuxB_select = MuxB
-        self.MuxY_select = MuxY
-        self.Mem_Write = MemWrite
-        self.Mem_Read = MemRead
-        self.MuxMA_select = MuxMA
-        self.MuxPC_select = MuxPC
-        self.MuxINC_select = MuxINC
-        self.numBytes = numB
+        state.RF_Write = reg_write
+        state.MuxB_select = MuxB
+        state.MuxY_select = MuxY
+        state.Mem_Write = MemWrite
+        state.Mem_Read = MemRead
+        state.MuxMA_select = MuxMA
+        state.MuxPC_select = MuxPC
+        state.MuxINC_select = MuxINC
+        state.numBytes = numB
 
     ALUOp = [0]*15
     #instructions
@@ -43,7 +43,7 @@ class CPU:
 
 
     #Auxilary function______
-    def init(self):
+    def init(state):
         
         ALUOp = [0]*15
         RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
@@ -53,7 +53,7 @@ class CPU:
         dataMemory = defaultdict(lambda : [0,0,0,0])
         instructionMemory = defaultdict(lambda: [0,0,0,0])
 
-    def sra(self,number,times):     #correct function
+    def sra(state,number,times):     #correct function
         bx = bin(number)[2:]
         if len(bx)<32 or bx[0]=='0':
             return number>>times
@@ -70,11 +70,11 @@ class CPU:
     dataMemory = defaultdict(lambda : [0,0,0,0])
     instructionMemory = defaultdict(lambda: [0,0,0,0])
 
-    def ProcessorMemoryInterface(self):
+    def ProcessorMemoryInterface(state):
         # Set MAR in Fetch
-        if self.MuxMA_select == 0:
-            if self.Mem_Read == 1:
-                temp = self.dataMemory[self.MAR][:self.numBytes]
+        if state.MuxMA_select == 0:
+            if state.Mem_Read == 1:
+                temp = state.dataMemory[state.MAR][:state.numBytes]
                 temp.reverse()
                 ans = '0x'
                 for i in temp:
@@ -82,12 +82,12 @@ class CPU:
                     ans += '0'*(2-len(curr)) + curr
                     
                 return ans
-            elif self.Mem_Write == 1:
-                for i in range (self.numBytes):
-                    self.dataMemory[self.MAR][i] = (self.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
+            elif state.Mem_Write == 1:
+                for i in range (state.numBytes):
+                    state.dataMemory[state.MAR][i] = (state.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
                 return '0x1'
         else:
-            ans = self.instructionMemory[self.MAR]
+            ans = state.instructionMemory[state.MAR]
             newans = ""
             x=len(ans)
             for i in range(len(ans)):
@@ -95,17 +95,17 @@ class CPU:
             newans = '0x'+newans
             return newans
 
-    def Fetch(self):
+    def Fetch(state):
         #Pc, ir
     
         # print("Fetching the instruction")
-        self.MAR = hex(self.PC)
-        self.MuxMA_select = 1    
-        self.IR = self.ProcessorMemoryInterface()
-        self.PC_Temp = self.PC + 4
+        state.MAR = hex(state.PC)
+        state.MuxMA_select = 1    
+        state.IR = state.ProcessorMemoryInterface()
+        state.PC_Temp = state.PC + 4
         
 
-    def decimalToBinary(self,num, length):
+    def decimalToBinary(state,num, length):
         ans=""
         while(num>0):
             if(num&1):
@@ -118,10 +118,10 @@ class CPU:
         return ans[::-1]   
 
     # New decode starts
-    def Decode(self):        
-        self.ALUOp = [0]*15
-        self.opcode = int(str(self.IR),16) & int("0x7f",16)
-        self.fun3 = (int(str(self.IR),16) & int("0x7000",16)) >> 12
+    def Decode(state):        
+        state.ALUOp = [0]*15
+        state.opcode = int(str(state.IR),16) & int("0x7f",16)
+        state.fun3 = (int(str(state.IR),16) & int("0x7000",16)) >> 12
         
         # R format - (add,srl,sll,sub,slt,xor,sra,and,or,mul, div, rem)
         # R format - (0110011)  
@@ -134,74 +134,74 @@ class CPU:
         # U format - a
         # UJ format - jal-1101111
 
-        self.message = ""
-        if self.opcode==int("0110011",2): # R format
+        state.message = ""
+        if state.opcode==int("0110011",2): # R format
             GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
-            self.RD = (int(self.IR,16) & int('0xF80',16)) >> 7 
-            self.RS1 = (int(self.IR,16) & int('0xF8000',16)) >> 15 
-            self.RS2 = (int(self.IR,16) & int('0x1F00000',16)) >> 20 
-            self.fun7 = (int(self.IR,16) & int('0xFE000000',16)) >> 25
-            if self.fun3 == 0:  # add/sub/mul
-                if self.fun7 == 0: # add 
-                    self.ALUOp[0]=1
-                    self.message = "This is ADD instruction."
-                elif self.fun7 == 32: # subtract
-                    self.ALUOp[1]=1
-                    self.message = "This is SUB instruction."
-                elif self.fun7==1: # mul
-                    self.ALUOp[3]=1 
-                    self.message = "This is MUL instruction."
+            state.RD = (int(state.IR,16) & int('0xF80',16)) >> 7 
+            state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15 
+            state.RS2 = (int(state.IR,16) & int('0x1F00000',16)) >> 20 
+            state.fun7 = (int(state.IR,16) & int('0xFE000000',16)) >> 25
+            if state.fun3 == 0:  # add/sub/mul
+                if state.fun7 == 0: # add 
+                    state.ALUOp[0]=1
+                    state.message = "This is ADD instruction."
+                elif state.fun7 == 32: # subtract
+                    state.ALUOp[1]=1
+                    state.message = "This is SUB instruction."
+                elif state.fun7==1: # mul
+                    state.ALUOp[3]=1 
+                    state.message = "This is MUL instruction."
                 else:
                     print("Invalid Func7 for Add/Sub")                    
                     exit(1)
-            elif self.fun3==7: # and
-                self.message = "This is AND instruction."
-                if self.fun7==0:
-                    self.ALUOp[10]=1
+            elif state.fun3==7: # and
+                state.message = "This is AND instruction."
+                if state.fun7==0:
+                    state.ALUOp[10]=1
                 else:
                     print("Invalid Fun7 for AND")                    
                     exit(1)
-            elif self.fun3 == 6: # or/remainder
-                if self.fun7==0: # or
-                    self.message = "This is OR instruction."
-                    self.ALUOp[9]=1
-                elif self.fun7==1: # remainder
-                    self.ALUOp[4]=1
-                    self.message = "This is REMAINDER instruction."
+            elif state.fun3 == 6: # or/remainder
+                if state.fun7==0: # or
+                    state.message = "This is OR instruction."
+                    state.ALUOp[9]=1
+                elif state.fun7==1: # remainder
+                    state.ALUOp[4]=1
+                    state.message = "This is REMAINDER instruction."
                 else:
                     print("Invalid Func7 for OR/REM")                    
                     exit(1)
-            elif self.fun3 == 1: # sll - shift_left
-                if self.fun7==0:
-                    self.ALUOp[6]=1
-                    self.message = "This is SLL instruction."
+            elif state.fun3 == 1: # sll - shift_left
+                if state.fun7==0:
+                    state.ALUOp[6]=1
+                    state.message = "This is SLL instruction."
                 else:
                     print("Invalid Func7 for SLL")                    
                     exit(1)
-            elif self.fun3 == 2: # slt - set_if_less_than
-                self.message = "This is SLT instruction."
-                if self.fun7==0:
-                    self.ALUOp[11]=1
+            elif state.fun3 == 2: # slt - set_if_less_than
+                state.message = "This is SLT instruction."
+                if state.fun7==0:
+                    state.ALUOp[11]=1
                 else:
                     print("Invalid Func7 for SLT")                    
                     exit(1)
-            elif self.fun3 == 5: # srl/sra
-                if self.fun7==32: # shift_ri_ari
-                    self.message = "This is SRA instruction."
-                    self.ALUOp[7]=1
-                elif self.fun7==0: #shift_ri_lo
-                    self.message = "This is SRL instruction."
-                    self.ALUOp[8]=1
+            elif state.fun3 == 5: # srl/sra
+                if state.fun7==32: # shift_ri_ari
+                    state.message = "This is SRA instruction."
+                    state.ALUOp[7]=1
+                elif state.fun7==0: #shift_ri_lo
+                    state.message = "This is SRL instruction."
+                    state.ALUOp[8]=1
                 else:
                     print("Invalid Func7 for SRA/SRL")                    
                     exit(1)
-            elif self.fun3 == 4: #xor/div
-                if self.fun7==0: # xor
-                    self.message = "This is XOR instruction."
-                    self.ALUOp[5]=1
-                elif self.fun7==1: #div
-                    self.message = "This is DIV instruction."
-                    self.ALUOp[2]=1
+            elif state.fun3 == 4: #xor/div
+                if state.fun7==0: # xor
+                    state.message = "This is XOR instruction."
+                    state.ALUOp[5]=1
+                elif state.fun7==1: #div
+                    state.message = "This is DIV instruction."
+                    state.ALUOp[2]=1
                 else:
                     print("Invalid fun7 for R format instruction")                    
                     exit(1)
@@ -209,155 +209,155 @@ class CPU:
                 print("Invalid func3 for R format instruction")                
                 exit(1)
             #setting ra rb rm -------------------------------------------------
-            self.RA = self.reg[self.RS1]
-            self.RB = self.reg[self.RS2] 
-            self.RM = self.RB        # ---- DON'T CARES
+            state.RA = state.reg[state.RS1]
+            state.RB = state.reg[state.RS2] 
+            state.RM = state.RB        # ---- DON'T CARES
             # -----------------------------------------------------------------
     
-        elif self.opcode==int("0000011",2) or self.opcode==int("0010011",2) or self.opcode==int("1100111",2): # I format
-            self.RD = (int(self.IR,16) & int('0xF80',16)) >> 7 
-            self.RS1 = (int(self.IR,16) & int('0xF8000',16)) >> 15 
-            self.immed = (int(self.IR,16) & int('0xFFF00000',16)) >> 20
+        elif state.opcode==int("0000011",2) or state.opcode==int("0010011",2) or state.opcode==int("1100111",2): # I format
+            state.RD = (int(state.IR,16) & int('0xF80',16)) >> 7 
+            state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15 
+            state.immed = (int(state.IR,16) & int('0xFFF00000',16)) >> 20
 
             #  ADDING CONSTRAINTS ON IMMEDIATE
-            if self.immed>2047:
-                self.immed -= 4096
+            if state.immed>2047:
+                state.immed -= 4096
             
-            if self.opcode==int("0000011",2): # lb/lh/lw
-                self.ALUOp[0]=1
-                if self.fun3 == 0: #lb
-                    self.message = "This is LB instruction."
+            if state.opcode==int("0000011",2): # lb/lh/lw
+                state.ALUOp[0]=1
+                if state.fun3 == 0: #lb
+                    state.message = "This is LB instruction."
                     GenerateControlSignals(1,1,1,1,0,0,1,0,1)
-                elif self.fun3 == 1: #lh
-                    self.message = "This is LH instruction."
+                elif state.fun3 == 1: #lh
+                    state.message = "This is LH instruction."
                     GenerateControlSignals(1,1,1,1,0,0,1,0,2)
-                elif self.fun3 == 2: #lw
-                    self.message = "This is LW instruction."
+                elif state.fun3 == 2: #lw
+                    state.message = "This is LW instruction."
                     GenerateControlSignals(1,1,1,1,0,0,1,0,4)
                 else: 
                     print("Invalid fun3 for I format instruction")                   
                     exit(1)
                 #setting RA, RB, RM 
-                self.RA = self.reg[self.RS1]
+                state.RA = state.reg[state.RS1]
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
-            elif self.opcode==int("0010011",2): #addi/andi/ori
+            elif state.opcode==int("0010011",2): #addi/andi/ori
                 GenerateControlSignals(1,1,0,0,0,0,1,0,4)
-                if self.fun3==0:#addi
-                    self.message = "This is ADDI instruction."
-                    self.ALUOp[0]=1
-                elif self.fun3==7:#andi
-                    self.message = "This is ANDI instruction."
-                    self.ALUOp[10]=1
-                elif self.fun3==6:#ori
-                    self.message = "This is ORI instruction."
-                    self.ALUOp[9]=1
+                if state.fun3==0:#addi
+                    state.message = "This is ADDI instruction."
+                    state.ALUOp[0]=1
+                elif state.fun3==7:#andi
+                    state.message = "This is ANDI instruction."
+                    state.ALUOp[10]=1
+                elif state.fun3==6:#ori
+                    state.message = "This is ORI instruction."
+                    state.ALUOp[9]=1
                 else:
                     print("Invalid fun3 for I format instruction")                     
                     exit(1)
                 #setting RA, RB, RM
-                self.RA = self.reg[self.RS1]
+                state.RA = state.reg[state.RS1]
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
-            elif self.opcode==int("1100111",2): #jalr *ERROR(CHECK IT)*
-                self.message = "This is JALR instruction."
+            elif state.opcode==int("1100111",2): #jalr *ERROR(CHECK IT)*
+                state.message = "This is JALR instruction."
                 GenerateControlSignals(1,0,2,0,0,0,0,1,4)
-                if self.fun3==0:
-                    self.ALUOp[0]=1
+                if state.fun3==0:
+                    state.ALUOp[0]=1
                 else:
                     print("Invalid fun3 for I format instruction")                     
                     exit(1)
                 #setting RA, RB, RM
-                self.RA = self.reg[self.RS1]
+                state.RA = state.reg[state.RS1]
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
         
         # S format
-        elif self.opcode==int("0100011",2): # S format
-            self.RS2 = (int(str(self.IR),16) & int("0xF8000",16)) >> 15
-            self.RS1 = (int(str(self.IR),16) & int("0x1F00000",16)) >> 20
-            immed4to0 = (int(str(self.IR),16) & int("0xF80",16)) >> 7
-            immed11to5 = (int(str(self.IR),16) & int("0xFE000000",16)) >> 25
-            self.immed = immed4to0 | immed11to5
+        elif state.opcode==int("0100011",2): # S format
+            state.RS2 = (int(str(state.IR),16) & int("0xF8000",16)) >> 15
+            state.RS1 = (int(str(state.IR),16) & int("0x1F00000",16)) >> 20
+            immed4to0 = (int(str(state.IR),16) & int("0xF80",16)) >> 7
+            immed11to5 = (int(str(state.IR),16) & int("0xFE000000",16)) >> 25
+            state.immed = immed4to0 | immed11to5
             ImmediateSign(12)
-            self.ALUOp[0]=1
-            if self.fun3 == int("000",2): # sb
-                self.message = "This is SB instruction."
+            state.ALUOp[0]=1
+            if state.fun3 == int("000",2): # sb
+                state.message = "This is SB instruction."
                 GenerateControlSignals(0,1,1,0,1,0,1,0,1)
-            elif self.fun3 == int("001",2): # sh
-                self.message = "This is SH instruction."
+            elif state.fun3 == int("001",2): # sh
+                state.message = "This is SH instruction."
                 GenerateControlSignals(0,1,1,0,1,0,1,0,2)
-            elif self.fun3 == int("010",2): # sw
-                self.message = "This is SW instruction."
+            elif state.fun3 == int("010",2): # sw
+                state.message = "This is SW instruction."
                 GenerateControlSignals(0,1,1,0,1,0,1,0,4)
             else:
                 print("Invalid fun3 for S format instruction")                 
                 exit(1)
             #setting RA, RB, RM -------------------------------------------------
-            self.RA = self.reg[self.RS2]
-            self.RB = self.reg[self.RS1]
-            self.RM = self.RB
+            state.RA = state.reg[state.RS2]
+            state.RB = state.reg[state.RS1]
+            state.RM = state.RB
 
-        elif self.opcode==int("1100011",2): # SB format
-            self.RS1 = (int(self.IR, 16) & int("0xF8000", 16)) >> 15
-            self.RS2 = (int(self.IR, 16) & int("0x1F00000", 16)) >> 20
-            self.RA = self.reg[self.RS1]
-            self.RB = self.reg[self.RS2]
+        elif state.opcode==int("1100011",2): # SB format
+            state.RS1 = (int(state.IR, 16) & int("0xF8000", 16)) >> 15
+            state.RS2 = (int(state.IR, 16) & int("0x1F00000", 16)) >> 20
+            state.RA = state.reg[state.RS1]
+            state.RB = state.reg[state.RS2]
             imm1 = (int(IR, 16) & int("0xF80", 16)) >> 7
             imm2 = (int(IR, 16) & int("0xFE000000", 16)) >> 25
-            self.immed = 0
-            self.immed = self.immed | ((imm1 & int("0x1E", 16)) >> 1)
-            self.immed = self.immed | ((imm2 & int("0x3F", 16)) << 4)
-            self.immed = self.immed | ((imm1 & 1) << 10)
-            self.immed = self.immed | (((imm2 & int("0x40", 16)) >> 6) << 11)
+            state.immed = 0
+            state.immed = state.immed | ((imm1 & int("0x1E", 16)) >> 1)
+            state.immed = state.immed | ((imm2 & int("0x3F", 16)) << 4)
+            state.immed = state.immed | ((imm1 & 1) << 10)
+            state.immed = state.immed | (((imm2 & int("0x40", 16)) >> 6) << 11)
             ImmediateSign(12)
-            self.immed *= 2
+            state.immed *= 2
             # Setting control Signals
-            if self.fun3 == 0:
-                self.message = "This is BEQ instruction."
-                self.ALUOp[12] = 1
-            elif self.fun3 == 1:
-                self.message = "This is BNE instruction."
-                self.ALUOp[13] = 1
-            elif self.fun3 == 4:
-                self.message = "This is BLT instruction."
-                self.ALUOp[11] = 1
-            elif self.fun3 == 5:
-                self.message = "This is BGE instruction."
-                self.ALUOp[14] = 1
+            if state.fun3 == 0:
+                state.message = "This is BEQ instruction."
+                state.ALUOp[12] = 1
+            elif state.fun3 == 1:
+                state.message = "This is BNE instruction."
+                state.ALUOp[13] = 1
+            elif state.fun3 == 4:
+                state.message = "This is BLT instruction."
+                state.ALUOp[11] = 1
+            elif state.fun3 == 5:
+                state.message = "This is BGE instruction."
+                state.ALUOp[14] = 1
             else:                
                 print("Invalid fun3 for SB format instruction")                 
                 exit(1)
             GenerateControlSignals(0,0,0,0,0,0,1,1,0)
 
-        elif self.opcode==int("0010111",2) or self.opcode==int("0110111",2): # U type
-            self.RD = (int(IR, 16) & int("0xF80", 16)) >> 7
-            self.immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
+        elif state.opcode==int("0010111",2) or state.opcode==int("0110111",2): # U type
+            state.RD = (int(IR, 16) & int("0xF80", 16)) >> 7
+            state.immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
             ImmediateSign(20)
-            if self.opcode == int("0010111", 2): # A                
-                self.ALUOp[0] = 1
-                self.RA = self.PC
-                self.immed = self.immed << 12
+            if state.opcode == int("0010111", 2): # A                
+                state.ALUOp[0] = 1
+                state.RA = state.PC
+                state.immed = state.immed << 12
             else: #L                
-                self.ALUOp[6] = 1
-                self.RA = self.immed
-                self.immed = 12
+                state.ALUOp[6] = 1
+                state.RA = state.immed
+                state.immed = 12
             GenerateControlSignals(1,1,0,0,0,0,1,0,0)
 
-        elif self.opcode==int("1101111",2): # UJ format
-            self.message = "This is JALR instruction."
-            self.RD = (int(self.IR, 16) & int("0xF80", 16)) >> 7
-            immed_tmp = (int(self.IR, 16) & int("0xFFFFF000", 16)) >> 12
-            self.immed = 0
-            self.immed = self.immed | ((immed_tmp & int("0x7FE00", 16)) >> 9)
-            self.immed = self.immed | ((immed_tmp & int("0x100", 16)) << 2)
-            self.immed = self.immed | ((immed_tmp & int("0xFF", 16)) << 11)
-            self.immed = self.immed | (immed_tmp & int("0x80000", 16))
+        elif state.opcode==int("1101111",2): # UJ format
+            state.message = "This is JALR instruction."
+            state.RD = (int(state.IR, 16) & int("0xF80", 16)) >> 7
+            immed_tmp = (int(state.IR, 16) & int("0xFFFFF000", 16)) >> 12
+            state.immed = 0
+            state.immed = state.immed | ((immed_tmp & int("0x7FE00", 16)) >> 9)
+            state.immed = state.immed | ((immed_tmp & int("0x100", 16)) << 2)
+            state.immed = state.immed | ((immed_tmp & int("0xFF", 16)) << 11)
+            state.immed = state.immed | (immed_tmp & int("0x80000", 16))
             ImmediateSign(20)
-            self.immed *= 2
-            self.ALUOp[12] = 1
-            self.RA = 0
-            self.RB = 0
+            state.immed *= 2
+            state.ALUOp[12] = 1
+            state.RA = 0
+            state.RB = 0
             GenerateControlSignals(1,0,2,0,0,0,1,1,0)
         else:
             print("Invalid Opcode !!!")
@@ -367,7 +367,7 @@ class CPU:
         print(message)
         
     # Old decode starts
-#     def Decode(self):
+#     def Decode(state):
 #         # print("Decoding the instruction")
 #         #getting the opcode
         
@@ -631,83 +631,83 @@ class CPU:
 #         print(message)
         
 
-    def ImmediateSign(self,num):
+    def ImmediateSign(state,num):
         
-        if(self.immed & 2**(num-1) == 0):
+        if(state.immed & 2**(num-1) == 0):
             return
-        self.immed = self.immed ^ (2**num-1)
-        self.immed += 1
-        self.immed *= (-1)
+        state.immed = state.immed ^ (2**num-1)
+        state.immed += 1
+        state.immed *= (-1)
 
-    def Execute(self):
+    def Execute(self,state):
         
-        self.operation = self.ALUOp.index(1)
-        self.ALUOp = [0]*15
-        self.InA = self.RA
-        if(self.MuxB_select == 1):
-            self.InB = self.immed
+        state.operation = state.ALUOp.index(1)
+        state.ALUOp = [0]*15
+        state.InA = state.RA
+        if(state.MuxB_select == 1):
+            state.InB = state.immed
         else:
-            self.InB = self.RB
-        if(self.operation == 0): #add
-            self.RZ = self.InA + self.InB
-        elif(self.operation == 1): #sub
-            self.RZ = self.InA - self.InB
-        elif(self.operation == 2): #div
-            if(self.InB == 0):
+            state.InB = state.RB
+        if(state.operation == 0): #add
+            state.RZ = state.InA + state.InB
+        elif(state.operation == 1): #sub
+            state.RZ = state.InA - state.InB
+        elif(state.operation == 2): #div
+            if(state.InB == 0):
                 
                 exit(1)
-            self.RZ = int(self.InA/self.InB)
-        elif(self.operation == 3): #mul
-            self.RZ = self.InA*self.InB
-        elif(self.operation == 4): #remainder
-            if(self.InB == 0):
+            state.RZ = int(state.InA/state.InB)
+        elif(state.operation == 3): #mul
+            state.RZ = state.InA*state.InB
+        elif(state.operation == 4): #remainder
+            if(state.InB == 0):
                 
                 exit(1)
-            self.RZ = self.InA%self.InB
-        elif(self.operation == 5): #xor
-            self.RZ = self.InA^self.InB
-        elif(self.operation == 6): #shift_left
-            if (self.InB<0):
+            state.RZ = state.InA%state.InB
+        elif(state.operation == 5): #xor
+            state.RZ = state.InA^state.InB
+        elif(state.operation == 6): #shift_left
+            if (state.InB<0):
                 
                 exit(1)
-            self.RZ = self.InA<<self.InB
-        elif(self.operation == 7): #shift_right_ari 
+            state.RZ = state.InA<<state.InB
+        elif(state.operation == 7): #shift_right_ari 
             # *******ERROR****** WRITE SRA
             pass
-        elif(self.operation == 8): #shift_ri_lo  
-            if (self.InB<0):
+        elif(state.operation == 8): #shift_ri_lo  
+            if (state.InB<0):
                 
                 exit(1)
-            self.RZ = self.InA>>self.InB
-        elif(self.operation == 9): #or  
-            self.RZ = (self.InA|self.InB)
-        elif(self.operation == 10): #and  
-            self.RZ = (self.InA&self.InB)
-        elif(self.operation == 11): #less_than 
-            self.RZ = int(self.InA<self.InB)
-            self.MuxINC_select = self.RZ
-        elif(self.operation == 12): #equal  
-            self.RZ = int(self.InA==self.InB)
-            self.MuxINC_select = self.RZ
-        elif(self.operation == 13): #not_equal  
-            self.RZ = int(self.InA!=self.InB)
-            self.MuxINC_select = self.RZ
-        elif(self.operation == 14): #greater_than_equal_to  
-            self.RZ = int(self.InA>=self.InB)
-            self.MuxINC_select = self.RZ
+            state.RZ = state.InA>>state.InB
+        elif(state.operation == 9): #or  
+            state.RZ = (state.InA|state.InB)
+        elif(state.operation == 10): #and  
+            state.RZ = (state.InA&state.InB)
+        elif(state.operation == 11): #less_than 
+            state.RZ = int(state.InA<state.InB)
+            state.MuxINC_select = state.RZ
+        elif(state.operation == 12): #equal  
+            state.RZ = int(state.InA==state.InB)
+            state.MuxINC_select = state.RZ
+        elif(state.operation == 13): #not_equal  
+            state.RZ = int(state.InA!=state.InB)
+            state.MuxINC_select = state.RZ
+        elif(state.operation == 14): #greater_than_equal_to  
+            state.RZ = int(state.InA>=state.InB)
+            state.MuxINC_select = state.RZ
         # return RZ
 
-    def IAG(self):
+    def IAG(self,state):
         
-        if(self.MuxPC_select == 0):
-            self.PC = self.RA
+        if(state.MuxPC_select == 0):
+            state.PC = state.RA
         else:
-            if(self.MuxINC_select == 0):
-                self.PC = self.PC + 4
+            if(state.MuxINC_select == 0):
+                state.PC = state.PC + 4
             else:
-                self.PC = self.PC + self.immed
+                state.PC = state.PC + state.immed
         
-    def MemoryAccess(self):
+    def MemoryAccess(self,state):
         # =========== CHECK =============
 
         # PC update (IAG module)    
@@ -718,25 +718,25 @@ class CPU:
         #         PC = PC + 4
         #     else:
         #         PC = PC + immed
-        IAG()
+        self.IAG(state)
 
-        if MuxY_select == 0:
-            RY = RZ
-        elif MuxY_select == 1:
-            MAR = str(hex(RZ)).lower()
-            MDR = RM
-            RY = int(ProcessorMemoryInterface(),16)
+        if state.MuxY_select == 0:
+            state.RY = state.RZ
+        elif state.MuxY_select == 1:
+            state.MAR = str(hex(state.RZ)).lower()
+            state.MDR = state.RM
+            state.RY = int(state.ProcessorMemoryInterface(),16)
             if RY > 2**31 - 1:
                 RY = -(2**32 - RY)
-        elif MuxY_select == 2:
-            RY = PC_Temp
+        elif state.MuxY_select == 2:
+            state.RY = state.PC_Temp
 
 
-    def RegisterUpdate(self):
-        if self.RF_Write == 1 and self.RD != 0:
-            self.reg[self.RD] = self.RY
+    def RegisterUpdate(self,state):
+        if state.RF_Write == 1 and state.RD != 0:
+            self.reg[state.RD] = state.RY
 
-    def validateDataSegment(self,y):
+    def validateDataSegment(state,y):
         if len(y)!=2:
             return False
         addr,data = y[0],y[1]
@@ -750,7 +750,7 @@ class CPU:
             return False 
         return True
 
-    def validateInstruction(self,y):
+    def validateInstruction(state,y):
         if len(y)!=2:
             return False
         addr,data = y[0],y[1]
@@ -764,7 +764,7 @@ class CPU:
         return True
     # 
 
-    def main(self):
+    def main(state):
 
         # Read the .mc file as input
         mcFile = open("input.mc","r")
@@ -804,7 +804,7 @@ class CPU:
         
 
 
-    def UpdateFile(self,filename):
+    def UpdateFile(state,filename):
         mcFile = open(filename,"w")
         i = '0x0'
         for i in instructionMemory:
@@ -821,7 +821,7 @@ class CPU:
             mcFile.write(i+' '+curr+'\n')
         
 
-    def run_RISC_simulator(self):
+    def run_RISC_simulator(state):
         
         flag=1
         while (hex(PC) in instructionMemory) and flag==1:
@@ -837,9 +837,9 @@ class CPU:
         outFile = open("output.txt",'w')
         print("============= REGISTERS =============")
         outFile.write("============= REGISTERS =============\n")
-        for i in range (len(self.reg)):
-            print('x'+str(i)+' =',self.reg[i])
-            outFile.write('x'+str(i)+' = '+str(self.reg[i])+'\n')
+        for i in range (len(state.reg)):
+            print('x'+str(i)+' =',state.reg[i])
+            outFile.write('x'+str(i)+' = '+str(state.reg[i])+'\n')
         print()
         outFile.write('\n')
         print("============= DATA MEMORY =============")
@@ -853,8 +853,8 @@ class CPU:
             outFile.write(currStr+ '\n')
         print()
         outFile.write('\n')
-        print("PC = ",hex(self.PC))
-        outFile.write("PC = "+hex(self.PC))
+        print("PC = ",hex(state.PC))
+        outFile.write("PC = "+hex(state.PC))
         print()
         outFile.write('\n')
         UpdateFile("output.mc")
