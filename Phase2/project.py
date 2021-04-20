@@ -116,13 +116,11 @@ class CPU:
             ans+='0'
         return ans[::-1]   
 
-    def Decode(self):
-        # print("Decoding the instruction")
-        #getting the opcode
-        
-        ALUOp = [0]*15
-        opcode = int(str(IR),16) & int("0x7f",16)
-        fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
+    # New decode starts
+    def Decode(self):        
+        self.ALUOp = [0]*15
+        self.opcode = int(str(self.IR),16) & int("0x7f",16)
+        self.fun3 = (int(str(self.IR),16) & int("0x7000",16)) >> 12
         
         # R format - (add,srl,sll,sub,slt,xor,sra,and,or,mul, div, rem)
         # R format - (0110011)  
@@ -134,250 +132,502 @@ class CPU:
         # SB format - (1100011) f3 - beq - 000, bne - 001, blt - 100, bge - 101
         # U format - a
         # UJ format - jal-1101111
-        message = ""
-        if opcode==int("0110011",2): # R format
+
+        self.message = ""
+        if self.opcode==int("0110011",2): # R format
             GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
-            RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
-            RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
-            RS2 = (int(IR,16) & int('0x1F00000',16)) >> 20 # setting rs2 register
-            fun7 = (int(IR,16) & int('0xFE000000',16)) >> 25
-            if fun3 == 0:  # add/sub/mul
-                if fun7 == 0: 
-                    # add 
-                    ALUOp[0]=1
-                    message = "This is ADD instruction."
-                elif fun7 == 32: # subtract
-                    ALUOp[1]=1
-                    message = "This is SUB instruction."
-                elif fun7==1: # mul
-                    ALUOp[3]=1 
-                    message = "This is MUL instruction."
+            self.RD = (int(self.IR,16) & int('0xF80',16)) >> 7 
+            self.RS1 = (int(self.IR,16) & int('0xF8000',16)) >> 15 
+            self.RS2 = (int(self.IR,16) & int('0x1F00000',16)) >> 20 
+            self.fun7 = (int(self.IR,16) & int('0xFE000000',16)) >> 25
+            if self.fun3 == 0:  # add/sub/mul
+                if self.fun7 == 0: # add 
+                    self.ALUOp[0]=1
+                    self.message = "This is ADD instruction."
+                elif self.fun7 == 32: # subtract
+                    self.ALUOp[1]=1
+                    self.message = "This is SUB instruction."
+                elif self.fun7==1: # mul
+                    self.ALUOp[3]=1 
+                    self.message = "This is MUL instruction."
                 else:
-                    print("Invalid Func7 for Add/Sub")
-                    
+                    print("Invalid Func7 for Add/Sub")                    
                     exit(1)
-            elif fun3==7: # and
-                message = "This is AND instruction."
-                if fun7==0:
-                    ALUOp[10]=1
+            elif self.fun3==7: # and
+                self.message = "This is AND instruction."
+                if self.fun7==0:
+                    self.ALUOp[10]=1
                 else:
-                    print("Invalid Fun7 for AND")
-                    
+                    print("Invalid Fun7 for AND")                    
                     exit(1)
-            elif fun3 == 6: # or/remainder
-                if fun7==0: # or
-                    message = "This is OR instruction."
-                    ALUOp[9]=1
-                elif fun7==1: # remainder
-                    ALUOp[4]=1
-                    message = "This is REMAINDER instruction."
+            elif self.fun3 == 6: # or/remainder
+                if self.fun7==0: # or
+                    self.message = "This is OR instruction."
+                    self.ALUOp[9]=1
+                elif self.fun7==1: # remainder
+                    self.ALUOp[4]=1
+                    self.message = "This is REMAINDER instruction."
                 else:
-                    print("Invalid Func7 for OR/REM")
-                    
+                    print("Invalid Func7 for OR/REM")                    
                     exit(1)
-            elif fun3 == 1: # sll - shift_left
-                if fun7==0:
-                    ALUOp[6]=1
-                    message = "This is SLL instruction."
+            elif self.fun3 == 1: # sll - shift_left
+                if self.fun7==0:
+                    self.ALUOp[6]=1
+                    self.message = "This is SLL instruction."
                 else:
-                    print("Invalid Func7 for SLL")
-                    
+                    print("Invalid Func7 for SLL")                    
                     exit(1)
-            elif fun3 == 2: # slt - set_if_less_than
-                message = "This is SLT instruction."
-                if fun7==0:
-                    ALUOp[11]=1
+            elif self.fun3 == 2: # slt - set_if_less_than
+                self.message = "This is SLT instruction."
+                if self.fun7==0:
+                    self.ALUOp[11]=1
                 else:
-                    print("Invalid Func7 for SLT")
-                    
+                    print("Invalid Func7 for SLT")                    
                     exit(1)
-            elif fun3 == 5: # srl/sra
-                if fun7==32: # shift_ri_ari
-                    message = "This is SRA instruction."
-                    ALUOp[7]=1
-                elif fun7==0: #shift_ri_lo
-                    message = "This is SRL instruction."
-                    ALUOp[8]=1
+            elif self.fun3 == 5: # srl/sra
+                if self.fun7==32: # shift_ri_ari
+                    self.message = "This is SRA instruction."
+                    self.ALUOp[7]=1
+                elif self.fun7==0: #shift_ri_lo
+                    self.message = "This is SRL instruction."
+                    self.ALUOp[8]=1
                 else:
-                    print("Invalid Func7 for SRA/SRL")
-                    
+                    print("Invalid Func7 for SRA/SRL")                    
                     exit(1)
-            elif fun3 == 4: #xor/div
-                if fun7==0: # xor
-                    message = "This is XOR instruction."
-                    ALUOp[5]=1
-                elif fun7==1: #div
-                    message = "This is DIV instruction."
-                    ALUOp[2]=1
+            elif self.fun3 == 4: #xor/div
+                if self.fun7==0: # xor
+                    self.message = "This is XOR instruction."
+                    self.ALUOp[5]=1
+                elif self.fun7==1: #div
+                    self.message = "This is DIV instruction."
+                    self.ALUOp[2]=1
                 else:
-                    
+                    print("Invalid fun7 for R format instruction")                    
                     exit(1)
             else:
-                
+                print("Invalid func3 for R format instruction")                
                 exit(1)
             #setting ra rb rm -------------------------------------------------
-            RA = reg[RS1]
-            RB = reg[RS2] 
-            RM = RB        # ---- DON'T CARES
+            self.RA = self.reg[self.RS1]
+            self.RB = self.reg[self.RS2] 
+            self.RM = self.RB        # ---- DON'T CARES
             # -----------------------------------------------------------------
     
-        elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # I format
-            RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
-            RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
-            immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
+        elif self.opcode==int("0000011",2) or self.opcode==int("0010011",2) or self.opcode==int("1100111",2): # I format
+            self.RD = (int(self.IR,16) & int('0xF80',16)) >> 7 
+            self.RS1 = (int(self.IR,16) & int('0xF8000',16)) >> 15 
+            self.immed = (int(self.IR,16) & int('0xFFF00000',16)) >> 20
 
             #  ADDING CONSTRAINTS ON IMMEDIATE
-            if immed>2047:
-                immed -= 4096
+            if self.immed>2047:
+                self.immed -= 4096
             
-            if opcode==int("0000011",2): # lb/lh/lw
-                ALUOp[0]=1
-                if fun3 == 0: #lb
-                    message = "This is LB instruction."
+            if self.opcode==int("0000011",2): # lb/lh/lw
+                self.ALUOp[0]=1
+                if self.fun3 == 0: #lb
+                    self.message = "This is LB instruction."
                     GenerateControlSignals(1,1,1,1,0,0,1,0,1)
-                elif fun3 == 1: #lh
-                    message = "This is LH instruction."
+                elif self.fun3 == 1: #lh
+                    self.message = "This is LH instruction."
                     GenerateControlSignals(1,1,1,1,0,0,1,0,2)
-                elif fun3 == 2: #lw
-                    message = "This is LW instruction."
+                elif self.fun3 == 2: #lw
+                    self.message = "This is LW instruction."
                     GenerateControlSignals(1,1,1,1,0,0,1,0,4)
-                else:
-                    
+                else: 
+                    print("Invalid fun3 for I format instruction")                   
                     exit(1)
-                #setting ra rb rm -------------------------------------------------
-                RA = reg[RS1]
+                #setting RA, RB, RM 
+                self.RA = self.reg[self.RS1]
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
-                # -----------------------------------------------------------------
-            elif opcode==int("0010011",2): #addi/andi/ori
+            elif self.opcode==int("0010011",2): #addi/andi/ori
                 GenerateControlSignals(1,1,0,0,0,0,1,0,4)
-                if fun3==0:#addi
-                    message = "This is ADDI instruction."
-                    ALUOp[0]=1
-                elif fun3==7:#andi
-                    message = "This is ANDI instruction."
-                    ALUOp[10]=1
-                elif fun3==6:#ori
-                    message = "This is ORI instruction."
-                    ALUOp[9]=1
+                if self.fun3==0:#addi
+                    self.message = "This is ADDI instruction."
+                    self.ALUOp[0]=1
+                elif self.fun3==7:#andi
+                    self.message = "This is ANDI instruction."
+                    self.ALUOp[10]=1
+                elif self.fun3==6:#ori
+                    self.message = "This is ORI instruction."
+                    self.ALUOp[9]=1
                 else:
-                    
+                    print("Invalid fun3 for I format instruction")                     
                     exit(1)
-                #setting ra rb rm -------------------------------------------------
-                RA = reg[RS1]
+                #setting RA, RB, RM
+                self.RA = self.reg[self.RS1]
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
-                # -----------------------------------------------------------------
-            elif opcode==int("1100111",2): #jalr *ERROR(CHECK IT)*
-                message = "This is JALR instruction."
+            elif self.opcode==int("1100111",2): #jalr *ERROR(CHECK IT)*
+                self.message = "This is JALR instruction."
                 GenerateControlSignals(1,0,2,0,0,0,0,1,4)
-                if fun3==0:
-                    ALUOp[0]=1
+                if self.fun3==0:
+                    self.ALUOp[0]=1
                 else:
-                    
+                    print("Invalid fun3 for I format instruction")                     
                     exit(1)
-                #setting ra rb rm -------------------------------------------------
-                RA = reg[RS1]
+                #setting RA, RB, RM
+                self.RA = self.reg[self.RS1]
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
-                # -----------------------------------------------------------------
-
-        elif opcode==int("0100011",2): # S format
-            RS2 = (int(str(IR),16) & int("0xF8000",16)) >> 15
-            RS1 = (int(str(IR),16) & int("0x1F00000",16)) >> 20
-            immed4to0 = (int(str(IR),16) & int("0xF80",16)) >> 7
-            immed11to5 = (int(str(IR),16) & int("0xFE000000",16)) >> 25
-            immed = immed4to0 | immed11to5
+        
+        # S format
+        elif self.opcode==int("0100011",2): # S format
+            self.RS2 = (int(str(self.IR),16) & int("0xF8000",16)) >> 15
+            self.RS1 = (int(str(self.IR),16) & int("0x1F00000",16)) >> 20
+            immed4to0 = (int(str(self.IR),16) & int("0xF80",16)) >> 7
+            immed11to5 = (int(str(self.IR),16) & int("0xFE000000",16)) >> 25
+            self.immed = immed4to0 | immed11to5
             ImmediateSign(12)
-            ALUOp[0]=1
-            if fun3 == int("000",2): # sb
-                message = "This is SB instruction."
+            self.ALUOp[0]=1
+            if self.fun3 == int("000",2): # sb
+                self.message = "This is SB instruction."
                 GenerateControlSignals(0,1,1,0,1,0,1,0,1)
-            elif fun3 == int("001",2): # sh
-                message = "This is SH instruction."
+            elif self.fun3 == int("001",2): # sh
+                self.message = "This is SH instruction."
                 GenerateControlSignals(0,1,1,0,1,0,1,0,2)
-            elif fun3 == int("010",2): # sw
-                message = "This is SW instruction."
+            elif self.fun3 == int("010",2): # sw
+                self.message = "This is SW instruction."
                 GenerateControlSignals(0,1,1,0,1,0,1,0,4)
             else:
-                
+                print("Invalid fun3 for S format instruction")                 
                 exit(1)
-                return
-            #setting ra rb rm -------------------------------------------------
-            RA = reg[RS2]
-            RB = reg[RS1]
-            RM = RB
-            # -----------------------------------------------------------------
+            #setting RA, RB, RM -------------------------------------------------
+            self.RA = self.reg[self.RS2]
+            self.RB = self.reg[self.RS1]
+            self.RM = self.RB
 
-        elif opcode==int("1100011",2): # SB format
-            RS1 = (int(IR, 16) & int("0xF8000", 16)) >> 15
-            RS2 = (int(IR, 16) & int("0x1F00000", 16)) >> 20
-            RA = reg[RS1]
-            RB = reg[RS2]
+        elif self.opcode==int("1100011",2): # SB format
+            self.RS1 = (int(self.IR, 16) & int("0xF8000", 16)) >> 15
+            self.RS2 = (int(self.IR, 16) & int("0x1F00000", 16)) >> 20
+            self.RA = self.reg[self.RS1]
+            self.RB = self.reg[self.RS2]
             imm1 = (int(IR, 16) & int("0xF80", 16)) >> 7
             imm2 = (int(IR, 16) & int("0xFE000000", 16)) >> 25
-            immed = 0
-            immed = immed | ((imm1 & int("0x1E", 16)) >> 1)
-            immed = immed | ((imm2 & int("0x3F", 16)) << 4)
-            immed = immed | ((imm1 & 1) << 10)
-            immed = immed | (((imm2 & int("0x40", 16)) >> 6) << 11)
+            self.immed = 0
+            self.immed = self.immed | ((imm1 & int("0x1E", 16)) >> 1)
+            self.immed = self.immed | ((imm2 & int("0x3F", 16)) << 4)
+            self.immed = self.immed | ((imm1 & 1) << 10)
+            self.immed = self.immed | (((imm2 & int("0x40", 16)) >> 6) << 11)
             ImmediateSign(12)
-            immed *= 2
+            self.immed *= 2
             # Setting control Signals
-            if(fun3 == 0):
-                message = "This is BEQ instruction."
-                ALUOp[12] = 1
-            elif(fun3 == 1):
-                message = "This is BNE instruction."
-                ALUOp[13] = 1
-            elif(fun3 == 4):
-                message = "This is BLT instruction."
-                ALUOp[11] = 1
-            elif(fun3 == 5):
-                message = "This is BGE instruction."
-                ALUOp[14] = 1
-            else:
-                
+            if self.fun3 == 0:
+                self.message = "This is BEQ instruction."
+                self.ALUOp[12] = 1
+            elif self.fun3 == 1:
+                self.message = "This is BNE instruction."
+                self.ALUOp[13] = 1
+            elif self.fun3 == 4:
+                self.message = "This is BLT instruction."
+                self.ALUOp[11] = 1
+            elif self.fun3 == 5:
+                self.message = "This is BGE instruction."
+                self.ALUOp[14] = 1
+            else:                
+                print("Invalid fun3 for SB format instruction")                 
                 exit(1)
             GenerateControlSignals(0,0,0,0,0,0,1,1,0)
 
-        elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
-            RD = (int(IR, 16) & int("0xF80", 16)) >> 7
-            immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
+        elif self.opcode==int("0010111",2) or self.opcode==int("0110111",2): # U type
+            self.RD = (int(IR, 16) & int("0xF80", 16)) >> 7
+            self.immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
             ImmediateSign(20)
-            if(opcode == int("0010111", 2)): # A
-                
-                ALUOp[0] = 1
-                RA = PC
-                immed = immed << 12
-            else: #L
-                
-                ALUOp[6] = 1
-                RA = immed
-                immed = 12
+            if self.opcode == int("0010111", 2): # A                
+                self.ALUOp[0] = 1
+                self.RA = self.PC
+                self.immed = self.immed << 12
+            else: #L                
+                self.ALUOp[6] = 1
+                self.RA = self.immed
+                self.immed = 12
             GenerateControlSignals(1,1,0,0,0,0,1,0,0)
 
-        elif opcode==int("1101111",2): # UJ format
-            message = "This is JALR instruction."
-            RD = (int(IR, 16) & int("0xF80", 16)) >> 7
-            immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
-            immed = 0
-            immed = immed | ((immed_tmp & int("0x7FE00", 16)) >> 9)
-            immed = immed | ((immed_tmp & int("0x100", 16)) << 2)
-            immed = immed | ((immed_tmp & int("0xFF", 16)) << 11)
-            immed = immed | (immed_tmp & int("0x80000", 16))
+        elif self.opcode==int("1101111",2): # UJ format
+            self.message = "This is JALR instruction."
+            self.RD = (int(self.IR, 16) & int("0xF80", 16)) >> 7
+            immed_tmp = (int(self.IR, 16) & int("0xFFFFF000", 16)) >> 12
+            self.immed = 0
+            self.immed = self.immed | ((immed_tmp & int("0x7FE00", 16)) >> 9)
+            self.immed = self.immed | ((immed_tmp & int("0x100", 16)) << 2)
+            self.immed = self.immed | ((immed_tmp & int("0xFF", 16)) << 11)
+            self.immed = self.immed | (immed_tmp & int("0x80000", 16))
             ImmediateSign(20)
-            immed *= 2
-            ALUOp[12] = 1
-            RA = 0
-            RB = 0
-            # print("Immediate field : " + str(immed))
+            self.immed *= 2
+            self.ALUOp[12] = 1
+            self.RA = 0
+            self.RB = 0
             GenerateControlSignals(1,0,2,0,0,0,1,1,0)
-
         else:
-            print("invalid opcode")
+            print("Invalid Opcode !!!")
+            exit(1)
 
+        # if the instruction is identified correctly, print which instruction is it
         print(message)
+        
+    # Old decode starts
+#     def Decode(self):
+#         # print("Decoding the instruction")
+#         #getting the opcode
+        
+#         ALUOp = [0]*15
+#         opcode = int(str(IR),16) & int("0x7f",16)
+#         fun3 = (int(str(IR),16) & int("0x7000",16)) >> 12
+        
+#         # R format - (add,srl,sll,sub,slt,xor,sra,and,or,mul, div, rem)
+#         # R format - (0110011)  
+#         # I format - (lb-0,lh-1,lw-2)(addi-0, andi-7, ori-6,)(jalr-0)
+#         # I format - (0000011)(0010011)(1100111)
+#         # S format - (sb, sw, sh)
+#         # S format - (0100011) f3 - sb - 000, sh - 001, sw - 010
+#         # SB format - beq, bne, bge, blt
+#         # SB format - (1100011) f3 - beq - 000, bne - 001, blt - 100, bge - 101
+#         # U format - a
+#         # UJ format - jal-1101111
+#         message = ""
+#         if opcode==int("0110011",2): # R format
+#             GenerateControlSignals(1, 0, 0, 0, 0, 0, 1, 0, 4)
+#             RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
+#             RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
+#             RS2 = (int(IR,16) & int('0x1F00000',16)) >> 20 # setting rs2 register
+#             fun7 = (int(IR,16) & int('0xFE000000',16)) >> 25
+#             if fun3 == 0:  # add/sub/mul
+#                 if fun7 == 0: 
+#                     # add 
+#                     ALUOp[0]=1
+#                     message = "This is ADD instruction."
+#                 elif fun7 == 32: # subtract
+#                     ALUOp[1]=1
+#                     message = "This is SUB instruction."
+#                 elif fun7==1: # mul
+#                     ALUOp[3]=1 
+#                     message = "This is MUL instruction."
+#                 else:
+#                     print("Invalid Func7 for Add/Sub")
+                    
+#                     exit(1)
+#             elif fun3==7: # and
+#                 message = "This is AND instruction."
+#                 if fun7==0:
+#                     ALUOp[10]=1
+#                 else:
+#                     print("Invalid Fun7 for AND")
+                    
+#                     exit(1)
+#             elif fun3 == 6: # or/remainder
+#                 if fun7==0: # or
+#                     message = "This is OR instruction."
+#                     ALUOp[9]=1
+#                 elif fun7==1: # remainder
+#                     ALUOp[4]=1
+#                     message = "This is REMAINDER instruction."
+#                 else:
+#                     print("Invalid Func7 for OR/REM")
+                    
+#                     exit(1)
+#             elif fun3 == 1: # sll - shift_left
+#                 if fun7==0:
+#                     ALUOp[6]=1
+#                     message = "This is SLL instruction."
+#                 else:
+#                     print("Invalid Func7 for SLL")
+                    
+#                     exit(1)
+#             elif fun3 == 2: # slt - set_if_less_than
+#                 message = "This is SLT instruction."
+#                 if fun7==0:
+#                     ALUOp[11]=1
+#                 else:
+#                     print("Invalid Func7 for SLT")
+                    
+#                     exit(1)
+#             elif fun3 == 5: # srl/sra
+#                 if fun7==32: # shift_ri_ari
+#                     message = "This is SRA instruction."
+#                     ALUOp[7]=1
+#                 elif fun7==0: #shift_ri_lo
+#                     message = "This is SRL instruction."
+#                     ALUOp[8]=1
+#                 else:
+#                     print("Invalid Func7 for SRA/SRL")
+                    
+#                     exit(1)
+#             elif fun3 == 4: #xor/div
+#                 if fun7==0: # xor
+#                     message = "This is XOR instruction."
+#                     ALUOp[5]=1
+#                 elif fun7==1: #div
+#                     message = "This is DIV instruction."
+#                     ALUOp[2]=1
+#                 else:
+                    
+#                     exit(1)
+#             else:
+                
+#                 exit(1)
+#             #setting ra rb rm -------------------------------------------------
+#             RA = reg[RS1]
+#             RB = reg[RS2] 
+#             RM = RB        # ---- DON'T CARES
+#             # -----------------------------------------------------------------
+    
+#         elif opcode==int("0000011",2) or opcode==int("0010011",2) or opcode==int("1100111",2): # I format
+#             RD = (int(IR,16) & int('0xF80',16)) >> 7 # setting destination register
+#             RS1 = (int(IR,16) & int('0xF8000',16)) >> 15 # setting rs1 register
+#             immed = (int(IR,16) & int('0xFFF00000',16)) >> 20
+
+#             #  ADDING CONSTRAINTS ON IMMEDIATE
+#             if immed>2047:
+#                 immed -= 4096
+            
+#             if opcode==int("0000011",2): # lb/lh/lw
+#                 ALUOp[0]=1
+#                 if fun3 == 0: #lb
+#                     message = "This is LB instruction."
+#                     GenerateControlSignals(1,1,1,1,0,0,1,0,1)
+#                 elif fun3 == 1: #lh
+#                     message = "This is LH instruction."
+#                     GenerateControlSignals(1,1,1,1,0,0,1,0,2)
+#                 elif fun3 == 2: #lw
+#                     message = "This is LW instruction."
+#                     GenerateControlSignals(1,1,1,1,0,0,1,0,4)
+#                 else:
+                    
+#                     exit(1)
+#                 #setting ra rb rm -------------------------------------------------
+#                 RA = reg[RS1]
+#                 # RB = reg[RS2]   ---- DON'T CARES
+#                 # RM = RB         ---- DON'T CARES
+#                 # -----------------------------------------------------------------
+#             elif opcode==int("0010011",2): #addi/andi/ori
+#                 GenerateControlSignals(1,1,0,0,0,0,1,0,4)
+#                 if fun3==0:#addi
+#                     message = "This is ADDI instruction."
+#                     ALUOp[0]=1
+#                 elif fun3==7:#andi
+#                     message = "This is ANDI instruction."
+#                     ALUOp[10]=1
+#                 elif fun3==6:#ori
+#                     message = "This is ORI instruction."
+#                     ALUOp[9]=1
+#                 else:
+                    
+#                     exit(1)
+#                 #setting ra rb rm -------------------------------------------------
+#                 RA = reg[RS1]
+#                 # RB = reg[RS2]   ---- DON'T CARES
+#                 # RM = RB         ---- DON'T CARES
+#                 # -----------------------------------------------------------------
+#             elif opcode==int("1100111",2): #jalr *ERROR(CHECK IT)*
+#                 message = "This is JALR instruction."
+#                 GenerateControlSignals(1,0,2,0,0,0,0,1,4)
+#                 if fun3==0:
+#                     ALUOp[0]=1
+#                 else:
+                    
+#                     exit(1)
+#                 #setting ra rb rm -------------------------------------------------
+#                 RA = reg[RS1]
+#                 # RB = reg[RS2]   ---- DON'T CARES
+#                 # RM = RB         ---- DON'T CARES
+#                 # -----------------------------------------------------------------
+
+#         elif opcode==int("0100011",2): # S format
+#             RS2 = (int(str(IR),16) & int("0xF8000",16)) >> 15
+#             RS1 = (int(str(IR),16) & int("0x1F00000",16)) >> 20
+#             immed4to0 = (int(str(IR),16) & int("0xF80",16)) >> 7
+#             immed11to5 = (int(str(IR),16) & int("0xFE000000",16)) >> 25
+#             immed = immed4to0 | immed11to5
+#             ImmediateSign(12)
+#             ALUOp[0]=1
+#             if fun3 == int("000",2): # sb
+#                 message = "This is SB instruction."
+#                 GenerateControlSignals(0,1,1,0,1,0,1,0,1)
+#             elif fun3 == int("001",2): # sh
+#                 message = "This is SH instruction."
+#                 GenerateControlSignals(0,1,1,0,1,0,1,0,2)
+#             elif fun3 == int("010",2): # sw
+#                 message = "This is SW instruction."
+#                 GenerateControlSignals(0,1,1,0,1,0,1,0,4)
+#             else:
+                
+#                 exit(1)
+#                 return
+#             #setting ra rb rm -------------------------------------------------
+#             RA = reg[RS2]
+#             RB = reg[RS1]
+#             RM = RB
+#             # -----------------------------------------------------------------
+
+#         elif opcode==int("1100011",2): # SB format
+#             RS1 = (int(IR, 16) & int("0xF8000", 16)) >> 15
+#             RS2 = (int(IR, 16) & int("0x1F00000", 16)) >> 20
+#             RA = reg[RS1]
+#             RB = reg[RS2]
+#             imm1 = (int(IR, 16) & int("0xF80", 16)) >> 7
+#             imm2 = (int(IR, 16) & int("0xFE000000", 16)) >> 25
+#             immed = 0
+#             immed = immed | ((imm1 & int("0x1E", 16)) >> 1)
+#             immed = immed | ((imm2 & int("0x3F", 16)) << 4)
+#             immed = immed | ((imm1 & 1) << 10)
+#             immed = immed | (((imm2 & int("0x40", 16)) >> 6) << 11)
+#             ImmediateSign(12)
+#             immed *= 2
+#             # Setting control Signals
+#             if(fun3 == 0):
+#                 message = "This is BEQ instruction."
+#                 ALUOp[12] = 1
+#             elif(fun3 == 1):
+#                 message = "This is BNE instruction."
+#                 ALUOp[13] = 1
+#             elif(fun3 == 4):
+#                 message = "This is BLT instruction."
+#                 ALUOp[11] = 1
+#             elif(fun3 == 5):
+#                 message = "This is BGE instruction."
+#                 ALUOp[14] = 1
+#             else:
+                
+#                 exit(1)
+#             GenerateControlSignals(0,0,0,0,0,0,1,1,0)
+
+#         elif opcode==int("0010111",2) or opcode==int("0110111",2): # U type
+#             RD = (int(IR, 16) & int("0xF80", 16)) >> 7
+#             immed = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
+#             ImmediateSign(20)
+#             if(opcode == int("0010111", 2)): # A
+                
+#                 ALUOp[0] = 1
+#                 RA = PC
+#                 immed = immed << 12
+#             else: #L
+                
+#                 ALUOp[6] = 1
+#                 RA = immed
+#                 immed = 12
+#             GenerateControlSignals(1,1,0,0,0,0,1,0,0)
+
+#         elif opcode==int("1101111",2): # UJ format
+#             message = "This is JALR instruction."
+#             RD = (int(IR, 16) & int("0xF80", 16)) >> 7
+#             immed_tmp = (int(IR, 16) & int("0xFFFFF000", 16)) >> 12
+#             immed = 0
+#             immed = immed | ((immed_tmp & int("0x7FE00", 16)) >> 9)
+#             immed = immed | ((immed_tmp & int("0x100", 16)) << 2)
+#             immed = immed | ((immed_tmp & int("0xFF", 16)) << 11)
+#             immed = immed | (immed_tmp & int("0x80000", 16))
+#             ImmediateSign(20)
+#             immed *= 2
+#             ALUOp[12] = 1
+#             RA = 0
+#             RB = 0
+#             # print("Immediate field : " + str(immed))
+#             GenerateControlSignals(1,0,2,0,0,0,1,1,0)
+
+#         else:
+#             print("invalid opcode")
+
+#         print(message)
         
 
     def ImmediateSign(self,num):
