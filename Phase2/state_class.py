@@ -197,16 +197,36 @@ class CPU:
         state.immed += 1
         state.immed *= (-1)
     
-    def Fetch(self,state):
+    def Fetch(self,state, btb):
         pc=state.PC
+        newPC = 0
         ir=self.readInstructionMem(pc)
         if(ir=="Invalid"):
             return None
         state.IR=ir
+        opcode = int(str(state.IR),16) & int("0x7f",16)
+        # I format 
+        if (opcode in [3,19,103]):
+            state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15
+            state.RS2 = -1
+        elif (opcode not in [23, 55, 111]):
+            state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15
+            state.RS2 = (int(state.IR,16) & int('0x1F00000',16)) >> 20
+
+        if (opcode in [35, 99]):
+            state.RD = -1
+        else:
+            state.RD = (int(state.IR,16) & int('0xF80',16)) >> 7 
+        
+        if (opcode in [99, 103, 111]):
+            if (btb.isPresent(pc) and btb.predict(pc)):
+                newPC = btb.getTarget(pc)
+                state.predictionOutcome = 1
+        state.predictionPC = newPC
         state.PC_Temp=state.PC+4
         return state
 
-    def Decode(self,state):        
+    def Decode(self,state, btb):        
         state.opcode = int(str(state.IR),16) & int("0x7f",16)
         state.fun3 = (int(str(state.IR),16) & int("0x7000",16)) >> 12
         
@@ -415,6 +435,25 @@ class CPU:
                 print("Invalid fun3 for SB format instruction")                 
                 exit(1)
             self.GenerateControlSignals(0,0,0,0,0,0,1,1,0,state)
+            Execute(state)
+            target = state.PC + state.immed
+            if btb.isPresent(state.PC) == 0:
+                btb.store(state.PC, target)
+            
+            if state.RZ == 0 and state.predictionOutcome == 1:
+                btb.changeState(state.PC)
+                # self.branch_missprediction = 1
+                controlHazard = 1
+                newPC = state.PC + 4
+            
+            if state.RZ == 1 and state.predictionOutcome == 0:
+                btb.changeState(state.PC)
+                # self.branch_missprediction = 1
+                controlHazard = 1
+                newPC = btb.getTarget(state.PC)
+
+
+            
 
         elif state.opcode==int("0010111",2) or state.opcode==int("0110111",2): # U type
             state.RD = (int(state.IR, 16) & int("0xF80", 16)) >> 7
@@ -445,12 +484,19 @@ class CPU:
             state.RA = 0
             state.RB = 0
             self.GenerateControlSignals(1,0,2,0,0,0,1,1,0,state)
+            if btb.isPresent(state.PC) == 0:
+                btb.store(state.PC, state.PC + state.immed)
+                btb.updateState(state.PC)
+                # self.branch_missprediction += 1
+                newPC = btb.getTarget(state.PC)
+                controlHazard = 1
         else:
             print("Invalid Opcode !!!")
             exit(1)
 
         # if the instruction is identified correctly, print which instruction is it
         print(state.message)
+        return controlHazard, newPC, state
 
     def Execute(self,state):
         state.operation = state.ALUOp.index(1)
