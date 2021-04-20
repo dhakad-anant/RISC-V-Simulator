@@ -6,18 +6,19 @@ import sys ,os
 
 class CPU:
 
-    reg = [0]*32
-    reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
-    reg[3] = int("0x10000000",16) # pointer to begining of data segment
+    def __init__(self):
+        reg = [0]*32
+        reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
+        reg[3] = int("0x10000000",16) # pointer to begining of data segment
 
-    clk = 0
+        clk = 0
 
-    RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
+        RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
 
 
-    isStepClicked = 0
+        isStepClicked = 0
 
-    run = 0
+        run = 0
 
 
     def GenerateControlSignals(self,reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB):
