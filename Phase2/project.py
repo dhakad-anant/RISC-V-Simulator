@@ -4,15 +4,15 @@ import sys ,os
 # File reading completed
 #defining 
 
+
+dataMemory = defaultdict(lambda : [0,0,0,0])
+instructionMemory = defaultdict(lambda: [0,0,0,0])
+reg = [0]*32
+reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
+reg[3] = int("0x10000000",16) # pointer to begining of data segment
+clk = 0
+
 class CPU:
-
-    reg = [0]*32
-    reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
-    reg[3] = int("0x10000000",16) # pointer to begining of data segment
-
-    clk = 0
-
-    RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
 
 
     isStepClicked = 0
@@ -45,11 +45,6 @@ class CPU:
         
         ALUOp = [0]*15
         RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
-        reg = [0]*32
-        reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
-        reg[3] = int("0x10000000",16) # pointer to begining of data segment
-        dataMemory = defaultdict(lambda : [0,0,0,0])
-        instructionMemory = defaultdict(lambda: [0,0,0,0])
 
     def sra(self,number,times):     #correct function
         bx = bin(number)[2:]
@@ -63,16 +58,11 @@ class CPU:
             return twosCompli
 
 
-    #________
-
-    dataMemory = defaultdict(lambda : [0,0,0,0])
-    instructionMemory = defaultdict(lambda: [0,0,0,0])
-
     def ProcessorMemoryInterface(self):
         # Set MAR in Fetch
         if self.MuxMA_select == 0:
             if self.Mem_Read == 1:
-                temp = self.dataMemory[self.MAR][:self.numBytes]
+                temp = dataMemory[self.MAR][:self.numBytes]
                 temp.reverse()
                 ans = '0x'
                 for i in temp:
@@ -82,10 +72,10 @@ class CPU:
                 return ans
             elif self.Mem_Write == 1:
                 for i in range (self.numBytes):
-                    self.dataMemory[self.MAR][i] = (self.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
+                    dataMemory[self.MAR][i] = (self.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
                 return '0x1'
         else:
-            ans = self.instructionMemory[self.MAR]
+            ans = instructionMemory[self.MAR]
             newans = ""
             x=len(ans)
             for i in range(len(ans)):
@@ -466,18 +456,18 @@ class CPU:
         #         PC = PC + 4
         #     else:
         #         PC = PC + immed
-        IAG()
+        self.IAG()
 
-        if MuxY_select == 0:
-            RY = RZ
-        elif MuxY_select == 1:
-            MAR = str(hex(RZ)).lower()
-            MDR = RM
-            RY = int(ProcessorMemoryInterface(),16)
-            if RY > 2**31 - 1:
-                RY = -(2**32 - RY)
-        elif MuxY_select == 2:
-            RY = PC_Temp
+        if self.MuxY_select == 0:
+            self.RY = self.RZ
+        elif self.MuxY_select == 1:
+            self.MAR = str(hex(self.RZ)).lower()
+            self.MDR = self.RM
+            self.RY = int(self.ProcessorMemoryInterface(),16)
+            if self.RY > 2**31 - 1:
+                self.RY = -(2**32 - self.RY)
+        elif self.MuxY_select == 2:
+            self.RY = self.PC_Temp
 
 
     def RegisterUpdate(self):
