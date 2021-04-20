@@ -453,54 +453,53 @@ class CPU:
         print(state.message)
 
     def Execute(self,state):
-        state.operation = state.ALUOp.index(1)
-        state.ALUOp = [0]*15
+        operation = state.ALUOp.index(1)
         InA = state.RA
         if(state.MuxB_select == 1):
             InB = state.immed
         else:
             InB = state.RB
-        if(state.operation == 0): #add
+        if(operation == 0): #add
             state.RZ = InA + InB
-        elif(state.operation == 1): #sub
+        elif(operation == 1): #sub
             state.RZ = InA - InB
-        elif(state.operation == 2): #div
+        elif(operation == 2): #div
             if(InB == 0):
                 exit(1)
             state.RZ = int(InA/InB)
-        elif(state.operation == 3): #mul
+        elif(operation == 3): #mul
             state.RZ = InA*InB
-        elif(state.operation == 4): #remainder
+        elif(operation == 4): #remainder
             if(InB == 0):
                 exit(1)
             state.RZ = InA%InB
-        elif(state.operation == 5): #xor
+        elif(operation == 5): #xor
             state.RZ = InA^InB
-        elif(state.operation == 6): #shift_left
+        elif(operation == 6): #shift_left
             if (InB<0):
                 exit(1)
             state.RZ = InA<<InB
-        elif(state.operation == 7): #shift_right_ari 
+        elif(operation == 7): #shift_right_ari 
             # *******ERROR****** WRITE SRA
             pass
-        elif(state.operation == 8): #shift_ri_lo  
+        elif(operation == 8): #shift_ri_lo  
             if (InB<0):
                 exit(1)
             state.RZ = InA>>InB
-        elif(state.operation == 9): #or  
+        elif(operation == 9): #or  
             state.RZ = (InA|InB)
-        elif(state.operation == 10): #and  
+        elif(operation == 10): #and  
             state.RZ = (InA&InB)
-        elif(state.operation == 11): #less_than 
+        elif(operation == 11): #less_than 
             state.RZ = int(InA<InB)
             state.MuxINC_select = state.RZ
-        elif(state.operation == 12): #equal  
+        elif(operation == 12): #equal  
             state.RZ = int(InA==InB)
             state.MuxINC_select = state.RZ
-        elif(state.operation == 13): #not_equal  
+        elif(operation == 13): #not_equal  
             state.RZ = int(InA!=InB)
             state.MuxINC_select = state.RZ
-        elif(state.operation == 14): #greater_than_equal_to  
+        elif(operation == 14): #greater_than_equal_to  
             state.RZ = int(InA>=InB)
             state.MuxINC_select = state.RZ
 

@@ -6,7 +6,6 @@ ProcessingUnit = CPU(prediction_enabled)
 ProcessingUnit.readFile()
 master_PC=0
 master_cycle=0
-comp=0
 while True:
     master_cycle+=1
     for i in reversed(range(5)):
@@ -14,8 +13,7 @@ while True:
             states[i]=State(master_PC)
             states[i]=ProcessingUnit.Fetch(states[i])
             if(states[i]==None):
-                comp=1
-                break
+                continue
             states[i+1]=states[i]
             states[i]=None
         if(i==1):
@@ -23,20 +21,25 @@ while True:
                 continue
             ProcessingUnit.Decode(states[i])
             states[i+1]=states[i]
+            states[i]=None
         if(i==2):
             if(states[i]==None):
                 continue
             ProcessingUnit.Execute(states[i])
             states[i+1]=states[i]
+            states[i]=None
         if(i==3):
             if(states[i]==None):
                 continue
             ProcessingUnit.MemoryAccess(states[i])
             states[i+1]=states[i]
+            states[i]=None
         if(i==4):
             if(states[i]==None):
                 continue
             ProcessingUnit.RegisterUpdate(states[i])
-    if(comp==1):
+            states[i]=None
+    if(states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None):
         break
     master_PC += 4
+print("Program Executed!!!")
