@@ -106,7 +106,7 @@ class CPU:
 
     def readFile(self):
         try:
-            mcFile = open("input.mc","r")
+            mcFile = open("/home/captain/RISC-V-Simulator/Phase2/input.mc","r")
         except:
             print("File Not Found!")
             return
@@ -180,10 +180,12 @@ class CPU:
     def readInstructionMem(self,pc):
         MAR = hex(pc)
         ans = self.instructionMemory[MAR]
+        if(ans[0]==0 and ans[1]==0 and ans[2]==0 and ans[3]==0):
+            return "Invalid"
         newans = ""
         x=len(ans)
         for i in range(len(ans)):
-            newans += ans[x-1-i]
+            newans += str(ans[x-1-i])
         newans = '0x'+newans
         return newans
     
@@ -198,8 +200,11 @@ class CPU:
     def Fetch(self,state):
         pc=state.PC
         ir=self.readInstructionMem(pc)
+        if(ir=="Invalid"):
+            return None
         state.IR=ir
         state.PC_Temp=state.PC+4
+        return state
 
     def Decode(self,state):        
         state.opcode = int(str(state.IR),16) & int("0x7f",16)

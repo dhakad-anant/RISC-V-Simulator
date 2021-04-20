@@ -6,12 +6,16 @@ ProcessingUnit = CPU(prediction_enabled)
 ProcessingUnit.readFile()
 master_PC=0
 master_cycle=0
+comp=0
 while True:
     master_cycle+=1
     for i in reversed(range(5)):
         if(i==0):
             states[i]=State(master_PC)
-            ProcessingUnit.Fetch(states[i])
+            states[i]=ProcessingUnit.Fetch(states[i])
+            if(states[i]==None):
+                comp=1
+                break
             states[i+1]=states[i]
             states[i]=None
         if(i==1):
@@ -33,4 +37,6 @@ while True:
             if(states[i]==None):
                 continue
             ProcessingUnit.RegisterUpdate(states[i])
+    if(comp==1):
+        break
     master_PC += 4
