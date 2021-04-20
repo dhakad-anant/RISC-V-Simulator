@@ -7,6 +7,7 @@ import sys ,os
 class CPU:
 
     def __init__(self):
+        ALUOp = [0]*15
         reg = [0]*32
         reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
         reg[3] = int("0x10000000",16) # pointer to begining of data segment
@@ -15,7 +16,7 @@ class CPU:
 
         RS1,RS2,RD,RM,RZ,RY,RA,RB,PC,IR,MuxB_select,MuxC_select,MuxINC_select,MuxY_select,MuxPC_select,MuxMA_select,RegFileAddrA,RegFileAddrB,RegFileAddrC,RegFileInp,RegFileAOut,RegFileBOut,MAR,MDR,opcode,numBytes,RF_Write,immed,PC_Temp,Mem_Write,Mem_Read=[0]*31
 
-
+        func3,fun7,message = [0]*3
         isStepClicked = 0
 
         run = 0
@@ -836,9 +837,9 @@ class CPU:
         outFile = open("output.txt",'w')
         print("============= REGISTERS =============")
         outFile.write("============= REGISTERS =============\n")
-        for i in range (len(reg)):
-            print('x'+str(i)+' =',reg[i])
-            outFile.write('x'+str(i)+' = '+str(reg[i])+'\n')
+        for i in range (len(self.reg)):
+            print('x'+str(i)+' =',self.reg[i])
+            outFile.write('x'+str(i)+' = '+str(self.reg[i])+'\n')
         print()
         outFile.write('\n')
         print("============= DATA MEMORY =============")
@@ -852,8 +853,8 @@ class CPU:
             outFile.write(currStr+ '\n')
         print()
         outFile.write('\n')
-        print("PC = ",hex(PC))
-        outFile.write("PC = "+hex(PC))
+        print("PC = ",hex(self.PC))
+        outFile.write("PC = "+hex(self.PC))
         print()
         outFile.write('\n')
         UpdateFile("output.mc")
