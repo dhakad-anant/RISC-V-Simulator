@@ -118,7 +118,7 @@ class CPU:
             y[1] = y[1].lower()
             if flag==1:
                 if self.validateDataSegment(y)==False:
-                    print("ERROR : INVALID DATA SEGMENT")
+                    print("ERROR : Invalid Data Segment format in the input.mc file")
                     exit(1)
                 self.dataMemory[y[0]][0] = (int(y[1],16) & int('0xFF',16))
                 self.dataMemory[y[0]][1] = (int(y[1],16) & int('0xFF00',16))>>8
@@ -128,11 +128,9 @@ class CPU:
             if '$' in y:
                 flag = 1    
             if flag==0:
-                #TODO : Add Validation____
                 y = x.split('\n')[0].split()
                 if self.validateInstruction(y)== False:
-                    print("ERROR : INVALID INSTRUCTION")
-                    
+                    print("ERROR : Invalid Instruction format in the input.mc file")                    
                     exit(1)
                 y[1] = y[1].lower() 
                 for i in range (4):
