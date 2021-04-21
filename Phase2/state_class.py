@@ -520,7 +520,7 @@ class CPU:
             state.MAR = str(hex(state.RZ)).lower()
             state.MDR = state.RM
             state.RY = int(self.ProcessorMemoryInterface(state),16)
-            if RY > 2**31 - 1:
+            if state.RY > 2**31 - 1:
                 RY = -(2**32 - RY)
         elif state.MuxY_select == 2:
             state.RY = state.PC_Temp
