@@ -6,6 +6,11 @@ ProcessingUnit = CPU(prediction_enabled)
 ProcessingUnit.readFile()
 master_PC=0
 master_cycle=0
+# states[0] - fetch
+# states[1] - Decode
+# states[2] - execute
+# states[3] - MemoryAccess
+# states[4] - writeback
 while True:
     master_cycle+=1
     for i in reversed(range(5)):
