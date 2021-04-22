@@ -9,7 +9,7 @@ class HDU:
 
     # ind1 => Fetch, Decode, Exe, Ma, WB
     # para => RA, RB, RD
-    def evaluate(ind1, ind2,forwardPaths, prevStates):
+    def evaluate(self, ind1, ind2,forwardPaths, prevStates):
         isHazard = 0
 
         if ind1== 3 and ind2 == 4:
