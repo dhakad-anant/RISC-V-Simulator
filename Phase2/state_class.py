@@ -120,7 +120,7 @@ class CPU:
             y[1] = y[1].lower()
             if flag==1:
                 if self.validateDataSegment(y)==False:
-                    print("ERROR : INVALID DATA SEGMENT")
+                    print("ERROR : Invalid Data Segment format in the input.mc file")
                     exit(1)
                 self.dataMemory[y[0]][0] = (int(y[1],16) & int('0xFF',16))
                 self.dataMemory[y[0]][1] = (int(y[1],16) & int('0xFF00',16))>>8
@@ -130,11 +130,9 @@ class CPU:
             if '$' in y:
                 flag = 1    
             if flag==0:
-                #TODO : Add Validation____
                 y = x.split('\n')[0].split()
                 if self.validateInstruction(y)== False:
-                    print("ERROR : INVALID INSTRUCTION")
-                    
+                    print("ERROR : Invalid Instruction format in the input.mc file")                    
                     exit(1)
                 y[1] = y[1].lower() 
                 for i in range (4):
@@ -501,54 +499,53 @@ class CPU:
         return controlHazard, newPC, state
 
     def Execute(self,state):
-        state.operation = state.ALUOp.index(1)
-        state.ALUOp = [0]*15
+        operation = state.ALUOp.index(1)
         InA = state.RA
         if(state.MuxB_select == 1):
             InB = state.immed
         else:
             InB = state.RB
-        if(state.operation == 0): #add
+        if(operation == 0): #add
             state.RZ = InA + InB
-        elif(state.operation == 1): #sub
+        elif(operation == 1): #sub
             state.RZ = InA - InB
-        elif(state.operation == 2): #div
+        elif(operation == 2): #div
             if(InB == 0):
                 exit(1)
             state.RZ = int(InA/InB)
-        elif(state.operation == 3): #mul
+        elif(operation == 3): #mul
             state.RZ = InA*InB
-        elif(state.operation == 4): #remainder
+        elif(operation == 4): #remainder
             if(InB == 0):
                 exit(1)
             state.RZ = InA%InB
-        elif(state.operation == 5): #xor
+        elif(operation == 5): #xor
             state.RZ = InA^InB
-        elif(state.operation == 6): #shift_left
+        elif(operation == 6): #shift_left
             if (InB<0):
                 exit(1)
             state.RZ = InA<<InB
-        elif(state.operation == 7): #shift_right_ari 
+        elif(operation == 7): #shift_right_ari 
             # *******ERROR****** WRITE SRA
             pass
-        elif(state.operation == 8): #shift_ri_lo  
+        elif(operation == 8): #shift_ri_lo  
             if (InB<0):
                 exit(1)
             state.RZ = InA>>InB
-        elif(state.operation == 9): #or  
+        elif(operation == 9): #or  
             state.RZ = (InA|InB)
-        elif(state.operation == 10): #and  
+        elif(operation == 10): #and  
             state.RZ = (InA&InB)
-        elif(state.operation == 11): #less_than 
+        elif(operation == 11): #less_than 
             state.RZ = int(InA<InB)
             state.MuxINC_select = state.RZ
-        elif(state.operation == 12): #equal  
+        elif(operation == 12): #equal  
             state.RZ = int(InA==InB)
             state.MuxINC_select = state.RZ
-        elif(state.operation == 13): #not_equal  
+        elif(operation == 13): #not_equal  
             state.RZ = int(InA!=InB)
             state.MuxINC_select = state.RZ
-        elif(state.operation == 14): #greater_than_equal_to  
+        elif(operation == 14): #greater_than_equal_to  
             state.RZ = int(InA>=InB)
             state.MuxINC_select = state.RZ
 
@@ -571,7 +568,7 @@ class CPU:
             state.MAR = str(hex(state.RZ)).lower()
             state.MDR = state.RM
             state.RY = int(self.ProcessorMemoryInterface(state),16)
-            if RY > 2**31 - 1:
+            if state.RY > 2**31 - 1:
                 RY = -(2**32 - RY)
         elif state.MuxY_select == 2:
             state.RY = state.PC_Temp
