@@ -33,6 +33,8 @@ class State:
         self.numBytes = 0
         self.predictionOutcome = 0
         self.predictionPC = 0
+        self.RS1Branch = -1
+        self.RS2Branch = -1
 
 
 class BTB:
