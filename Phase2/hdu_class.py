@@ -70,7 +70,6 @@ class HDU:
         
         return [forwardPaths, prevStates, isHazard]
 
-    
     def isDataHazard(self, states):
         forwardPaths = []
         newState = [states[0]]
@@ -119,9 +118,10 @@ class HDU:
     
     def checkDataHazardStalling(self,states):
         # states = states[1:]
-        if len(states)==2:
+        noneCnt = states.count(None)
+        if noneCnt >= 3:
             return False
-        elif len(states)>=3:
+        elif states[2] != None and states[1] != None:
             ExecuteState = states[2]
             DecodeState = states[1]
             negOne = -1
@@ -130,7 +130,7 @@ class HDU:
                     if ExecuteState.RD != 0:
                         return True
                 
-            if len(states)>=4:
+            if states[3] != None:
                 MemoryState = states[3]
                 if MemoryState.RD != negOne and DecodeState.RS1 != negOne:
                     if MemoryState.RD == DecodeState.RS1 or MemoryState.RD == DecodeState.RS2:
