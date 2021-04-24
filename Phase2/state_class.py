@@ -35,7 +35,7 @@ class State:
         self.predictionPC = 0
         self.RS1Branch = -1
         self.RS2Branch = -1
-
+    
 
 class BTB:
     def __init__(self):
@@ -103,7 +103,7 @@ class CPU:
 
     def readFile(self):
         try:
-            mcFile = open("/home/captain/RISC-V-Simulator/Phase2/input.mc","r")
+            mcFile = open("input.mc","r")
         except:
             print("File Not Found!")
             return
@@ -431,18 +431,20 @@ class CPU:
                 print("Invalid fun3 for SB format instruction")                 
                 exit(1)
             self.GenerateControlSignals(0,0,0,0,0,0,1,1,0,state)
-            Execute(state)
+            self.Execute(state)
             target = state.PC + state.immed
             if btb.isPresent(state.PC) == 0:
                 btb.store(state.PC, target)
             
             if state.RZ == 0 and state.predictionOutcome == 1:
+                # wrong prediction
                 btb.changeState(state.PC)
                 # self.branch_missprediction = 1
                 controlHazard = 1
                 newPC = state.PC + 4
             
             if state.RZ == 1 and state.predictionOutcome == 0:
+                # wrong prediction
                 btb.changeState(state.PC)
                 # self.branch_missprediction = 1
                 controlHazard = 1
