@@ -29,15 +29,16 @@ while True:
     if knob2_stallingEnabled:
         checkDataHazard = hduob.checkDataHazardStalling(states)
         copyOfStates = states[:] 
-        state[0] = ProcessingUnit.Fetch(State(0),btb)
+        # states[0] = State(master_PC)
 
-        # [state1,state2,state3,state4,state5]
+        # [state1,state2,state3,state4,state5]  
         # stalling will occcue when data hazard
         # control hazard means stalling
 
         for i in reversed(range(5)):
             print("states : ",states)
             if(i==0):
+                states[i] = State(master_PC)
                 states[i+1] = ProcessingUnit.Fetch(states[i],btb)
                 controlChange = states[i+1].predictionOutcome
                 controlChange_pc= states[i+1].predictionPC
