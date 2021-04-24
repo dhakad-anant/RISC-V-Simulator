@@ -441,12 +441,14 @@ class CPU:
                 btb.store(state.PC, target)
             
             if state.RZ == 0 and state.predictionOutcome == 1:
+                # wrong prediction
                 btb.changeState(state.PC)
                 # self.branch_missprediction = 1
                 controlHazard = 1
                 newPC = state.PC + 4
             
             if state.RZ == 1 and state.predictionOutcome == 0:
+                # wrong prediction
                 btb.changeState(state.PC)
                 # self.branch_missprediction = 1
                 controlHazard = 1

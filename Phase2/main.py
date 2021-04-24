@@ -2,7 +2,6 @@ from state_class import CPU, State,BTB
 from hdu_class import HDU
 states=[None for i in range(5)] # don't change it
 predictionEnabled=1
-
 knob2_stallingEnabled= False # don't change it
 controlChange = False
 cntBranchHazards = 0
@@ -11,10 +10,13 @@ controlChange_pc = 0
 controlHazard = False
 controlHazard_pc = 0
 btb = BTB()
+cntDataHazards = 0
+cntDataHazardsStalls = 0
 ProcessingUnit = CPU(prediction_enabled)
 ProcessingUnit.readFile()
 master_PC=0
 master_cycle=0
+masterClock = 0
 # states[0] - fetch
 # states[1] - Decode
 # states[2] - execute
@@ -25,6 +27,11 @@ while True:
     if knob2_stallingEnabled:
         checkDataHazard = HDU.checkDataHazardStalling(states)
         copyOfStates = states[:] 
+
+
+        # [state1,state2,state3,state4,state5]
+        # stalling will occcue when data hazard
+        # control hazard means stalling
 
         for i in reversed(range(5)):
             if(i==0):
@@ -53,14 +60,13 @@ while True:
                 if(states[i]==None):
                     continue
                 ProcessingUnit.RegisterUpdate(states[i])
-                states[i]=None
-        
+                states[i]=None        
         if states[1].IR != 0 and (not checkDataHazard):
+            #aagle instr pe jaana he
             master_PC+=4
-
         if(controlChange == True and checkDataHazard == False):
-            master_PC = controlChange_pc
-        
+            #if we predicted in fetch state
+            master_PC = controlChange_pc        
         vis = False
         if(controlHazard == True and checkDataHazard == False):
             cntBranchHazards+=1
@@ -69,13 +75,24 @@ while True:
             # out_states[0] = State(0)
             states[0]=None
             vis = True
-        
         if (not vis) and controlHazard and checkDataHazard and predictionEnabled:
-            btb.updateState()
-
-
+            #doubt condition
+            btb.updateState(states[1].PC)
+        if checkDataHazard==1:
+            tempState = copyOfStates[1]          +    [None]      +    states[2:4]
+            # decode put in feteh a stall
+            states = tempState[:]
+            cntDataHazardsStalls+=1
+            cntDataHazards+=1
+            # states = tempState.copy()
+        
     else:
         pass
+
+    masterClock +=1
+    if set([states[0].IR , states[1].IR , states[2].IR , states[3].IR , states[4].IR]) == set([0]):
+        break
+    states = [State(master_PC)]+states
     # master_cycle+=1
     # for i in reversed(range(5)):
     #     if(i==0):
