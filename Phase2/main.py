@@ -2,6 +2,7 @@ from state_class import CPU, State,BTB
 from hdu_class import HDU
 states=[None for i in range(5)] # don't change it
 predictionEnabled=1
+hduob = HDU()
 knob2_stallingEnabled= False # don't change it
 controlChange = False
 cntBranchHazards = 0
@@ -25,7 +26,7 @@ masterClock = 0
 while True:
 
     if knob2_stallingEnabled:
-        checkDataHazard = HDU.checkDataHazardStalling(states)
+        checkDataHazard = hduob.checkDataHazardStalling(states)
         copyOfStates = states[:] 
 
 
@@ -35,7 +36,7 @@ while True:
 
         for i in reversed(range(5)):
             if(i==0):
-                states[i+1] = ProcessingUnit.Fetch(states[i])
+                states[i+1] = ProcessingUnit.Fetch(states[i],btb)
                 controlChange = states[i+1].predictionOutcome
                 controlChange_pc= states[i+1].predictionPC
                 # states[i]=None  

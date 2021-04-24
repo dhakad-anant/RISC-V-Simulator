@@ -435,7 +435,7 @@ class CPU:
                 print("Invalid fun3 for SB format instruction")                 
                 exit(1)
             self.GenerateControlSignals(0,0,0,0,0,0,1,1,0,state)
-            Execute(state)
+            self.Execute(state)
             target = state.PC + state.immed
             if btb.isPresent(state.PC) == 0:
                 btb.store(state.PC, target)
