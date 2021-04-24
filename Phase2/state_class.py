@@ -49,36 +49,31 @@ class BTB:
             return True
     
     def store(self, PC, targetAddress):
-        self.Btb_table[PC] = [0, targetAddress]
-    
-    def prediction(self, PC):
-        if self.Btb_table[PC][0] == 0:
-            return False
+        if targetAddress > PC:
+            self.Btb_table[PC] = [0, targetAddress]
         else:
-            return True
+            self.Btb_table[PC] = [1, targetAddress]
     
-    def getTarget(self, PC):
-        if self.Btb_table[PC][0]!=-1:
-            return self.Btb_table[PC][1]
-        else:
-            return 0
+    def predict(self, PC):
+        return self.Btb_table[PC]
     
-    def updateState(self, PC):
-        if self.Btb_table[PC][0] == 1:
-            self.Btb_table[PC][0] = 0
-        else:
-            self.Btb_table[PC][0] = 1
+    # def updateState(self, PC):
+    #     if self.Btb_table[PC][0] == 1:
+    #         self.Btb_table[PC][0] = 0
+    #     else:
+    #         self.Btb_table[PC][0] = 1
 
 
 class CPU:
-    def __init__(self, predictionEnabled = 1):
+    def __init__(self):
         self.dataMemory = defaultdict(lambda : [0,0,0,0])
         self.instructionMemory = defaultdict(lambda: [0,0,0,0])
         self.reg = [0]*32
         self.reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
         self.reg[3] = int("0x10000000",16) # pointer to begining of data segment
-        
-    
+        self.branchMisspredicttions = 0
+        self.brachPredictionEnabled = 1
+
     def validateDataSegment(self,y):
         if len(y)!=2:
             return False
@@ -204,6 +199,7 @@ class CPU:
         if(ir=="Invalid"):
             return None
         state.IR=ir
+        
         opcode = int(str(state.IR),16) & int("0x7f",16)
         # I format 
         if (opcode in [3,19,103]):

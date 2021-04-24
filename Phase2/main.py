@@ -1,4 +1,5 @@
-from state_class import CPU, State
+from state_class import CPU, State, BTB
+from hdu_class import HDU
 
 states=[None for i in range(5)]
 prediction_enabled=1
@@ -11,6 +12,18 @@ master_cycle=0
 # states[2] - execute
 # states[3] - MemoryAccess
 # states[4] - writeback
+
+hdu = HDU()
+btb = BTB()
+
+stallingEnabled = 0   # Knob 2
+printRegFileForEachInst = 0 # Knob 3
+printPipelineRegisters = 0  # Knob 4
+printPipelineRegistersForSpecific = [0,-1]  # Knob 5
+
+controlHazard = 0
+controlHazardPC = 0
+
 while True:
     master_cycle+=1
     for i in reversed(range(5)):
