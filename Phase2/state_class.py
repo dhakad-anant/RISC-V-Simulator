@@ -35,7 +35,7 @@ class State:
         self.predictionPC = 0
         self.RS1Branch = -1
         self.RS2Branch = -1
-
+    
 
 class BTB:
     def __init__(self):
@@ -108,7 +108,7 @@ class CPU:
 
     def readFile(self):
         try:
-            mcFile = open("/home/captain/RISC-V-Simulator/Phase2/input.mc","r")
+            mcFile = open("input.mc","r")
         except:
             print("File Not Found!")
             return

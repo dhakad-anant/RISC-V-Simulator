@@ -3,7 +3,8 @@ from hdu_class import HDU
 states=[None for i in range(5)] # don't change it
 predictionEnabled=1
 hduob = HDU()
-knob2_stallingEnabled= False # don't change it
+prediction_enabled = 1
+knob2_stallingEnabled= True # don't change it
 controlChange = False
 cntBranchHazards = 0
 cntBranchHazardStalls = 0
@@ -28,13 +29,14 @@ while True:
     if knob2_stallingEnabled:
         checkDataHazard = hduob.checkDataHazardStalling(states)
         copyOfStates = states[:] 
-
+        state[0] = ProcessingUnit.Fetch(State(0),btb)
 
         # [state1,state2,state3,state4,state5]
         # stalling will occcue when data hazard
         # control hazard means stalling
 
         for i in reversed(range(5)):
+            print("states : ",states)
             if(i==0):
                 states[i+1] = ProcessingUnit.Fetch(states[i],btb)
                 controlChange = states[i+1].predictionOutcome
@@ -91,7 +93,7 @@ while True:
         pass
 
     masterClock +=1
-    if set([states[0].IR , states[1].IR , states[2].IR , states[3].IR , states[4].IR]) == set([0]):
+    if set([states[0] , states[1] , states[2] , states[3] , states[4]]) == set([None, None]):
         break
     states = [State(master_PC)]+states
     # master_cycle+=1
@@ -129,4 +131,5 @@ while True:
     # if(states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None):
     #     break
     # master_PC += 4
+print(ProcessingUnit.reg)
 print("Program Executed!!!")
