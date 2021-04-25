@@ -95,7 +95,7 @@ class CPU:
 
     def readFile(self):
         try:
-            mcFile = open("input.mc","r")
+            mcFile = open("Phase2/input.mc","r")
         except:
             print("File Not Found!")
             return
@@ -355,7 +355,7 @@ class CPU:
                 state.RA = self.reg[state.RS1]
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
-            elif state.opcode==int("1100111",2): #jalr *ERROR(CHECK IT)*
+            elif state.opcode==int("1100111",2): #jalr 
                 state.message = "This is JALR instruction."
                 self.GenerateControlSignals(1,0,2,0,0,0,0,1,4,state)
                 if state.fun3==0:

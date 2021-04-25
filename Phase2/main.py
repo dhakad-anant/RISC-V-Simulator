@@ -30,7 +30,7 @@ while True:
     if knob2_stallingEnabled:
         stall = -1
         isHazard, stallparameters, newState, forwardPaths = hduob.isDataHazard(states)
-        print('============> ',forwardPaths)
+        # print('============> ',forwardPaths)
         states = []
         for i in newState:
             if i.opcode == 0:
@@ -45,8 +45,8 @@ while True:
         # stalling will occcue when data hazard
         # control hazard means stalling
         alreadyUpdatedPC = 0
-        print("states : ",states)
-        print("registers : ",ProcessingUnit.reg)
+        # print("states : ",states)
+        # print("registers : ",ProcessingUnit.reg)
         for i in reversed(range(5)):
             if(i==0):
                 states[i] = State(master_PC)

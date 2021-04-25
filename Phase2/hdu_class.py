@@ -1,15 +1,15 @@
 from state_class import State
 class HDU:
     def __init__(self):
-        self.E_to_E = 0   # 0
-        self.M_to_M = 0   # 1
-        self.E_to_D = 0   # 2
-        self.M_to_D = 0   # 3
-        self.M_to_E = 0   # 4
+        self.E_to_E = 0   # 0  # this means transfer from memory to execute - addi to addi
+        self.M_to_M = 0   # 1  # this means transfer from writeback to memory - ld to sd
+        self.E_to_D = 0   # 2  # this means transfer from memory to decode - general RD-RS1 dependence
+        self.M_to_D = 0   # 3  # this means transfer from writeback to decode - general
+        self.M_to_E = 0   # 4  # this means transfer from writeback to execute - general
 
     # ind1 => Fetch, Decode, Exe, Ma, WB
     # para => RA, RB, RD
-    def evaluate(self, ind1, ind2,forwardPaths, prevStates):
+    def evaluate(self, ind1, ind2,forwardPaths, prevStates): # this is for data forwarding if possible
         isHazard = 0
 
         if ind1== 3 and ind2 == 4:
@@ -26,6 +26,7 @@ class HDU:
             if prevStates[2].RS2 == prevStates[4].RD:
                 temp = 1
                 prevStates[2].RB = prevStates[4].RY
+                prevStates[2].RM = prevStates[4].RY
             if temp==1:
                 self.M_to_E = prevStates[4].RY
                 isHazard = 1
@@ -43,17 +44,17 @@ class HDU:
                 isHazard = 1
                 forwardPaths.append(0)
         
-        if ind1 == 1 and ind2 == 4:
-            temp = 0
-            if prevStates[1].RS1 == prevStates[4].RD:
-                prevStates[1].RS1Branch = self.M_to_D = prevStates[4].RY
-                temp = 1
-            if prevStates[1].RS2 == prevStates[4].RD:
-                prevStates[1].RS2Branch = self.M_to_D = prevStates[4].RY
-                temp = 1
-            if temp:
-                isHazard = 1
-                forwardPaths.append(3)
+        # if ind1 == 1 and ind2 == 4:
+        #     temp = 0
+        #     if prevStates[1].RS1 == prevStates[4].RD:
+        #         prevStates[1].RS1Branch = self.M_to_D = prevStates[4].RY
+        #         temp = 1
+        #     if prevStates[1].RS2 == prevStates[4].RD:
+        #         prevStates[1].RS2Branch = self.M_to_D = prevStates[4].RY
+        #         temp = 1
+        #     if temp:
+        #         isHazard = 1
+        #         forwardPaths.append(3)
 
         if ind1 == 1 and ind2 == 3:
             temp = 0
@@ -68,7 +69,7 @@ class HDU:
                 forwardPaths.append(2)
             
         
-        return [forwardPaths, prevStates, isHazard]
+        return isHazard
 
     def isDataHazard(self, states):
         forwardPaths = []
@@ -86,10 +87,10 @@ class HDU:
             prevStatesOpcode.append(int(str(prevStates[i].IR),16) & int("0x7f",16))
         # fetch, decode, exe, MA, WB
         if prevStatesOpcode[4]==3 and prevStatesOpcode[3]==35 and prevStates[4].RD >=1:
-            forwardPaths, prevStates, isHazard = self.evaluate(3,4,forwardPaths, prevStates)
+            isHazard = self.evaluate(3,4,forwardPaths, prevStates)
         
         if prevStates[4].RD >= 1:
-            forwardPaths, prevStates, isHazard = self.evaluate(2,4,forwardPaths, prevStates)
+            isHazard = self.evaluate(2,4,forwardPaths, prevStates)
         
         if prevStates[3].RD >= 1:
             if (prevStatesOpcode[3] == 3) and (prevStatesOpcode[2] == 35 and prevStates[2].RS1 == prevStates[3].RD):
@@ -99,19 +100,17 @@ class HDU:
                 isHazard = 1
                 stallParameters = [1, 2, 3]
             if prevStatesOpcode[3]!=3:
-                forwardPaths, prevStates, isHazard = self.evaluate(2,3, forwardPaths, prevStates)
+                isHazard = self.evaluate(2,3, forwardPaths, prevStates)
         
         if prevStatesOpcode[1] in [99, 103]:
-            # M to D forwarding
-            if prevStates[4].RD >= 1:
-                forwardPaths, prevStates, isHazard = self.evaluate(1,4, forwardPaths, prevStates)
+            # M to D forwarding # no need
             # E to D forwarding
             if prevStates[3].RD >=1:
                 if prevStatesOpcode[3] in [3] and (prevStates[3].RD in [prevStates[1].RS1, prevStates[1].RS2]):
                     isHazard = 1
                     stallParameters = [1, 1, 3]
                 else:
-                    forwardPaths, prevStates, isHazard = self.evaluate(1,3,forwardPaths, prevStates)
+                    isHazard = self.evaluate(1,3,forwardPaths, prevStates)
             
             if prevStates[2].RD >=1:
                 if (prevStates[2].RD in [prevStates[1].RS1, prevStates[1].RS2]):
