@@ -95,7 +95,7 @@ class CPU:
 
     def readFile(self):
         try:
-            mcFile = open("input.mc","r")
+            mcFile = open("Phase2/input.mc","r")
         except:
             print("File Not Found!")
             return
@@ -365,12 +365,13 @@ class CPU:
                     exit(1)
                 #setting RA, RB, RM
                 state.RA = self.reg[state.RS1]
+                if(state.RS1Branch!=-1):
+                    state.RA = state.RS1Branch
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
-                if btb.isPresent(state.PC) == 0:
-                    btb.store(state.PC, state.RA)
-                    controlHazard = -1
-                    newPC = btb.getTarget(state.PC)
+                btb.store(state.PC, state.RA)
+                controlHazard = -1
+                newPC = btb.getTarget(state.PC)
         
         # S format
         elif state.opcode==int("0100011",2): # S format

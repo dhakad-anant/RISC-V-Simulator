@@ -48,10 +48,10 @@ class HDU:
         if ind1 == 1 and ind2 == 4:
             temp = 0
             if prevStates[1].RS1 == prevStates[4].RD:
-                prevStates[1].RS1Branch = self.M_to_D = prevStates[4].RY
+                prevStates[1].RS1Branch = prevStates[4].RY
                 temp = 1
             if prevStates[1].RS2 == prevStates[4].RD:
-                prevStates[1].RS2Branch = self.M_to_D = prevStates[4].RY
+                prevStates[1].RS2Branch = prevStates[4].RY
                 temp = 1
             if temp:
                 isHazard = 1
@@ -123,25 +123,3 @@ class HDU:
         newState.extend(prevStates[1:])
         forwardPaths = list(set(forwardPaths))
         return [isHazard, stallParameters, newState, forwardPaths]
-    
-    # def checkDataHazardStalling(self,states):
-    #     # states = states[1:]
-    #     noneCnt = states.count(None)
-    #     if noneCnt >= 3:
-    #         return False
-    #     elif states[2] != None and states[1] != None:
-    #         ExecuteState = states[2]
-    #         DecodeState = states[1]
-    #         negOne = -1
-    #         if ExecuteState.RD != negOne and DecodeState.RS1 != negOne:
-    #             if ExecuteState.RD == DecodeState.RS1 or ExecuteState.RD == DecodeState.RS2:
-    #                 if ExecuteState.RD != 0:
-    #                     return True
-                
-    #         if states[3] != None:
-    #             MemoryState = states[3]
-    #             if MemoryState.RD != negOne and DecodeState.RS1 != negOne:
-    #                 if MemoryState.RD == DecodeState.RS1 or MemoryState.RD == DecodeState.RS2:
-    #                     if MemoryState.RD != 0:
-    #                         return True
-    #     return False
