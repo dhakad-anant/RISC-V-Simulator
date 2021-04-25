@@ -222,7 +222,7 @@ class CPU:
         state.PC_Temp=state.PC+4
         return state
 
-    def Decode(self,state, btb):        
+    def Decode(self,state, btb):  
         state.opcode = int(str(state.IR),16) & int("0x7f",16)
         state.fun3 = (int(str(state.IR),16) & int("0x7000",16)) >> 12
         
@@ -491,7 +491,6 @@ class CPU:
         else:
             print("Invalid Opcode !!!")
             exit(1)
-
         # if the instruction is identified correctly, print which instruction is it
         print(state.message)
         return controlHazard, newPC, state
