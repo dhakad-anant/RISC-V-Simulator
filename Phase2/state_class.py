@@ -32,7 +32,7 @@ class State:
         self.MuxINC_select = 0
         self.numBytes = 0
         self.predictionOutcome = 0
-        self.predictionPC = 0
+        self.predictionPC = -1
         self.RS1Branch = -1
         self.RS2Branch = -1
     
@@ -44,30 +44,18 @@ class BTB:
 
     def isPresent(self, PC):   # isEntered
         if self.Btb_table[PC] == -1:
-            return False
+            return 0
         else:
-            return True
+            return 1
     
     def store(self, PC, targetAddress):
-        self.Btb_table[PC] = [0, targetAddress]
+        self.Btb_table[PC] = targetAddress
     
     def prediction(self, PC):
-        if self.Btb_table[PC][0] == 0:
-            return False
-        else:
-            return True
+        return True
     
     def getTarget(self, PC):
-        if self.Btb_table[PC][0]!=-1:
-            return self.Btb_table[PC][1]
-        else:
-            return 0
-    
-    def updateState(self, PC):
-        if self.Btb_table[PC][0] == 1:
-            self.Btb_table[PC][0] = 0
-        else:
-            self.Btb_table[PC][0] = 1
+        return self.Btb_table[PC]
 
 
 class CPU:
@@ -77,7 +65,6 @@ class CPU:
         self.reg = [0]*32
         self.reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
         self.reg[3] = int("0x10000000",16) # pointer to begining of data segment
-        
     
     def validateDataSegment(self,y):
         if len(y)!=2:
@@ -108,7 +95,7 @@ class CPU:
 
     def readFile(self):
         try:
-            mcFile = open("input.mc","r")
+            mcFile = open("/home/captain/RISC-V-Simulator/Phase2/input.mc","r")
         except:
             print("File Not Found!")
             return
@@ -197,36 +184,36 @@ class CPU:
         state.immed += 1
         state.immed *= (-1)
     
-    def Fetch(self,state, btb):
+    def Fetch(self,state,btb):
         pc=state.PC
-        newPC = 0
+        newPC = -1
         ir=self.readInstructionMem(pc)
         if(ir=="Invalid"):
             return None
         state.IR=ir
         opcode = int(str(state.IR),16) & int("0x7f",16)
         # I format 
-        if (opcode in [3,19,103]):
-            state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15
-            state.RS2 = -1
-        elif (opcode not in [23, 55, 111]):
-            state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15
-            state.RS2 = (int(state.IR,16) & int('0x1F00000',16)) >> 20
+        # if (opcode in [3,19,103]):
+        #     state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15
+        #     state.RS2 = -1
+        # elif (opcode not in [23, 55, 111]):
+        #     state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15
+        #     state.RS2 = (int(state.IR,16) & int('0x1F00000',16)) >> 20
 
-        if (opcode in [35, 99]):
-            state.RD = -1
-        else:
-            state.RD = (int(state.IR,16) & int('0xF80',16)) >> 7 
-        
+        # if (opcode in [35, 99]):
+        #     state.RD = -1
+        # else:
+        #     state.RD = (int(state.IR,16) & int('0xF80',16)) >> 7 
         if (opcode in [99, 103, 111]):
-            if (btb.isPresent(pc) and btb.predict(pc)):
+            if (btb.isPresent(pc)):
                 newPC = btb.getTarget(pc)
-                state.predictionOutcome = 1
         state.predictionPC = newPC
         state.PC_Temp=state.PC+4
         return state
 
-    def Decode(self,state, btb):        
+    def Decode(self,state, btb):    
+        newPC=0    
+        controlHazard=0
         state.opcode = int(str(state.IR),16) & int("0x7f",16)
         state.fun3 = (int(str(state.IR),16) & int("0x7000",16)) >> 12
         
@@ -440,22 +427,10 @@ class CPU:
             if btb.isPresent(state.PC) == 0:
                 btb.store(state.PC, target)
             
-            if state.RZ == 0 and state.predictionOutcome == 1:
+            if state.RZ == 0:
                 # wrong prediction
-                btb.changeState(state.PC)
-                # self.branch_missprediction = 1
                 controlHazard = 1
                 newPC = state.PC + 4
-            
-            if state.RZ == 1 and state.predictionOutcome == 0:
-                # wrong prediction
-                btb.changeState(state.PC)
-                # self.branch_missprediction = 1
-                controlHazard = 1
-                newPC = btb.getTarget(state.PC)
-
-
-            
 
         elif state.opcode==int("0010111",2) or state.opcode==int("0110111",2): # U type
             state.RD = (int(state.IR, 16) & int("0xF80", 16)) >> 7
@@ -472,7 +447,7 @@ class CPU:
             self.GenerateControlSignals(1,1,0,0,0,0,1,0,0,state)
 
         elif state.opcode==int("1101111",2): # UJ format
-            state.message = "This is JALR instruction."
+            state.message = "This is JAL instruction."
             state.RD = (int(state.IR, 16) & int("0xF80", 16)) >> 7
             immed_tmp = (int(state.IR, 16) & int("0xFFFFF000", 16)) >> 12
             state.immed = 0
@@ -488,10 +463,8 @@ class CPU:
             self.GenerateControlSignals(1,0,2,0,0,0,1,1,0,state)
             if btb.isPresent(state.PC) == 0:
                 btb.store(state.PC, state.PC + state.immed)
-                btb.updateState(state.PC)
                 # self.branch_missprediction += 1
                 newPC = btb.getTarget(state.PC)
-                controlHazard = 1
         else:
             print("Invalid Opcode !!!")
             exit(1)

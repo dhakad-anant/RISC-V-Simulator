@@ -1,4 +1,4 @@
-from state_class import CPU, State,BTB
+from state_class import CPU,State,BTB
 from hdu_class import HDU
 states=[None for i in range(5)] # don't change it
 predictionEnabled=1
@@ -34,19 +34,27 @@ while True:
         # [state1,state2,state3,state4,state5]  
         # stalling will occcue when data hazard
         # control hazard means stalling
-
+        alreadyUpdatedPC = 0
         for i in reversed(range(5)):
             print("states : ",states)
             if(i==0):
                 states[i] = State(master_PC)
-                states[i+1] = ProcessingUnit.Fetch(states[i],btb)
-                controlChange = states[i+1].predictionOutcome
-                controlChange_pc= states[i+1].predictionPC
+                states[i] = ProcessingUnit.Fetch(states[i],btb)
+                if(states[i].predictionPC!=-1):
+                    master_PC = states[i].predictionPC
+                    alreadyUpdatedPC = 1
+                # controlChange = states[i+1].predictionOutcome
+                # controlChange_pc= states[i+1].predictionPC
                 # states[i]=None  
+                states[i+1]=states[i]
+                states[i]=None
             if(i==1):
                 if(states[i]==None):
                     continue
-                controlHazard,control_hazard_pc,states[i+1] = ProcessingUnit.Decode(states[i],btb)
+                controlHazard,control_hazard_pc,st = ProcessingUnit.Decode(states[i],btb)
+                if(controlHazard==1):
+                    master_PC = states[i].PC + 4
+                states[i+1] = states[i]
                 states[i]=None         
             if(i==2):
                 if(states[i]==None):
@@ -65,72 +73,14 @@ while True:
                     continue
                 ProcessingUnit.RegisterUpdate(states[i])
                 states[i]=None        
-        if states[1].IR != 0 and (not checkDataHazard):
-            #aagle instr pe jaana he
-            master_PC+=4
-        if(controlChange == True and checkDataHazard == False):
-            #if we predicted in fetch state
-            master_PC = controlChange_pc        
-        vis = False
-        if(controlHazard == True and checkDataHazard == False):
-            cntBranchHazards+=1
-            cntBranchHazardStalls+=1
-            master_PC = controlHazard_pc
-            # out_states[0] = State(0)
-            states[0]=None
-            vis = True
-        if (not vis) and controlHazard and checkDataHazard and predictionEnabled:
-            #doubt condition
-            btb.updateState(states[1].PC)
-        if checkDataHazard==1:
-            tempState = copyOfStates[1]          +    [None]      +    states[2:4]
-            # decode put in feteh a stall
-            states = tempState[:]
-            cntDataHazardsStalls+=1
-            cntDataHazards+=1
-            # states = tempState.copy()
-        
+        if(alreadyUpdatedPC == 0):
+            master_PC += 4
     else:
         pass
 
     masterClock +=1
-    if set([states[0] , states[1] , states[2] , states[3] , states[4]]) == set([None, None]):
+    if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
         break
     states = [State(master_PC)]+states
-    # master_cycle+=1
-    # for i in reversed(range(5)):
-    #     if(i==0):
-    #         states[i]=State(master_PC)
-    #         states[i]=ProcessingUnit.Fetch(states[i])
-    #         if(states[i]==None):
-    #             continue
-    #         states[i+1]=states[i]
-    #         states[i]=None
-    #     if(i==1):
-    #         if(states[i]==None):
-    #             continue
-    #         ProcessingUnit.Decode(states[i])
-    #         states[i+1]=states[i]
-    #         states[i]=None
-    #     if(i==2):
-    #         if(states[i]==None):
-    #             continue
-    #         ProcessingUnit.Execute(states[i])
-    #         states[i+1]=states[i]
-    #         states[i]=None
-    #     if(i==3):
-    #         if(states[i]==None):
-    #             continue
-    #         ProcessingUnit.MemoryAccess(states[i])
-    #         states[i+1]=states[i]
-    #         states[i]=None
-    #     if(i==4):
-    #         if(states[i]==None):
-    #             continue
-    #         ProcessingUnit.RegisterUpdate(states[i])
-    #         states[i]=None
-    # if(states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None):
-    #     break
-    # master_PC += 4
 print(ProcessingUnit.reg)
 print("Program Executed!!!")
