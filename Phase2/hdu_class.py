@@ -39,7 +39,8 @@ class HDU:
                 prevStates[2].RA = self.E_to_E = prevStates[3].RZ
             if prevStates[2].RS2 == prevStates[3].RD:
                 temp = 1
-                prevStates[2].RB = self.E_to_E = prevStates[3].RZ
+                prevStates[2].RB = prevStates[3].RZ
+                prevStates[2].RM = prevStates[3].RZ
             if temp:
                 isHazard = 1
                 forwardPaths.append(0)
