@@ -1,4 +1,4 @@
-
+from state_class import State
 class HDU:
     def __init__(self):
         self.E_to_E = 0   # 0
@@ -72,6 +72,9 @@ class HDU:
 
     def isDataHazard(self, states):
         forwardPaths = []
+        for i in range (5):
+            if states[i]==None:
+                states[i] = State(-1)
         newState = [states[0]]
         prevStates = states[:]
         # isHazard, toStall, whereToStall = [0,0,3]
