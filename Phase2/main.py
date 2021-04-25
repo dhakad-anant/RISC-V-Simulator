@@ -40,20 +40,19 @@ while True:
             if(i==0):
                 states[i] = State(master_PC)
                 states[i] = ProcessingUnit.Fetch(states[i],btb)
-                if(states[i].predictionPC!=-1):
+                if(states[i] !=None and states[i].predictionPC!=-1):
                     master_PC = states[i].predictionPC
                     alreadyUpdatedPC = 1
-                # controlChange = states[i+1].predictionOutcome
-                # controlChange_pc= states[i+1].predictionPC
-                # states[i]=None  
                 states[i+1]=states[i]
                 states[i]=None
             if(i==1):
                 if(states[i]==None):
                     continue
-                controlHazard,control_hazard_pc,st = ProcessingUnit.Decode(states[i],btb)
+                controlHazard,control_hazard_pc = ProcessingUnit.Decode(states[i],btb)
                 if(controlHazard==1):
                     master_PC = states[i].PC + 4
+                elif(controlHazard==-1):
+                    master_PC = control_hazard_pc
                 states[i+1] = states[i]
                 states[i]=None         
             if(i==2):
@@ -81,6 +80,5 @@ while True:
     masterClock +=1
     if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
         break
-    states = [State(master_PC)]+states
 print(ProcessingUnit.reg)
 print("Program Executed!!!")

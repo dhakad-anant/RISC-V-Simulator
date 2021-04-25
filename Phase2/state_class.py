@@ -364,6 +364,10 @@ class CPU:
                 state.RA = state.reg[state.RS1]
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
+                if btb.isPresent(state.PC) == 0:
+                    btb.store(state.PC, state.PC + state.immed)
+                    controlHazard = -1
+                    newPC = btb.getTarget(state.PC)
         
         # S format
         elif state.opcode==int("0100011",2): # S format
@@ -424,13 +428,16 @@ class CPU:
             self.GenerateControlSignals(0,0,0,0,0,0,1,1,0,state)
             self.Execute(state)
             target = state.PC + state.immed
-            if btb.isPresent(state.PC) == 0:
+            if(btb.isPresent(state.PC) == 0):
                 btb.store(state.PC, target)
-            
-            if state.RZ == 0:
-                # wrong prediction
-                controlHazard = 1
-                newPC = state.PC + 4
+                if(state.RZ == 0):
+                    controlHazard = 0
+                else:
+                    controlHazard = -1
+                    newPC = target
+            else:
+                if(state.RZ == 0):
+                    controlHazard = 1
 
         elif state.opcode==int("0010111",2) or state.opcode==int("0110111",2): # U type
             state.RD = (int(state.IR, 16) & int("0xF80", 16)) >> 7
@@ -455,7 +462,7 @@ class CPU:
             state.immed = state.immed | ((immed_tmp & int("0x100", 16)) << 2)
             state.immed = state.immed | ((immed_tmp & int("0xFF", 16)) << 11)
             state.immed = state.immed | (immed_tmp & int("0x80000", 16))
-            state.ImmediateSign(20,state)
+            self.ImmediateSign(20,state)
             state.immed *= 2
             state.ALUOp[12] = 1
             state.RA = 0
@@ -463,7 +470,7 @@ class CPU:
             self.GenerateControlSignals(1,0,2,0,0,0,1,1,0,state)
             if btb.isPresent(state.PC) == 0:
                 btb.store(state.PC, state.PC + state.immed)
-                # self.branch_missprediction += 1
+                controlHazard = -1
                 newPC = btb.getTarget(state.PC)
         else:
             print("Invalid Opcode !!!")
@@ -471,7 +478,7 @@ class CPU:
 
         # if the instruction is identified correctly, print which instruction is it
         print(state.message)
-        return controlHazard, newPC, state
+        return controlHazard, newPC
 
     def Execute(self,state):
         operation = state.ALUOp.index(1)
