@@ -364,7 +364,7 @@ class CPU:
                     print("Invalid fun3 for I format instruction")                     
                     exit(1)
                 #setting RA, RB, RM
-                state.RA = state.reg[state.RS1]
+                state.RA = self.reg[state.RS1]
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
                 if btb.isPresent(state.PC) == 0:

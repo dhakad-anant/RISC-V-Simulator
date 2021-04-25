@@ -45,25 +45,25 @@ class HDU:
                 isHazard = 1
                 forwardPaths.append(0)
         
-        # if ind1 == 1 and ind2 == 4:
-        #     temp = 0
-        #     if prevStates[1].RS1 == prevStates[4].RD:
-        #         prevStates[1].RS1Branch = self.M_to_D = prevStates[4].RY
-        #         temp = 1
-        #     if prevStates[1].RS2 == prevStates[4].RD:
-        #         prevStates[1].RS2Branch = self.M_to_D = prevStates[4].RY
-        #         temp = 1
-        #     if temp:
-        #         isHazard = 1
-        #         forwardPaths.append(3)
+        if ind1 == 1 and ind2 == 4:
+            temp = 0
+            if prevStates[1].RS1 == prevStates[4].RD:
+                prevStates[1].RS1Branch = self.M_to_D = prevStates[4].RY
+                temp = 1
+            if prevStates[1].RS2 == prevStates[4].RD:
+                prevStates[1].RS2Branch = self.M_to_D = prevStates[4].RY
+                temp = 1
+            if temp:
+                isHazard = 1
+                forwardPaths.append(3)
 
         if ind1 == 1 and ind2 == 3:
             temp = 0
             if prevStates[1].RS1 == prevStates[3].RD:
-                prevStates[1].RS1Branch = self.E_to_D = prevStates[3].RZ
+                prevStates[1].RS1Branch = prevStates[3].RZ
                 temp = 1
             if prevStates[1].RS2 == prevStates[3].RD:
-                prevStates[1].RS2Branch = self.E_to_D = prevStates[3].RZ
+                prevStates[1].RS2Branch = prevStates[3].RZ
                 temp = 1
             if temp:
                 isHazard = 1
@@ -104,7 +104,9 @@ class HDU:
                 isHazard = self.evaluate(2,3, forwardPaths, prevStates)
         
         if prevStatesOpcode[1] in [99, 103]:
-            # M to D forwarding # no need
+            # M to D forwarding
+            if prevStates[4].RD >= 1:
+                isHazard = self.evaluate(1,4, forwardPaths, prevStates)
             # E to D forwarding
             if prevStates[3].RD >=1:
                 if prevStatesOpcode[3] in [3] and (prevStates[3].RD in [prevStates[1].RS1, prevStates[1].RS2]):
