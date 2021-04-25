@@ -95,7 +95,7 @@ class CPU:
 
     def readFile(self):
         try:
-            mcFile = open("Phase2/input.mc","r")
+            mcFile = open("input.mc","r")
         except:
             print("File Not Found!")
             return
@@ -368,7 +368,7 @@ class CPU:
                 # RB = reg[RS2]   ---- DON'T CARES
                 # RM = RB         ---- DON'T CARES
                 if btb.isPresent(state.PC) == 0:
-                    btb.store(state.PC, state.PC + state.immed)
+                    btb.store(state.PC, state.RA)
                     controlHazard = -1
                     newPC = btb.getTarget(state.PC)
         
@@ -566,7 +566,7 @@ class CPU:
             state.MDR = state.RM
             state.RY = int(self.ProcessorMemoryInterface(state),16)
             if state.RY > 2**31 - 1:
-                RY = -(2**32 - RY)
+                state.RY = -(2**32 - state.RY)
         elif state.MuxY_select == 2:
             state.RY = state.PC_Temp
 
