@@ -192,6 +192,9 @@ class CPU:
             return None
         state.IR=ir
         opcode = int(str(state.IR),16) & int("0x7f",16)
+        state.opcode = opcode
+        state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15 
+        state.RS2 = (int(state.IR,16) & int('0x1F00000',16)) >> 20 
         # I format 
         # if (opcode in [3,19,103]):
         #     state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15
@@ -371,8 +374,8 @@ class CPU:
         
         # S format
         elif state.opcode==int("0100011",2): # S format
-            state.RS2 = (int(str(state.IR),16) & int("0xF8000",16)) >> 15
-            state.RS1 = (int(str(state.IR),16) & int("0x1F00000",16)) >> 20
+            state.RS1 = (int(str(state.IR),16) & int("0xF8000",16)) >> 15
+            state.RS2 = (int(str(state.IR),16) & int("0x1F00000",16)) >> 20
             immed4to0 = (int(str(state.IR),16) & int("0xF80",16)) >> 7
             immed11to5 = (int(str(state.IR),16) & int("0xFE000000",16)) >> 25
             state.immed = immed4to0 | immed11to5
@@ -391,8 +394,12 @@ class CPU:
                 print("Invalid fun3 for S format instruction")                 
                 exit(1)
             #setting RA, RB, RM -------------------------------------------------
-            state.RA = self.reg[state.RS2]
-            state.RB = self.reg[state.RS1]
+            state.RA = self.reg[state.RS1]
+            state.RB = self.reg[state.RS2]
+            if state.RS1Branch != -1:
+                state.RA = state.RS1Branch
+            if state.RS2Branch != -1:
+                state.RB = state.RS2Branch
             state.RM = state.RB
 
         elif state.opcode==int("1100011",2): # SB format
@@ -410,6 +417,11 @@ class CPU:
             self.ImmediateSign(12,state)
             state.immed *= 2
             # Setting control Signals
+            if state.RS1Branch != -1:
+                state.RA = state.RS1Branch
+            if state.RS2Branch != -1:
+                state.RB = state.RS2Branch
+
             if state.fun3 == 0:
                 state.message = "This is BEQ instruction."
                 state.ALUOp[12] = 1
@@ -475,7 +487,10 @@ class CPU:
         else:
             print("Invalid Opcode !!!")
             exit(1)
-
+        if state.RS1Branch != -1:
+            state.RA = state.RS1Branch
+        if state.RS2Branch != -1:
+            state.RB = state.RS2Branch
         # if the instruction is identified correctly, print which instruction is it
         print(state.message)
         return controlHazard, newPC

@@ -24,11 +24,15 @@ masterClock = 0
 # states[2] - execute
 # states[3] - MemoryAccess
 # states[4] - writeback
+
 while True:
 
     if knob2_stallingEnabled:
-        checkDataHazard = hduob.checkDataHazardStalling(states)
-        copyOfStates = states[:] 
+        stall = -1
+        isHazard, stallparameters, newState, forwardPaths = hduob.checkDataHazard(states)
+        states = newState[:]
+        if stallparameters[0]==1:
+            stall = stallparameters[1]
         # states[0] = State(master_PC)
 
         # [state1,state2,state3,state4,state5]  
@@ -46,7 +50,7 @@ while True:
                 states[i+1]=states[i]
                 states[i]=None
             if(i==1):
-                if(states[i]==None):
+                if(states[i]==None or stall==i):
                     continue
                 controlHazard,control_hazard_pc = ProcessingUnit.Decode(states[i],btb)
                 if(controlHazard==1):
@@ -56,7 +60,7 @@ while True:
                 states[i+1] = states[i]
                 states[i]=None         
             if(i==2):
-                if(states[i]==None):
+                if(states[i]==None or stall==i):
                     continue
                 ProcessingUnit.Execute(states[i])
                 states[i+1]=states[i]
@@ -71,7 +75,7 @@ while True:
                 if(states[i]==None):
                     continue
                 ProcessingUnit.RegisterUpdate(states[i])
-                states[i]=None        
+                states[i]=None  
         if(alreadyUpdatedPC == 0):
             master_PC += 4
     else:
