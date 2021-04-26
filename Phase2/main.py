@@ -94,11 +94,11 @@ states=[None for i in range(5)] # don't change it
 predictionEnabled=1
 hduob = HDU()
 prediction_enabled = 1
-Knob1ForPipelining= True # don't change it
-Knob2ForDataForwarding = True
+Knob1ForPipelining= False # don't change it
+Knob2ForDataForwarding = False
 Knob3PrintingRegFile = False
 Knob4PrintingPipelineRegister = False
-Knob5PrintingPipelineRegForSpecificInst = True
+Knob5PrintingPipelineRegForSpecificInst = False
 num = -4
 if(Knob5PrintingPipelineRegForSpecificInst == True):
     num = int(input("Enter the instruction number which you want to observe : "))
@@ -112,7 +112,7 @@ controlHazard_pc = 0
 btb = BTB()
 cntDataHazards = 0
 cntDataHazardsStalls = 0
-ProcessingUnit = CPU(prediction_enabled)
+ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
 ProcessingUnit.readFile()
 # stats to be printed variables
 master_PC=0
@@ -216,7 +216,7 @@ while True:
             ProcessingUnit.Decode(state,btb)
             ProcessingUnit.Execute(state)
             ProcessingUnit.MemoryAccess(state)
-            master_PC = state.PC
+            master_PC = state.PC1
             ProcessingUnit.RegisterUpdate(state)
             state = State(master_PC)
 
@@ -224,8 +224,11 @@ while True:
     masterClock +=1
     if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
         break
-CPI = masterClock/InstCount
+if InstCount!=0:
+    CPI = masterClock/InstCount
+else:
+    CPI = 0
 if(Knob4PrintingPipelineRegister == False):
     print(ProcessingUnit.reg)
-# print(ProcessingUnit.dataMemory)
+print(ProcessingUnit.dataMemory)
 print("Program Executed!!!")

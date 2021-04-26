@@ -128,8 +128,8 @@ states =[None for i in range(5)] # don't change it
 predictionEnabled =1
 hduob = HDU()
 prediction_enabled = 1
-Knob1ForPipelining= True # don't change it
-Knob2ForDataForwarding = True
+Knob1ForPipelining= False # don't change it
+Knob2ForDataForwarding = False
 Knob3PrintingRegFile = False
 Knob4PrintingPipelineRegister = False
 Knob5PrintingPipelineRegForSpecificInst = False
@@ -147,7 +147,7 @@ controlHazard_pc = 0
 btb = BTB()
 cntDataHazards = 0
 cntDataHazardsStalls = 0
-ProcessingUnit = CPU(prediction_enabled)
+ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
 ProcessingUnit.readFile()
 # stats to be printed variables
 master_PC=0
@@ -165,6 +165,8 @@ StallsDuetoControlHazards = 0
 InstCount = 0
 stall = -1
 programExecuted = 0
+clockNonPipeline = 0
+state = State(0)
 # states[0] - fetch
 # states[1] - Decode
 # states[2] - execute
@@ -177,8 +179,8 @@ def resetAll():
     predictionEnabled =1
     hduob = HDU()
     prediction_enabled = 1
-    Knob1ForPipelining= True # don't change it
-    Knob2ForDataForwarding = True
+    Knob1ForPipelining= False # don't change it
+    Knob2ForDataForwarding = False
     Knob3PrintingRegFile = False
     Knob4PrintingPipelineRegister = False
     Knob5PrintingPipelineRegForSpecificInst = False
@@ -196,7 +198,7 @@ def resetAll():
     btb = BTB()
     cntDataHazards = 0
     cntDataHazardsStalls = 0
-    ProcessingUnit = CPU(prediction_enabled)
+    ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
     ProcessingUnit.readFile()
     # stats to be printed variables
     master_PC=0
@@ -214,7 +216,7 @@ def resetAll():
     InstCount = 0
     stall = -1
     programExecuted = 0
-    
+
     ui.reg1.setText('x0:0')
     ui.reg2.setText('x1:0')
     ui.reg3.setText('x2:0')
@@ -263,8 +265,55 @@ def resetAll():
     ui.pipeline2_2.setText("None")
     ui.pipeline2_3.setText("None")
 
+def isPipelined():
+    global Knob1ForPipelining
+    if Knob1ForPipelining == False:
+        Knob1ForPipelining = True
+        ui.pushButton_5.setStyleSheet("background:rgb(0, 85, 255);color:white")
+    else:
+        ui.pushButton_5.setStyleSheet("color:white")
+        Knob1ForPipelining = False
+    pass
+def isDataForward():
+    global Knob2ForDataForwarding
+    if Knob2ForDataForwarding == False:
+        ui.pushButton_12.setStyleSheet("background:rgb(0, 85, 255);color:white")
+        Knob2ForDataForwarding = True
+    else:
+        ui.pushButton_12.setStyleSheet("color:white")
+        Knob2ForDataForwarding = False
+    pass
+def printValuesInRegAfterEachCycle():
+    global Knob3PrintingRegFile
+    if Knob3PrintingRegFile == False:
+        ui.pushButton_10.setStyleSheet("background:rgb(0, 85, 255);color:white")
+        Knob3PrintingRegFile = True
+    else:
+        ui.pushButton_10.setStyleSheet("color:white")
+        Knob3PrintingRegFile = False
+    pass
+def printValuesInPipeRegAfterEachCycle():
+    global Knob4PrintingPipelineRegister
+    if Knob4PrintingPipelineRegister == False:
+        ui.pushButton_6.setStyleSheet("background:rgb(0, 85, 255);color:white")
+        Knob4PrintingPipelineRegister = True
+    else:
+        Knob4PrintingPipelineRegister = False
+        ui.pushButton_6.setStyleSheet("color:white")
+    pass
+
+def printForSpecific():
+    global Knob5PrintingPipelineRegForSpecificInst
+    if Knob5PrintingPipelineRegForSpecificInst == False:
+        Knob5PrintingPipelineRegForSpecificInst = True
+        ui.pushButton_11.setStyleSheet("background:rgb(0, 85, 255);color:white")
+
+    else:
+        Knob5PrintingPipelineRegForSpecificInst = False
+        ui.pushButton_11.setStyleSheet("color:white")
+
 def mainFunc(isStep):
-    global programExecuted,states,predictionEnabled,hduob,prediction_enabled,Knob1ForPipelining,Knob2ForDataForwarding,Knob3PrintingRegFile,Knob4PrintingPipelineRegister,Knob5PrintingPipelineRegForSpecificInst,num,controlChange,cntBranchHazards,cntBranchHazardStalls,controlChange_pc,controlHazard,controlHazard_pc,btb,cntDataHazards,cntDataHazardsStalls,ProcessingUnit,master_PC,masterClock,CPI,LoadAndStoreInstructions,ALUInst,ControlInst,stallsCount,DataHazardCount,ControlHazardCount,BranchMisprediction,StallsDuetoDataHazards,StallsDuetoControlHazards,InstCount,stall
+    global clockNonPipeline, programExecuted,states,predictionEnabled,hduob,prediction_enabled,Knob1ForPipelining,Knob2ForDataForwarding,Knob3PrintingRegFile,Knob4PrintingPipelineRegister,Knob5PrintingPipelineRegForSpecificInst,num,controlChange,cntBranchHazards,cntBranchHazardStalls,controlChange_pc,controlHazard,controlHazard_pc,btb,cntDataHazards,cntDataHazardsStalls,ProcessingUnit,master_PC,masterClock,CPI,LoadAndStoreInstructions,ALUInst,ControlInst,stallsCount,DataHazardCount,ControlHazardCount,BranchMisprediction,StallsDuetoDataHazards,StallsDuetoControlHazards,InstCount,stall
     while programExecuted == 0:
         ui.label_26.setStyleSheet("background:rgb(85, 255, 255);color:black")
         ui.label_27.setStyleSheet("background:rgb(85, 255, 255);color:black")
@@ -287,6 +336,7 @@ def mainFunc(isStep):
                     states[i] = ProcessingUnit.Fetch(states[i],btb)
                     if(states[i] !=None and states[i].predictionPC!=-1):
                         master_PC = states[i].predictionPC
+                        ControlHazardCount += 1
                         alreadyUpdatedPC = 1
                     if states[0]!=None:
                         ui.pipeline1.setText(str(states[0].PC//4 + 1) + " th instruction." )
@@ -294,26 +344,34 @@ def mainFunc(isStep):
                         ui.pipeline1.setText("None")
                     states[i+1]=states[i]
                     states[i]=None
+                    ui.label_20.setText("DataHzd: "+str(DataHazardCount)+", CtrlHzd: "+str(ControlHazardCount))
+
                 if(i==1):
                     if(states[i]==None):
                         continue
                     if(stall == i):
+                        StallsDuetoDataHazards += 1
                         break
                     controlHazard,control_hazard_pc = ProcessingUnit.Decode(states[i],btb)
                     if(controlHazard==1):
+                        BranchMisprediction += 1
+                        StallsDuetoControlHazards += 1
                         master_PC = states[i].PC + 4
                     elif(controlHazard==-1):
+                        StallsDuetoControlHazards += 1
                         master_PC = control_hazard_pc
                     if states[1]!=None:
                         ui.pipeline2.setText(str(states[1].PC//4 + 1) + " th instruction." )
                     else:
                         ui.pipeline2.setText("None")
                     states[i+1] = states[i]
-                    states[i]=None         
+                    states[i]=None
+                    ui.label_20.setText("DataHzd: "+str(DataHazardCount)+", CtrlHzd: "+str(ControlHazardCount))         
                 if(i==2):
                     if(states[i]==None):
                         continue
                     if(stall == i):
+                        StallsDuetoDataHazards += 1
                         break
                     ProcessingUnit.Execute(states[i])
                     if states[2]!=None:
@@ -321,11 +379,13 @@ def mainFunc(isStep):
                     else:
                         ui.pipeline1_2.setText("None")
                     states[i+1]=states[i]
-                    states[i]=None                
+                    states[i]=None 
+                    ui.label_20.setText("DataHzd: "+str(DataHazardCount)+", CtrlHzd: "+str(ControlHazardCount))               
                 if(i==3):
                     if(states[i]==None):
                         continue
                     if(stall == i):
+                        StallsDuetoDataHazards += 1
                         break
                     ProcessingUnit.MemoryAccess(states[i])
                     if states[3]!=None:
@@ -334,43 +394,68 @@ def mainFunc(isStep):
                         ui.pipeline2_2.setText("None")
                     states[i+1]=states[i]
                     states[i]=None
+                    ui.label_20.setText("DataHzd: "+str(DataHazardCount)+", CtrlHzd: "+str(ControlHazardCount))
                 if(i==4):
                     if(states[i]==None):
                         continue
                     if(stall == i):
+                        StallsDuetoDataHazards += 1
                         break
+                    if(states[i].opcode == 3 or states[i].opcode == 35):
+                        LoadAndStoreInstructions += 1
+                    elif(states[i].opcode in [51,19,23,55]):
+                        ALUInst += 1
+                    elif(states[i].opcode in [99, 103,111]):
+                        ControlInst += 1
+                    InstCount += 1
                     ProcessingUnit.RegisterUpdate(states[i])
                     if states[4]!=None:
                         ui.pipeline2_3.setText(str(states[4].PC//4 + 1) + " th instruction." )
                     else:
                         ui.pipeline2_3.setText("None")
                     states[i]=None  
+                    ui.label_20.setText("DataHzd: "+str(DataHazardCount)+", CtrlHzd: "+str(ControlHazardCount))
                 isHazard, states, stall, stallparameters = checkHazardous(states,Knob2ForDataForwarding)
                 if((isHazard == 1 and Knob2ForDataForwarding == False) or (stall != -1 and Knob2ForDataForwarding == False)):
                     alreadyUpdatedPC = 1
                     break
+            if(isHazard == 1):
+                DataHazardCount += 1
+                ui.label_20.setText("DataHzd: "+str(DataHazardCount)+", CtrlHzd: "+str(ControlHazardCount))
             if(alreadyUpdatedPC == 0):
                 master_PC += 4
         else:
-            state = State(0)
+            global state
             while(state != None):
                 state = ProcessingUnit.Fetch(state,btb)
                 if(state == None):
+                    programExecuted = 1
                     break
                 ProcessingUnit.Decode(state,btb)
                 ProcessingUnit.Execute(state)
                 ProcessingUnit.MemoryAccess(state)
-                master_PC = state.PC
+                master_PC = state.PC1
                 ProcessingUnit.RegisterUpdate(state)
                 state = State(master_PC)
+                clockNonPipeline += 1
+                ui.regUpdateGUI()
+                ui.memUpdateGUI()
+                ui.label_19.setText("Clock: "+str(clockNonPipeline))
+                if isStep == 1:
+                    break
+        
         printPipelineRegisters(states,Knob3PrintingRegFile,masterClock,Knob4PrintingPipelineRegister,ProcessingUnit)
-        masterClock +=1
-        ui.regUpdateGUI()
-        ui.memUpdateGUI()
-        ui.label_19.setText("Clock: "+str(masterClock))
+        if Knob1ForPipelining == 1:
+            masterClock +=1
+            ui.regUpdateGUI()
+            ui.memUpdateGUI()
 
-        if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
+            ui.label_19.setText("Clock: "+str(masterClock))
+        if programExecuted == 1:
+            ui.label_19.setText("Clock: "+str(clockNonPipeline)+", Executed")
+        if Knob1ForPipelining and states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
             programExecuted = 1
+            print("YES")
             break
         if isStep == 1:
             break
@@ -861,12 +946,15 @@ class Ui_MainWindow(object):
         self.pushButton_5.setGeometry(QtCore.QRect(20, 70, 110, 35))
         self.pushButton_5.setStyleSheet("color:white")
         self.pushButton_5.setObjectName("pushButton_5")
+        self.pushButton_5.clicked.connect(isPipelined)
         self.pushButton_6 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_6.setGeometry(QtCore.QRect(410, 70, 110, 35))
         self.pushButton_6.setStyleSheet("color:white")
         self.pushButton_6.setObjectName("pushButton_6")
+        self.pushButton_6.clicked.connect(printValuesInPipeRegAfterEachCycle)
         self.pushButton_10 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_10.setGeometry(QtCore.QRect(280, 70, 110, 35))
+        self.pushButton_10.clicked.connect(printValuesInRegAfterEachCycle)
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
         brush.setStyle(QtCore.Qt.SolidPattern)
@@ -938,10 +1026,12 @@ class Ui_MainWindow(object):
         self.pushButton_11.setGeometry(QtCore.QRect(210, 120, 110, 35))
         self.pushButton_11.setStyleSheet("color:white")
         self.pushButton_11.setObjectName("pushButton_11")
+        self.pushButton_11.clicked.connect(printForSpecific)
         self.pushButton_12 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_12.setGeometry(QtCore.QRect(150, 70, 110, 35))
         self.pushButton_12.setStyleSheet("color:white")
         self.pushButton_12.setObjectName("pushButton_12")
+        self.pushButton_12.clicked.connect(isDataForward)
         self.label_19 = QtWidgets.QLabel(self.centralwidget)
         self.label_19.setGeometry(QtCore.QRect(310, 170, 251, 41))
         font = QtGui.QFont()
@@ -1119,18 +1209,18 @@ class Ui_MainWindow(object):
         self.pushButton_7.setText(_translate("MainWindow", "RUN"))
         self.pushButton_9.setText(_translate("MainWindow", "RESET"))
         self.pushButton_8.setText(_translate("MainWindow", "STEP"))
-        self.pushButton_5.setText(_translate("MainWindow", "5 knobs"))
-        self.pushButton_6.setText(_translate("MainWindow", "5 knobs"))
-        self.pushButton_10.setText(_translate("MainWindow", "5 knobs"))
-        self.pushButton_11.setText(_translate("MainWindow", "5 knobs"))
-        self.pushButton_12.setText(_translate("MainWindow", "5 knobs"))
+        self.pushButton_5.setText(_translate("MainWindow", "PipeLine"))
+        self.pushButton_6.setText(_translate("MainWindow", "PrintBuffValue"))
+        self.pushButton_10.setText(_translate("MainWindow", "PrintRegValue"))
+        self.pushButton_11.setText(_translate("MainWindow", "PrintSpecific"))
+        self.pushButton_12.setText(_translate("MainWindow", "Forwarding"))
         self.label_19.setText(_translate("MainWindow", "CLOCK:  0"))
         self.pipeline2_4.setText(_translate("MainWindow", "Decode"))
         self.pipeline2_5.setText(_translate("MainWindow", "Memory Acc"))
         self.pipeline1_3.setText(_translate("MainWindow", "Execute"))
         self.pipeline1_4.setText(_translate("MainWindow", "Fetch"))
         self.pipeline2_6.setText(_translate("MainWindow", "Reg Update"))
-        self.label_20.setText(_translate("MainWindow", "NO ERROR"))
+        self.label_20.setText(_translate("MainWindow", "DataHzd: 0, CtrlHzd: 0"))
         self.label_26.setText(_translate("MainWindow", "M"))
         self.label_27.setText(_translate("MainWindow", "D"))
         self.label_28.setText(_translate("MainWindow", "E"))
