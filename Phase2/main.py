@@ -155,6 +155,7 @@ while True:
                     continue
                 if(stall == i):
                     StallsDuetoDataHazards += 1
+                    stallsCount += 1
                     break
                 controlHazard,control_hazard_pc = ProcessingUnit.Decode(states[i],btb)
                 if(controlHazard==1):
@@ -171,6 +172,7 @@ while True:
                     continue
                 if(stall == i):
                     StallsDuetoDataHazards += 1
+                    stallsCount += 1
                     break
                 ProcessingUnit.Execute(states[i])
                 states[i+1]=states[i]
@@ -180,6 +182,7 @@ while True:
                     continue
                 if(stall == i):
                     StallsDuetoDataHazards += 1
+                    stallsCount += 1
                     break
                 ProcessingUnit.MemoryAccess(states[i])
                 states[i+1]=states[i]
@@ -189,6 +192,7 @@ while True:
                     continue
                 if(stall == i):
                     StallsDuetoDataHazards += 1
+                    stallsCount += 1
                     break
                 if(states[i].opcode == 3 or states[i].opcode == 35):
                     LoadAndStoreInstructions += 1
@@ -200,8 +204,6 @@ while True:
                 ProcessingUnit.RegisterUpdate(states[i])
                 states[i]=None  
             isHazard, states, stall, stallparameters = checkHazardous(states,Knob2ForDataForwarding)
-            if(stall != -1):
-                stallsCount += 1
             if((isHazard == 1 and Knob2ForDataForwarding == False) or (stall != -1 and Knob2ForDataForwarding == False)):
                 alreadyUpdatedPC = 1
                 break

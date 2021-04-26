@@ -351,6 +351,7 @@ def mainFunc(isStep):
                         continue
                     if(stall == i):
                         StallsDuetoDataHazards += 1
+                        stallsCount += 1
                         break
                     controlHazard,control_hazard_pc = ProcessingUnit.Decode(states[i],btb)
                     if(controlHazard==1):
@@ -372,6 +373,7 @@ def mainFunc(isStep):
                         continue
                     if(stall == i):
                         StallsDuetoDataHazards += 1
+                        stallsCount += 1
                         break
                     ProcessingUnit.Execute(states[i])
                     if states[2]!=None:
@@ -386,6 +388,7 @@ def mainFunc(isStep):
                         continue
                     if(stall == i):
                         StallsDuetoDataHazards += 1
+                        stallsCount += 1
                         break
                     ProcessingUnit.MemoryAccess(states[i])
                     if states[3]!=None:
@@ -400,6 +403,7 @@ def mainFunc(isStep):
                         continue
                     if(stall == i):
                         StallsDuetoDataHazards += 1
+                        stallsCount += 1
                         break
                     if(states[i].opcode == 3 or states[i].opcode == 35):
                         LoadAndStoreInstructions += 1
@@ -416,8 +420,6 @@ def mainFunc(isStep):
                     states[i]=None  
                     ui.label_20.setText("DataHzd: "+str(DataHazardCount)+", CtrlHzd: "+str(ControlHazardCount))
                 isHazard, states, stall, stallparameters = checkHazardous(states,Knob2ForDataForwarding)
-                if(stall != -1):
-                    stallsCount += 1
                 if((isHazard == 1 and Knob2ForDataForwarding == False) or (stall != -1 and Knob2ForDataForwarding == False)):
                     alreadyUpdatedPC = 1
                     break
