@@ -371,7 +371,7 @@ class CPU:
                     btb.store(state.PC, state.RA)
                     controlHazard = -1
                     newPC = btb.getTarget(state.PC)
-        
+
         # S format
         elif state.opcode==int("0100011",2): # S format
             state.RS1 = (int(str(state.IR),16) & int("0xF8000",16)) >> 15

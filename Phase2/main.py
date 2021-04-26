@@ -46,8 +46,6 @@ while True:
         # control hazard means stalling
         alreadyUpdatedPC = 0
         # print("states : ",states)
-        print("registers : ",ProcessingUnit.reg)
-        print("===> ", hex(master_PC))
         for i in reversed(range(5)):
             if(i==0):
                 states[i] = State(master_PC)
