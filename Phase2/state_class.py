@@ -2,8 +2,8 @@ from collections import defaultdict
 
 class State:
     def __init__(self, pc=0):
-        self.reset()
         self.PC = pc
+        self.reset()
     
     def reset(self):
         self.message=""
@@ -37,7 +37,7 @@ class State:
         self.predictionPC = -1
         self.RS1Branch = -1
         self.RS2Branch = -1
-    
+        self.PC1 = self.PC
 
 class BTB:
     def __init__(self):
@@ -61,13 +61,13 @@ class BTB:
 
 
 class CPU:
-    def __init__(self, predictionEnabled = 1):
+    def __init__(self, isPipelined, predictionEnabled = 1):
         self.dataMemory = defaultdict(lambda : [0,0,0,0])
         self.instructionMemory = defaultdict(lambda: [0,0,0,0])
         self.reg = [0]*32
         self.reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
         self.reg[3] = int("0x10000000",16) # pointer to begining of data segment
-    
+        self.isPipelined = isPipelined
     def validateDataSegment(self,y):
         if len(y)!=2:
             return False
@@ -128,6 +128,17 @@ class CPU:
                     self.instructionMemory[y[0]][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
                     self.instructionMemory[y[0]][i] = '0'*(2-len(self.instructionMemory[y[0]][i])) + self.instructionMemory[y[0]][i]
                     self.instructionMemory[y[0]][i] = self.instructionMemory[y[0]][i].lower()
+    
+    def sra(self, number,times):     #correct function
+        bx = bin(number)[2:]
+        if len(bx)<32 or bx[0]=='0':
+            return number>>times
+        else:
+            ans = '1'*times + bx[:32-times]
+            twosCompli = [str(1-int(i)) for i in ans[1:]]
+            twosCompli = (''.join(twosCompli))
+            twosCompli = - (int(twosCompli,2) + 1)
+            return twosCompli
 
     def ProcessorMemoryInterface(self, state):
         # Set MAR in Fetch
@@ -525,7 +536,7 @@ class CPU:
                 exit(1)
             state.RZ = InA<<InB
         elif(operation == 7): #shift_right_ari 
-            # *******ERROR****** WRITE SRA
+            state.RZ = self.sra(InA, InB)
             pass
         elif(operation == 8): #shift_ri_lo  
             if (InB<0):
@@ -548,18 +559,19 @@ class CPU:
             state.RZ = int(InA>=InB)
             state.MuxINC_select = state.RZ
 
-    # def IAG(self,state):
+    def IAG(self,state):
         
-    #     if(state.MuxPC_select == 0):
-    #         state.PC = state.RA
-    #     else:
-    #         if(state.MuxINC_select == 0):
-    #             state.PC = state.PC + 4
-    #         else:
-    #             state.PC = state.PC + state.immed
+        if(state.MuxPC_select == 0):
+            state.PC1 = state.RA
+        else:
+            if(state.MuxINC_select == 0):
+                state.PC1 = state.PC + 4
+            else:
+                state.PC1 = state.PC + state.immed
         
     def MemoryAccess(self,state):
-        # self.IAG(state)
+        if self.isPipelined == 0:
+            self.IAG(state)
 
         if state.MuxY_select == 0:
             state.RY = state.RZ
