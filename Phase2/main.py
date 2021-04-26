@@ -16,8 +16,8 @@ def checkHazardous(states,isDataForwardingEnabled):
     return [isHazard, states, stall, stallparameters]
 
 def printPipelineRegisters(states, Knob3,masterClock,Knob4,ProcessingUnit):
-    if(Knob3 == False):
-        if(Knob4 == False):
+    if(Knob4 == False):
+        if(Knob3 == False):
             return
         else:
             print(ProcessingUnit.reg)
@@ -50,9 +50,45 @@ def printPipelineRegisters(states, Knob3,masterClock,Knob4,ProcessingUnit):
     if(states[4]!=None):
         print("RY -> ", states[4].RY)
     else: print("EMPTY")
-    if(Knob4 == True):
+    if(Knob3 == True):
         print("Content of Register File ------------------------------------------------------------------")
         print(ProcessingUnit.reg)
+
+def check(num, states):
+    dont = True
+    for i in states:
+        if(i == None): continue
+        if(i.PC == num):
+            dont=False
+    if(dont==False):
+        print("Cycle number -> ", masterClock)
+        print("Content of First Pipeline Register -------------------------------------- ")
+        if(states[1]!=None):
+            print("IR -> ",states[1].IR)
+        else: print("EMPTY")
+        print("Content of Second Pipeline Register -------------------------------------")
+        if(states[2]!=None):
+            print("Opcode -> ", states[2].opcode)
+            if(states[2].RS1 != -1):
+                print("RS1 -> ",states[2].RS1)
+            if(states[2].RS2 != -1):
+                print("RS2 -> ",states[2].RS2)
+            if(states[2].RD != 0):
+                print("RD -> ", states[2].RD)
+            print("Immediate -> ", states[2].immed)
+            if(states[2].fun3 != -1):
+                print("Funct3 -> ", states[2].fun3)
+            if(states[2].fun7 != -1):
+                print("Funct7 -> ", states[2].fun7)
+        else: print("EMPTY")
+        print("Content of Third Pipeline Register ---------------------------------------")
+        if(states[3]!=None):
+            print("RZ -> ", states[3].RZ)
+        else: print("EMPTY")
+        print("Content of Fourth Pipeline Register ---------------------------------------")
+        if(states[4]!=None):
+            print("RY -> ", states[4].RY)
+        else: print("EMPTY")
 
 states=[None for i in range(5)] # don't change it
 predictionEnabled=1
@@ -61,7 +97,12 @@ prediction_enabled = 1
 Knob1ForPipelining= True # don't change it
 Knob2ForDataForwarding = True
 Knob3PrintingRegFile = False
-Knob4PrintingPipelineRegisterValues = True
+Knob4PrintingPipelineRegister = False
+Knob5PrintingPipelineRegForSpecificInst = True
+num = -4
+if(Knob5PrintingPipelineRegForSpecificInst == True):
+    num = int(input("Enter the instruction number which you want to observe : "))
+    num = num*4
 controlChange = False
 cntBranchHazards = 0
 cntBranchHazardStalls = 0
@@ -86,6 +127,8 @@ while True:
     if Knob1ForPipelining:
         alreadyUpdatedPC = 0
         for i in reversed(range(5)):
+            if(Knob5PrintingPipelineRegForSpecificInst ==True):
+                check(num,states)
             if(i==0):
                 states[i] = State(master_PC)
                 states[i] = ProcessingUnit.Fetch(states[i],btb)
@@ -148,11 +191,11 @@ while True:
             ProcessingUnit.RegisterUpdate(state)
             state = State(master_PC)
 
-    printPipelineRegisters(states,Knob4PrintingPipelineRegisterValues,masterClock,Knob4PrintingPipelineRegisterValues,ProcessingUnit)
+    printPipelineRegisters(states,Knob3PrintingRegFile,masterClock,Knob4PrintingPipelineRegister,ProcessingUnit)
     masterClock +=1
     if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
         break
-if(Knob4PrintingPipelineRegisterValues == False):
+if(Knob4PrintingPipelineRegister == False):
     print(ProcessingUnit.reg)
 # print(ProcessingUnit.dataMemory)
 print("Program Executed!!!")
