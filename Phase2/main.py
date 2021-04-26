@@ -114,8 +114,20 @@ cntDataHazards = 0
 cntDataHazardsStalls = 0
 ProcessingUnit = CPU(prediction_enabled)
 ProcessingUnit.readFile()
+# stats to be printed variables
 master_PC=0
 masterClock = 0
+CPI = 0
+LoadAndStoreInstructions = 0
+ALUInst = 0
+ControlInst = 0
+stallsCount = 0
+DataHazardCount = 0
+ControlHazardCount = 0
+BranchMisprediction = 0
+StallsDuetoDataHazards = 0
+StallsDuetoControlHazards = 0
+InstCount = 0
 # states[0] - fetch
 # states[1] - Decode
 # states[2] - execute
@@ -134,6 +146,7 @@ while True:
                 states[i] = ProcessingUnit.Fetch(states[i],btb)
                 if(states[i] !=None and states[i].predictionPC!=-1):
                     master_PC = states[i].predictionPC
+                    ControlHazardCount += 1
                     alreadyUpdatedPC = 1
                 states[i+1]=states[i]
                 states[i]=None
@@ -141,11 +154,15 @@ while True:
                 if(states[i]==None):
                     continue
                 if(stall == i):
+                    StallsDuetoDataHazards += 1
                     break
                 controlHazard,control_hazard_pc = ProcessingUnit.Decode(states[i],btb)
                 if(controlHazard==1):
+                    BranchMisprediction += 1
+                    StallsDuetoControlHazards += 1
                     master_PC = states[i].PC + 4
                 elif(controlHazard==-1):
+                    StallsDuetoControlHazards += 1
                     master_PC = control_hazard_pc
                 states[i+1] = states[i]
                 states[i]=None         
@@ -153,6 +170,7 @@ while True:
                 if(states[i]==None):
                     continue
                 if(stall == i):
+                    StallsDuetoDataHazards += 1
                     break
                 ProcessingUnit.Execute(states[i])
                 states[i+1]=states[i]
@@ -161,6 +179,7 @@ while True:
                 if(states[i]==None):
                     continue
                 if(stall == i):
+                    StallsDuetoDataHazards += 1
                     break
                 ProcessingUnit.MemoryAccess(states[i])
                 states[i+1]=states[i]
@@ -169,13 +188,23 @@ while True:
                 if(states[i]==None):
                     continue
                 if(stall == i):
+                    StallsDuetoDataHazards += 1
                     break
+                if(states[i].opcode == 3 or states[i].opcode == 35):
+                    LoadAndStoreInstructions += 1
+                elif(states[i].opcode in [51,19,23,55]):
+                    ALUInst += 1
+                elif(states[i].opcode in [99, 103,111]):
+                    ControlInst += 1
+                InstCount += 1
                 ProcessingUnit.RegisterUpdate(states[i])
                 states[i]=None  
             isHazard, states, stall, stallparameters = checkHazardous(states,Knob2ForDataForwarding)
             if((isHazard == 1 and Knob2ForDataForwarding == False) or (stall != -1 and Knob2ForDataForwarding == False)):
                 alreadyUpdatedPC = 1
                 break
+            if(isHazard == 1):
+                DataHazardCount += 1
         if(alreadyUpdatedPC == 0):
             master_PC += 4
     else:
@@ -195,6 +224,7 @@ while True:
     masterClock +=1
     if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
         break
+CPI = masterClock/InstCount
 if(Knob4PrintingPipelineRegister == False):
     print(ProcessingUnit.reg)
 # print(ProcessingUnit.dataMemory)
