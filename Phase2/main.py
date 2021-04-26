@@ -200,6 +200,8 @@ while True:
                 ProcessingUnit.RegisterUpdate(states[i])
                 states[i]=None  
             isHazard, states, stall, stallparameters = checkHazardous(states,Knob2ForDataForwarding)
+            if(stall != -1):
+                stallsCount += 1
             if((isHazard == 1 and Knob2ForDataForwarding == False) or (stall != -1 and Knob2ForDataForwarding == False)):
                 alreadyUpdatedPC = 1
                 break

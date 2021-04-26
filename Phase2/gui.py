@@ -416,6 +416,8 @@ def mainFunc(isStep):
                     states[i]=None  
                     ui.label_20.setText("DataHzd: "+str(DataHazardCount)+", CtrlHzd: "+str(ControlHazardCount))
                 isHazard, states, stall, stallparameters = checkHazardous(states,Knob2ForDataForwarding)
+                if(stall != -1):
+                    stallsCount += 1
                 if((isHazard == 1 and Knob2ForDataForwarding == False) or (stall != -1 and Knob2ForDataForwarding == False)):
                     alreadyUpdatedPC = 1
                     break
@@ -458,6 +460,34 @@ def mainFunc(isStep):
             break
         if isStep == 1:
             break
+
+
+def printinOutputFile():
+    print("callll")
+    file1 = open('output.txt', 'a')
+    L = [ f'Stat1 : {masterClock}\n',
+          f'Stat2 : {InstCount}\n',
+          f'Stat3 : {CPI}\n',
+          f'Stat4 : {LoadAndStoreInstructions}\n',
+          f'Stat5 : {ALUInst}\n',
+          f'Stat6 : {ControlInst}\n',
+          f'Stat7 : {stallsCount}\n',
+          f'Stat8 : {DataHazardCount}\n',
+          f'Stat9 : {ControlHazardCount}\n',
+          f'Stat10 : {BranchMisprediction}\n',
+          f'Stat11 : {StallsDuetoDataHazards}\n',
+          f'Stat12 : {StallsDuetoControlHazards}\n',
+    ]
+    # file1.write("here")
+    for i in L:
+        print(i, file = file1)
+        # file1.append(i)
+    print("sljda;")
+    # file1.writelines(L)
+    file1.close()
+
+printinOutputFile()
+
 
 class Ui_MainWindow(object):
     def __init__(self):
