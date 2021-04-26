@@ -19,7 +19,7 @@ states=[None for i in range(5)] # don't change it
 predictionEnabled=1
 hduob = HDU()
 prediction_enabled = 1
-knob2_stallingEnabled= True # don't change it
+Knob1ForPipelining= False # don't change it
 controlChange = False
 cntBranchHazards = 0
 cntBranchHazardStalls = 0
@@ -32,7 +32,6 @@ cntDataHazardsStalls = 0
 ProcessingUnit = CPU(prediction_enabled)
 ProcessingUnit.readFile()
 master_PC=0
-master_cycle=0
 masterClock = 0
 # states[0] - fetch
 # states[1] - Decode
@@ -42,7 +41,7 @@ masterClock = 0
 
 while True:
 
-    if knob2_stallingEnabled:
+    if Knob1ForPipelining:
         alreadyUpdatedPC = 0
         for i in reversed(range(5)):
             states, stall, stallparameters = checkHazardous(states)
@@ -94,7 +93,17 @@ while True:
         if(alreadyUpdatedPC == 0):
             master_PC += 4
     else:
-        pass
+        state = State(0)
+        while(state != None):
+            state = ProcessingUnit.Fetch(state,btb)
+            if(state == None):
+                break
+            ProcessingUnit.Decode(state,btb)
+            ProcessingUnit.Execute(state)
+            ProcessingUnit.MemoryAccess(state)
+            master_PC = state.PC
+            ProcessingUnit.RegisterUpdate(state)
+            state = State(master_PC)
 
     masterClock +=1
     if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
