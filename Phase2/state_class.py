@@ -97,7 +97,7 @@ class CPU:
 
     def readFile(self):
         try:
-            mcFile = open("Phase2/input.mc","r")
+            mcFile = open("input.mc","r")
         except:
             print("File Not Found!")
             return

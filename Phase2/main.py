@@ -1,8 +1,8 @@
 from state_class import CPU,State,BTB
 from hdu_class import HDU
 
-def checkHazardous(states,isDataForwardingEnabled):
-    isHazard, stallparameters, newState, forwardPaths = hduob.isDataHazard(states,isDataForwardingEnabled)
+def checkHazardous(states):
+    isHazard, stallparameters, newState, forwardPaths = hduob.isDataHazard(states)
     # print('============> ',forwardPaths)
     states = []
     stall = -1
@@ -13,96 +13,13 @@ def checkHazardous(states,isDataForwardingEnabled):
         states.append(i)
     if stallparameters[0]==1:
         stall = stallparameters[1]
-    return [isHazard, states, stall, stallparameters]
-
-def printPipelineRegisters(states, Knob3,masterClock,Knob4,ProcessingUnit):
-    if(Knob4 == False):
-        if(Knob3 == False):
-            return
-        else:
-            print(ProcessingUnit.reg)
-        return
-    print("Cycle number -> ", masterClock)
-    print("Content of First Pipeline Register -------------------------------------- ")
-    if(states[1]!=None):
-        print("IR -> ",states[1].IR)
-    else: print("EMPTY")
-    print("Content of Second Pipeline Register -------------------------------------")
-    if(states[2]!=None):
-        print("Opcode -> ", states[2].opcode)
-        if(states[2].RS1 != -1):
-            print("RS1 -> ",states[2].RS1)
-        if(states[2].RS2 != -1):
-            print("RS2 -> ",states[2].RS2)
-        if(states[2].RD != 0):
-            print("RD -> ", states[2].RD)
-        print("Immediate -> ", states[2].immed)
-        if(states[2].fun3 != -1):
-            print("Funct3 -> ", states[2].fun3)
-        if(states[2].fun7 != -1):
-            print("Funct7 -> ", states[2].fun7)
-    else: print("EMPTY")
-    print("Content of Third Pipeline Register ---------------------------------------")
-    if(states[3]!=None):
-        print("RZ -> ", states[3].RZ)
-    else: print("EMPTY")
-    print("Content of Fourth Pipeline Register ---------------------------------------")
-    if(states[4]!=None):
-        print("RY -> ", states[4].RY)
-    else: print("EMPTY")
-    if(Knob3 == True):
-        print("Content of Register File ------------------------------------------------------------------")
-        print(ProcessingUnit.reg)
-
-def check(num, states):
-    dont = True
-    for i in states:
-        if(i == None): continue
-        if(i.PC == num):
-            dont=False
-    if(dont==False):
-        print("Cycle number -> ", masterClock)
-        print("Content of First Pipeline Register -------------------------------------- ")
-        if(states[1]!=None):
-            print("IR -> ",states[1].IR)
-        else: print("EMPTY")
-        print("Content of Second Pipeline Register -------------------------------------")
-        if(states[2]!=None):
-            print("Opcode -> ", states[2].opcode)
-            if(states[2].RS1 != -1):
-                print("RS1 -> ",states[2].RS1)
-            if(states[2].RS2 != -1):
-                print("RS2 -> ",states[2].RS2)
-            if(states[2].RD != 0):
-                print("RD -> ", states[2].RD)
-            print("Immediate -> ", states[2].immed)
-            if(states[2].fun3 != -1):
-                print("Funct3 -> ", states[2].fun3)
-            if(states[2].fun7 != -1):
-                print("Funct7 -> ", states[2].fun7)
-        else: print("EMPTY")
-        print("Content of Third Pipeline Register ---------------------------------------")
-        if(states[3]!=None):
-            print("RZ -> ", states[3].RZ)
-        else: print("EMPTY")
-        print("Content of Fourth Pipeline Register ---------------------------------------")
-        if(states[4]!=None):
-            print("RY -> ", states[4].RY)
-        else: print("EMPTY")
+    return [states, stall, stallparameters]
 
 states=[None for i in range(5)] # don't change it
 predictionEnabled=1
 hduob = HDU()
 prediction_enabled = 1
 Knob1ForPipelining= True # don't change it
-Knob2ForDataForwarding = True
-Knob3PrintingRegFile = False
-Knob4PrintingPipelineRegister = False
-Knob5PrintingPipelineRegForSpecificInst = True
-num = -4
-if(Knob5PrintingPipelineRegForSpecificInst == True):
-    num = int(input("Enter the instruction number which you want to observe : "))
-    num = num*4
 controlChange = False
 cntBranchHazards = 0
 cntBranchHazardStalls = 0
@@ -127,8 +44,7 @@ while True:
     if Knob1ForPipelining:
         alreadyUpdatedPC = 0
         for i in reversed(range(5)):
-            if(Knob5PrintingPipelineRegForSpecificInst ==True):
-                check(num,states)
+            states, stall, stallparameters = checkHazardous(states)
             if(i==0):
                 states[i] = State(master_PC)
                 states[i] = ProcessingUnit.Fetch(states[i],btb)
@@ -170,12 +86,10 @@ while True:
                     continue
                 if(stall == i):
                     break
+                if(states[4].IR == "0x00412083" and states[3].IR == "0x00810113" and states[2].IR == "0x03450533" and states[1].IR == "0x00008067" and (states[2].RA == 3 or states[2].RB == 3)):
+                    print("Check Here")
                 ProcessingUnit.RegisterUpdate(states[i])
                 states[i]=None  
-            isHazard, states, stall, stallparameters = checkHazardous(states,Knob2ForDataForwarding)
-            if((isHazard == 1 and Knob2ForDataForwarding == False) or (stall != -1 and Knob2ForDataForwarding == False)):
-                alreadyUpdatedPC = 1
-                break
         if(alreadyUpdatedPC == 0):
             master_PC += 4
     else:
@@ -191,11 +105,9 @@ while True:
             ProcessingUnit.RegisterUpdate(state)
             state = State(master_PC)
 
-    printPipelineRegisters(states,Knob3PrintingRegFile,masterClock,Knob4PrintingPipelineRegister,ProcessingUnit)
     masterClock +=1
     if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
         break
-if(Knob4PrintingPipelineRegister == False):
-    print(ProcessingUnit.reg)
-# print(ProcessingUnit.dataMemory)
+print(ProcessingUnit.reg)
+print(ProcessingUnit.dataMemory)
 print("Program Executed!!!")
