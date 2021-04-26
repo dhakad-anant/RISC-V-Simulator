@@ -442,7 +442,7 @@ def mainFunc(isStep):
                 clockNonPipeline += 1
                 ui.regUpdateGUI()
                 ui.memUpdateGUI()
-                ui.label_19.setText("Clock: "+str(clockNonPipeline))
+                ui.label_19.setText("Clock: "+str(5*clockNonPipeline))
                 if isStep == 1:
                     break
         
