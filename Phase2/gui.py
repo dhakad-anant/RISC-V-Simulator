@@ -101,16 +101,20 @@ def mainFunc(isStep):
             if(alreadyUpdatedPC == 0):
                 master_PC += 4
             ui.regUpdateGUI()
+            ui.memUpdateGUI()
         else:
             pass
-
+        ui.regUpdateGUI()
+        ui.memUpdateGUI()
         masterClock +=1
         if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
             break
+    print("HHH",ProcessingUnit.dataMemory)
 
 class Ui_MainWindow(object):
     def __init__(self):
         self.regBtn = 0
+        self.memCount = 0
     def regUpdateGUI(self):
         if self.regBtn == 0:
             self.reg1.setText('x0:' +str(ProcessingUnit.reg[0]))
@@ -153,8 +157,63 @@ class Ui_MainWindow(object):
         self.regBtn = 1
         self.regUpdateGUI()
 
-    def memUpdateGUI(self, memCount):
-        memAddresses = ProcessingUnit.dataMemory.keys()
+    def convert(self, a):
+        ans = ""
+        for i in a:
+            ans += hex(i)[2:]+' '
+        return ans
+        
+    def memUpdateGUI(self):
+        memAddresses = list(ProcessingUnit.dataMemory.keys())[:]
+        cnt = self.memCount
+        if cnt+0 == len(memAddresses):
+            return
+        self.label_1.setText(str(memAddresses[cnt+0]) + " 1: " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+0]]))
+        if cnt+1 == len(memAddresses):
+            return
+        self.label_2.setText(str(memAddresses[cnt+1]) + " 2: " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+1]]))
+        if cnt+2 == len(memAddresses):
+            return
+        self.label_3.setText(str(memAddresses[cnt+2]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+2]]))
+        if cnt+3 == len(memAddresses):
+            return
+        self.label_4.setText(str(memAddresses[cnt+3]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+3]]))
+        if cnt+4 == len(memAddresses):
+            return
+        self.label_5.setText(str(memAddresses[cnt+4]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+4]]))
+        if cnt+5 == len(memAddresses):
+            return
+        self.label_6.setText(str(memAddresses[cnt+5]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+5]]))
+        if cnt+6 == len(memAddresses):
+            return
+        self.label_7.setText(str(memAddresses[cnt+6]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+6]]))
+        if cnt+7 == len(memAddresses):
+            return
+        self.label_8.setText(str(memAddresses[cnt+7]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+7]]))
+        if cnt+8 == len(memAddresses):
+            return
+        self.label_9.setText(str(memAddresses[cnt+8]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+8]]))
+        if cnt+9 == len(memAddresses):
+            return
+        self.label_10.setText(str(memAddresses[cnt+9]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+9]]))
+        if cnt+10 == len(memAddresses):
+            return
+        self.label_11.setText(str(memAddresses[cnt+10]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+10]]))
+        if cnt+11 == len(memAddresses):
+            return
+        self.label_12.setText(str(memAddresses[cnt+11]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+11]]))
+        if cnt+12 == len(memAddresses):
+            return
+        self.label_13.setText(str(memAddresses[cnt+12]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+12]]))
+        if cnt+13 == len(memAddresses):
+            return
+        self.label_14.setText(str(memAddresses[cnt+13]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+13]]))
+        if cnt+14 == len(memAddresses):
+            return
+        self.label_15.setText(str(memAddresses[cnt+14]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+14]]))
+        if cnt+15 == len(memAddresses):
+            return
+        self.label_16.setText(str(memAddresses[cnt+15]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+15]]))
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -171,127 +230,127 @@ class Ui_MainWindow(object):
         self.label_14 = QtWidgets.QLabel(self.centralwidget)
         self.label_14.setGeometry(QtCore.QRect(890, 623, 247, 36))
         font = QtGui.QFont()
-        font.setPointSize(10)
+        font.setPointSize(9)
         self.label_14.setFont(font)
         self.label_14.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_14.setAlignment(QtCore.Qt.AlignCenter)
         self.label_14.setObjectName("label_14")
         self.label_5 = QtWidgets.QLabel(self.centralwidget)
         self.label_5.setGeometry(QtCore.QRect(890, 229, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_5.setFont(font)
         self.label_5.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_5.setAlignment(QtCore.Qt.AlignCenter)
         self.label_5.setObjectName("label_5")
         self.label_4 = QtWidgets.QLabel(self.centralwidget)
         self.label_4.setGeometry(QtCore.QRect(890, 185, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_4.setFont(font)
         self.label_4.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_4.setAlignment(QtCore.Qt.AlignCenter)
         self.label_4.setObjectName("label_4")
         self.label_8 = QtWidgets.QLabel(self.centralwidget)
         self.label_8.setGeometry(QtCore.QRect(890, 360, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_8.setFont(font)
         self.label_8.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_8.setAlignment(QtCore.Qt.AlignCenter)
         self.label_8.setObjectName("label_8")
         self.label_10 = QtWidgets.QLabel(self.centralwidget)
         self.label_10.setGeometry(QtCore.QRect(890, 448, 247, 36))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_10.setFont(font)
         self.label_10.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_10.setAlignment(QtCore.Qt.AlignCenter)
         self.label_10.setObjectName("label_10")
         self.label_11 = QtWidgets.QLabel(self.centralwidget)
         self.label_11.setGeometry(QtCore.QRect(890, 491, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_11.setFont(font)
         self.label_11.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_11.setAlignment(QtCore.Qt.AlignCenter)
         self.label_11.setObjectName("label_11")
         self.label_7 = QtWidgets.QLabel(self.centralwidget)
         self.label_7.setGeometry(QtCore.QRect(890, 316, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_7.setFont(font)
         self.label_7.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_7.setAlignment(QtCore.Qt.AlignCenter)
         self.label_7.setObjectName("label_7")
         self.label_1 = QtWidgets.QLabel(self.centralwidget)
         self.label_1.setGeometry(QtCore.QRect(890, 54, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_1.setFont(font)
         self.label_1.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_1.setAlignment(QtCore.Qt.AlignCenter)
         self.label_1.setObjectName("label_1")
         self.label_13 = QtWidgets.QLabel(self.centralwidget)
         self.label_13.setGeometry(QtCore.QRect(890, 580, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_13.setFont(font)
         self.label_13.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_13.setAlignment(QtCore.Qt.AlignCenter)
         self.label_13.setObjectName("label_13")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
         self.label_2.setGeometry(QtCore.QRect(890, 98, 247, 36))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_2.setFont(font)
         self.label_2.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_2.setAlignment(QtCore.Qt.AlignCenter)
         self.label_2.setObjectName("label_2")
         self.label_9 = QtWidgets.QLabel(self.centralwidget)
         self.label_9.setGeometry(QtCore.QRect(890, 404, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_9.setFont(font)
         self.label_9.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_9.setAlignment(QtCore.Qt.AlignCenter)
         self.label_9.setObjectName("label_9")
         self.label_12 = QtWidgets.QLabel(self.centralwidget)
         self.label_12.setGeometry(QtCore.QRect(890, 535, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_12.setFont(font)
         self.label_12.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_12.setAlignment(QtCore.Qt.AlignCenter)
         self.label_12.setObjectName("label_12")
         self.label_3 = QtWidgets.QLabel(self.centralwidget)
         self.label_3.setGeometry(QtCore.QRect(890, 141, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_3.setFont(font)
         self.label_3.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_3.setAlignment(QtCore.Qt.AlignCenter)
         self.label_3.setObjectName("label_3")
         self.label_15 = QtWidgets.QLabel(self.centralwidget)
         self.label_15.setGeometry(QtCore.QRect(890, 666, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_15.setFont(font)
         self.label_15.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_15.setAlignment(QtCore.Qt.AlignCenter)
         self.label_15.setObjectName("label_15")
         self.label_6 = QtWidgets.QLabel(self.centralwidget)
         self.label_6.setGeometry(QtCore.QRect(890, 273, 247, 36))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_6.setFont(font)
         self.label_6.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_6.setAlignment(QtCore.Qt.AlignCenter)
         self.label_6.setObjectName("label_6")
         self.label_16 = QtWidgets.QLabel(self.centralwidget)
         self.label_16.setGeometry(QtCore.QRect(890, 710, 247, 37))
-        font = QtGui.QFont()
-        font.setPointSize(10)
+        # font = QtGui.QFont()
+        # font.setPointSize(10)
         self.label_16.setFont(font)
         self.label_16.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_16.setAlignment(QtCore.Qt.AlignCenter)
