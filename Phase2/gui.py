@@ -9,28 +9,153 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from main import *
+from state_class import CPU,State,BTB
+from hdu_class import HDU
 
+def checkHazardous(states):
+    isHazard, stallparameters, newState, forwardPaths = hduob.isDataHazard(states)
+    # print('============> ',forwardPaths)
+    states = []
+    stall = -1
+    for i in newState:
+        if i.opcode == 0:
+            states.append(None)
+            continue
+        states.append(i)
+    if stallparameters[0]==1:
+        stall = stallparameters[1]
+    return [states, stall, stallparameters]
+
+states=[None for i in range(5)] # don't change it
+predictionEnabled=1
+hduob = HDU()
+prediction_enabled = 1
+knob2_stallingEnabled= True # don't change it
+controlChange = False
+cntBranchHazards = 0
+cntBranchHazardStalls = 0
+controlChange_pc = 0
+controlHazard = False
+controlHazard_pc = 0
+btb = BTB()
+cntDataHazards = 0
+cntDataHazardsStalls = 0
+ProcessingUnit = CPU(prediction_enabled)
+ProcessingUnit.readFile()
+master_PC=0
+master_cycle=0
+masterClock = 0
+
+def mainFunc(isStep):
+    global states,master_PC, master_cycle, masterClock,predictionEnabled,hduob,prediction_enabled,knob2_stallingEnabled,controlChange,cntBranchHazards,cntBranchHazardStalls,controlChange_pc,controlHazard,controlHazard_pc,btb,cntDataHazards,cntDataHazardsStalls,ProcessingUnit
+    while True:
+        if knob2_stallingEnabled:
+            # states[0] = State(master_PC)
+
+            # [state1,state2,state3,state4,state5]  
+            # stalling will occcue when data hazard
+            # control hazard means stalling
+            alreadyUpdatedPC = 0
+            # print("states : ",states)
+            # print("registers : ",ProcessingUnit.reg)
+            # print("===> ", hex(master_PC))
+            for i in reversed(range(5)):
+                states, stall, stallparameters = checkHazardous(states)
+                if(i==0):
+                    states[i] = State(master_PC)
+                    states[i] = ProcessingUnit.Fetch(states[i],btb)
+                    if(states[i] !=None and states[i].predictionPC!=-1):
+                        master_PC = states[i].predictionPC
+                        alreadyUpdatedPC = 1
+                    states[i+1]=states[i]
+                    states[i]=None
+                if(i==1):
+                    if(states[i]==None or stall==i):
+                        continue
+                    controlHazard,control_hazard_pc = ProcessingUnit.Decode(states[i],btb)
+                    if(controlHazard==1):
+                        master_PC = states[i].PC + 4
+                    elif(controlHazard==-1):
+                        master_PC = control_hazard_pc
+                    states[i+1] = states[i]
+                    states[i]=None         
+                if(i==2):
+                    if(states[i]==None or stall==i):
+                        continue
+                    ProcessingUnit.Execute(states[i])
+                    states[i+1]=states[i]
+                    states[i]=None                
+                if(i==3):
+                    if(states[i]==None):
+                        continue
+                    ProcessingUnit.MemoryAccess(states[i])
+                    states[i+1]=states[i]
+                    states[i]=None
+                if(i==4):
+                    if(states[i]==None):
+                        continue
+                    if(states[4].IR == "0x00412083" and states[3].IR == "0x00810113" and states[2].IR == "0x03450533" and states[1].IR == "0x00008067" and (states[2].RA == 3 or states[2].RB == 3)):
+                        print("Check Here")
+                    ProcessingUnit.RegisterUpdate(states[i])
+                    states[i]=None  
+            if(alreadyUpdatedPC == 0):
+                master_PC += 4
+            ui.regUpdateGUI()
+        else:
+            pass
+
+        masterClock +=1
+        if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
+            break
 
 class Ui_MainWindow(object):
+    def __init__(self):
+        self.regBtn = 0
     def regUpdateGUI(self):
-        
-        self.reg1.setText('x21:' +str(reg[21]))
-        self.reg2.setText('x6:' +str(reg[6]))
-        self.reg3.setText('x22:' +str(reg[22]))
-        self.reg4.setText('x7:' +str(reg[7]))
-        self.reg5.setText('x23:' +str(reg[23]))
-        self.reg6.setText('x0:' +str(reg[0]))
-        self.reg7.setText('x1:' +str(reg[1]))
-        self.reg8.setText('x16:' +str(reg[16]))
-        self.reg9.setText('x17:' +str(reg[17]))
-        self.reg10.setText('x2:' +str(reg[2]))
-        self.reg11.setText('x18:' +str(reg[18]))
-        self.reg12.setText('x3:' +str(reg[3]))
-        self.reg13.setText('x19:' +str(reg[19]))
-        self.reg14.setText('x4:' +str(reg[4]))
-        self.reg15.setText('x20:' +str(reg[20]))
-        self.reg16.setText('x5:' +str(reg[5]))
+        if self.regBtn == 0:
+            self.reg1.setText('x0:' +str(ProcessingUnit.reg[0]))
+            self.reg2.setText('x1:' +str(ProcessingUnit.reg[1]))
+            self.reg3.setText('x2:' +str(ProcessingUnit.reg[2]))
+            self.reg4.setText('x3:' +str(ProcessingUnit.reg[3]))
+            self.reg5.setText('x4:' +str(ProcessingUnit.reg[4]))
+            self.reg6.setText('x5:' +str(ProcessingUnit.reg[5]))
+            self.reg7.setText('x6:' +str(ProcessingUnit.reg[6]))
+            self.reg8.setText('x7:' +str(ProcessingUnit.reg[7]))
+            self.reg9.setText('x8:' +str(ProcessingUnit.reg[8]))
+            self.reg10.setText('x9:' +str(ProcessingUnit.reg[9]))
+            self.reg11.setText('x10:' +str(ProcessingUnit.reg[10]))
+            self.reg12.setText('x11:' +str(ProcessingUnit.reg[11]))
+            self.reg13.setText('x12:' +str(ProcessingUnit.reg[12]))
+            self.reg14.setText('x13:' +str(ProcessingUnit.reg[13]))
+            self.reg15.setText('x14:' +str(ProcessingUnit.reg[14]))
+            self.reg16.setText('x15:' +str(ProcessingUnit.reg[15]))
+        else:
+            self.reg1.setText('x16: ' + str(ProcessingUnit.reg[16]))
+            self.reg2.setText('x17: ' + str(ProcessingUnit.reg[17]))
+            self.reg3.setText('x18: ' + str(ProcessingUnit.reg[18]))
+            self.reg4.setText('x19: ' + str(ProcessingUnit.reg[19]))
+            self.reg5.setText('x20: ' + str(ProcessingUnit.reg[20]))
+            self.reg6.setText('x21: ' + str(ProcessingUnit.reg[21]))
+            self.reg7.setText('x22: ' + str(ProcessingUnit.reg[22]))
+            self.reg8.setText('x23: ' + str(ProcessingUnit.reg[23]))
+            self.reg9.setText('x24: ' + str(ProcessingUnit.reg[24]))
+            self.reg10.setText('x25: ' + str(ProcessingUnit.reg[25]))
+            self.reg11.setText('x26: ' + str(ProcessingUnit.reg[26]))
+            self.reg12.setText('x27: ' + str(ProcessingUnit.reg[27]))
+            self.reg13.setText('x28: ' + str(ProcessingUnit.reg[28]))
+            self.reg14.setText('x29: ' + str(ProcessingUnit.reg[29]))
+            self.reg15.setText('x30: ' + str(ProcessingUnit.reg[30]))
+            self.reg16.setText('x31: ' + str(ProcessingUnit.reg[31]))
+    def regUpPressed(self):
+        self.regBtn = 0
+        self.regUpdateGUI()
+    def regDownPressed(self):
+        self.regBtn = 1
+        self.regUpdateGUI()
+
+    def memUpdateGUI(self, memCount):
+        memAddresses = ProcessingUnit.dataMemory.keys()
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1173, 881)
@@ -337,6 +462,7 @@ class Ui_MainWindow(object):
         self.pushButton_3.setGeometry(QtCore.QRect(620, 760, 93, 41))
         self.pushButton_3.setStyleSheet("color:white")
         self.pushButton_3.setObjectName("pushButton_3")
+        self.pushButton_3.clicked.connect(self.regUpPressed)
         self.reg2 = QtWidgets.QLabel(self.centralwidget)
         self.reg2.setGeometry(QtCore.QRect(600, 98, 247, 36))
         font = QtGui.QFont()
@@ -351,6 +477,7 @@ class Ui_MainWindow(object):
         self.pushButton_4.setStyleSheet("color:white\n"
 "")
         self.pushButton_4.setObjectName("pushButton_4")
+        self.pushButton_4.clicked.connect(self.regDownPressed)
         self.pipeline1 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline1.setGeometry(QtCore.QRect(240, 591, 250, 40))
         font = QtGui.QFont()
@@ -393,6 +520,7 @@ class Ui_MainWindow(object):
         self.pushButton_7.setFont(font)
         self.pushButton_7.setStyleSheet("color:white")
         self.pushButton_7.setObjectName("pushButton_7")
+        self.pushButton_7.clicked.connect(lambda: mainFunc(0))
         self.pushButton_9 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_9.setGeometry(QtCore.QRect(380, 10, 120, 40))
         font = QtGui.QFont()
@@ -687,6 +815,7 @@ class Ui_MainWindow(object):
         self.label_29.setText(_translate("MainWindow", "D"))
         self.label_30.setText(_translate("MainWindow", "M"))
         self.label_31.setText(_translate("MainWindow", "E"))
+
 
 # label.setText()
 
