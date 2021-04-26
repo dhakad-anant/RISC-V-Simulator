@@ -1,1 +1,24 @@
-    
+Stat1 : 597
+
+Stat2 : 593
+
+Stat3 : 0
+
+Stat4 : 243
+
+Stat5 : 226
+
+Stat6 : 124
+
+Stat7 : 0
+
+Stat8 : 122
+
+Stat9 : 117
+
+Stat10 : 21
+
+Stat11 : 0
+
+Stat12 : 67
+

@@ -11,6 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from state_class import CPU,State,BTB
 from hdu_class import HDU
+from sys import stdout
 
 def checkHazardous(states,isDataForwardingEnabled):
     isHazard, stallparameters, newState, forwardPaths = hduob.isDataHazard(states,isDataForwardingEnabled)
@@ -447,7 +448,6 @@ def mainFunc(isStep):
                 ui.label_19.setText("Clock: "+str(5*clockNonPipeline))
                 if isStep == 1:
                     break
-        
         printPipelineRegisters(states,Knob3PrintingRegFile,masterClock,Knob4PrintingPipelineRegister,ProcessingUnit)
         if Knob1ForPipelining == 1:
             masterClock +=1
@@ -455,18 +455,24 @@ def mainFunc(isStep):
             ui.memUpdateGUI()
 
             ui.label_19.setText("Clock: "+str(masterClock))
-        if programExecuted == 1:
+        if Knob1ForPipelining == 0:
             ui.label_19.setText("Clock: "+str(5*clockNonPipeline)+", Executed")
+            masterClock = 5*clockNonPipeline
+
         if Knob1ForPipelining and states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
             programExecuted = 1
+        
+        if programExecuted == 1:
+            printinOutputFile()
             break
+
         if isStep == 1:
             break
 
 
 def printinOutputFile():
-    print("callll")
-    file1 = open('output.txt', 'a')
+    global masterClock
+    stdout = open('output.txt', 'w')
     L = [ f'Stat1 : {masterClock}\n',
           f'Stat2 : {InstCount}\n',
           f'Stat3 : {CPI}\n',
@@ -480,15 +486,8 @@ def printinOutputFile():
           f'Stat11 : {StallsDuetoDataHazards}\n',
           f'Stat12 : {StallsDuetoControlHazards}\n',
     ]
-    # file1.write("here")
     for i in L:
-        print(i, file = file1)
-        # file1.append(i)
-    print("sljda;")
-    # file1.writelines(L)
-    file1.close()
-
-printinOutputFile()
+        print(i, file = stdout)
 
 
 class Ui_MainWindow(object):
