@@ -452,7 +452,7 @@ def mainFunc(isStep):
 
             ui.label_19.setText("Clock: "+str(masterClock))
         if programExecuted == 1:
-            ui.label_19.setText("Clock: "+str(clockNonPipeline)+", Executed")
+            ui.label_19.setText("Clock: "+str(5*clockNonPipeline)+", Executed")
         if Knob1ForPipelining and states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
             programExecuted = 1
             break
