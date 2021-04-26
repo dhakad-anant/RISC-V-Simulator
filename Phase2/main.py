@@ -43,15 +43,7 @@ masterClock = 0
 while True:
 
     if knob2_stallingEnabled:
-        # states[0] = State(master_PC)
-
-        # [state1,state2,state3,state4,state5]  
-        # stalling will occcue when data hazard
-        # control hazard means stalling
         alreadyUpdatedPC = 0
-        # print("states : ",states)
-        # print("registers : ",ProcessingUnit.reg)
-        # print("===> ", hex(master_PC))
         for i in reversed(range(5)):
             states, stall, stallparameters = checkHazardous(states)
             if(i==0):
@@ -63,8 +55,10 @@ while True:
                 states[i+1]=states[i]
                 states[i]=None
             if(i==1):
-                if(states[i]==None or stall==i):
+                if(states[i]==None):
                     continue
+                if(stall == i):
+                    break
                 controlHazard,control_hazard_pc = ProcessingUnit.Decode(states[i],btb)
                 if(controlHazard==1):
                     master_PC = states[i].PC + 4
@@ -73,20 +67,26 @@ while True:
                 states[i+1] = states[i]
                 states[i]=None         
             if(i==2):
-                if(states[i]==None or stall==i):
+                if(states[i]==None):
                     continue
+                if(stall == i):
+                    break
                 ProcessingUnit.Execute(states[i])
                 states[i+1]=states[i]
                 states[i]=None                
             if(i==3):
                 if(states[i]==None):
                     continue
+                if(stall == i):
+                    break
                 ProcessingUnit.MemoryAccess(states[i])
                 states[i+1]=states[i]
                 states[i]=None
             if(i==4):
                 if(states[i]==None):
                     continue
+                if(stall == i):
+                    break
                 if(states[4].IR == "0x00412083" and states[3].IR == "0x00810113" and states[2].IR == "0x03450533" and states[1].IR == "0x00008067" and (states[2].RA == 3 or states[2].RB == 3)):
                     print("Check Here")
                 ProcessingUnit.RegisterUpdate(states[i])
