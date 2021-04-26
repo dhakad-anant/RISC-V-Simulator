@@ -351,6 +351,7 @@ def mainFunc(isStep):
                         continue
                     if(stall == i):
                         StallsDuetoDataHazards += 1
+                        stallsCount += 1
                         break
                     controlHazard,control_hazard_pc = ProcessingUnit.Decode(states[i],btb)
                     if(controlHazard==1):
@@ -372,6 +373,7 @@ def mainFunc(isStep):
                         continue
                     if(stall == i):
                         StallsDuetoDataHazards += 1
+                        stallsCount += 1
                         break
                     ProcessingUnit.Execute(states[i])
                     if states[2]!=None:
@@ -386,6 +388,7 @@ def mainFunc(isStep):
                         continue
                     if(stall == i):
                         StallsDuetoDataHazards += 1
+                        stallsCount += 1
                         break
                     ProcessingUnit.MemoryAccess(states[i])
                     if states[3]!=None:
@@ -400,6 +403,7 @@ def mainFunc(isStep):
                         continue
                     if(stall == i):
                         StallsDuetoDataHazards += 1
+                        stallsCount += 1
                         break
                     if(states[i].opcode == 3 or states[i].opcode == 35):
                         LoadAndStoreInstructions += 1
@@ -458,6 +462,34 @@ def mainFunc(isStep):
             break
         if isStep == 1:
             break
+
+
+def printinOutputFile():
+    print("callll")
+    file1 = open('output.txt', 'a')
+    L = [ f'Stat1 : {masterClock}\n',
+          f'Stat2 : {InstCount}\n',
+          f'Stat3 : {CPI}\n',
+          f'Stat4 : {LoadAndStoreInstructions}\n',
+          f'Stat5 : {ALUInst}\n',
+          f'Stat6 : {ControlInst}\n',
+          f'Stat7 : {stallsCount}\n',
+          f'Stat8 : {DataHazardCount}\n',
+          f'Stat9 : {ControlHazardCount}\n',
+          f'Stat10 : {BranchMisprediction}\n',
+          f'Stat11 : {StallsDuetoDataHazards}\n',
+          f'Stat12 : {StallsDuetoControlHazards}\n',
+    ]
+    # file1.write("here")
+    for i in L:
+        print(i, file = file1)
+        # file1.append(i)
+    print("sljda;")
+    # file1.writelines(L)
+    file1.close()
+
+printinOutputFile()
+
 
 class Ui_MainWindow(object):
     def __init__(self):
