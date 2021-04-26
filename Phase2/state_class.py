@@ -10,6 +10,8 @@ class State:
         self.ALUOp=[0]*15
         self.RS1 = -1
         self.RS2 = -1
+        self.fun3 = -1
+        self.fun7 = -1
         self.RD = 0
         self.RM = 0
         self.RZ = 0
@@ -95,7 +97,7 @@ class CPU:
 
     def readFile(self):
         try:
-            mcFile = open("input.mc","r")
+            mcFile = open("Phase2/input.mc","r")
         except:
             print("File Not Found!")
             return
@@ -493,7 +495,6 @@ class CPU:
         if state.RS2Branch != -1:
             state.RB = state.RS2Branch
         # if the instruction is identified correctly, print which instruction is it
-        print(state.message)
         return controlHazard, newPC
 
     def Execute(self,state):

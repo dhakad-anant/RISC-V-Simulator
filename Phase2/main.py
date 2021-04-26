@@ -15,12 +15,45 @@ def checkHazardous(states,isDataForwardingEnabled):
         stall = stallparameters[1]
     return [isHazard, states, stall, stallparameters]
 
+def printPipelineRegisters(states, Knob3,masterClock):
+    if(Knob3 == False):
+        return
+    print("Cycle number -> ", masterClock)
+    print("Content of First Pipeline Register -------------------------------------- ")
+    if(states[1]!=None):
+        print("IR -> ",states[1].IR)
+    else: print("EMPTY")
+    print("Content of Second Pipeline Register -------------------------------------")
+    if(states[2]!=None):
+        print("Opcode -> ", states[2].opcode)
+        if(states[2].RS1 != -1):
+            print("RS1 -> ",states[2].RS1)
+        if(states[2].RS2 != -1):
+            print("RS2 -> ",states[2].RS2)
+        if(states[2].RD != 0):
+            print("RD -> ", states[2].RD)
+        print("Immediate -> ", states[2].immed)
+        if(states[2].fun3 != -1):
+            print("Funct3 -> ", states[2].fun3)
+        if(states[2].fun7 != -1):
+            print("Funct7 -> ", states[2].fun7)
+    else: print("EMPTY")
+    print("Content of Third Pipeline Register ---------------------------------------")
+    if(states[3]!=None):
+        print("RZ -> ", states[3].RZ)
+    else: print("EMPTY")
+    print("Content of Fourth Pipeline Register ---------------------------------------")
+    if(states[4]!=None):
+        print("RY -> ", states[4].RY)
+    else: print("EMPTY")
+
 states=[None for i in range(5)] # don't change it
 predictionEnabled=1
 hduob = HDU()
 prediction_enabled = 1
 Knob1ForPipelining= True # don't change it
 Knob2ForDataForwarding = True
+Knob3PrintingPipelineRegisterValues = True
 controlChange = False
 cntBranchHazards = 0
 cntBranchHazardStalls = 0
@@ -107,6 +140,7 @@ while True:
             ProcessingUnit.RegisterUpdate(state)
             state = State(master_PC)
 
+    printPipelineRegisters(states,Knob3PrintingPipelineRegisterValues,masterClock)
     masterClock +=1
     if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
         break
