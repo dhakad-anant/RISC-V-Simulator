@@ -15,8 +15,12 @@ def checkHazardous(states,isDataForwardingEnabled):
         stall = stallparameters[1]
     return [isHazard, states, stall, stallparameters]
 
-def printPipelineRegisters(states, Knob3,masterClock):
+def printPipelineRegisters(states, Knob3,masterClock,Knob4,ProcessingUnit):
     if(Knob3 == False):
+        if(Knob4 == False):
+            return
+        else:
+            print(ProcessingUnit.reg)
         return
     print("Cycle number -> ", masterClock)
     print("Content of First Pipeline Register -------------------------------------- ")
@@ -46,6 +50,9 @@ def printPipelineRegisters(states, Knob3,masterClock):
     if(states[4]!=None):
         print("RY -> ", states[4].RY)
     else: print("EMPTY")
+    if(Knob4 == True):
+        print("Content of Register File ------------------------------------------------------------------")
+        print(ProcessingUnit.reg)
 
 states=[None for i in range(5)] # don't change it
 predictionEnabled=1
@@ -53,7 +60,8 @@ hduob = HDU()
 prediction_enabled = 1
 Knob1ForPipelining= True # don't change it
 Knob2ForDataForwarding = True
-Knob3PrintingPipelineRegisterValues = True
+Knob3PrintingRegFile = False
+Knob4PrintingPipelineRegisterValues = True
 controlChange = False
 cntBranchHazards = 0
 cntBranchHazardStalls = 0
@@ -140,10 +148,11 @@ while True:
             ProcessingUnit.RegisterUpdate(state)
             state = State(master_PC)
 
-    printPipelineRegisters(states,Knob3PrintingPipelineRegisterValues,masterClock)
+    printPipelineRegisters(states,Knob4PrintingPipelineRegisterValues,masterClock,Knob4PrintingPipelineRegisterValues,ProcessingUnit)
     masterClock +=1
     if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
         break
-print(ProcessingUnit.reg)
-print(ProcessingUnit.dataMemory)
+if(Knob4PrintingPipelineRegisterValues == False):
+    print(ProcessingUnit.reg)
+# print(ProcessingUnit.dataMemory)
 print("Program Executed!!!")
