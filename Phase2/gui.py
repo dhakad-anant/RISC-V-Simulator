@@ -14,6 +14,28 @@ from hdu_class import HDU
 
 def checkHazardous(states,isDataForwardingEnabled):
     isHazard, stallparameters, newState, forwardPaths = hduob.isDataHazard(states,isDataForwardingEnabled)
+    ui.label_26.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.label_27.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.label_28.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.label_29.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.label_30.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.label_31.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    if len(forwardPaths) != 0:
+        if forwardPaths[0] == 0:
+            ui.label_31.setStyleSheet("background:rgb(255, 255, 0);color:black")
+            ui.label_28.setStyleSheet("background:rgb(255, 255, 0);color:black")
+        if forwardPaths[0] == 1:
+            ui.label_26.setStyleSheet("background:rgb(255, 255, 0);color:black")
+            ui.label_30.setStyleSheet("background:rgb(255, 255, 0);color:black")
+        if forwardPaths[0] == 2:
+            ui.label_29.setStyleSheet("background:rgb(255, 255, 0);color:black")
+            ui.label_28.setStyleSheet("background:rgb(255, 255, 0);color:black")
+        if forwardPaths[0] == 3:
+            ui.label_26.setStyleSheet("background:rgb(255, 255, 0);color:black")
+            ui.label_29.setStyleSheet("background:rgb(255, 255, 0);color:black")
+        if forwardPaths[0] == 4:
+            ui.label_26.setStyleSheet("background:rgb(255, 255, 0);color:black")
+            ui.label_31.setStyleSheet("background:rgb(255, 255, 0);color:black")
     # print('============> ',forwardPaths)
     states = []
     stall = -1
@@ -25,6 +47,45 @@ def checkHazardous(states,isDataForwardingEnabled):
     if stallparameters[0]==1:
         stall = stallparameters[1]
     return [isHazard, states, stall, stallparameters]
+
+def printPipelineRegisters(states, Knob3,masterClock,Knob4,ProcessingUnit):
+    if(Knob4 == False):
+        if(Knob3 == False):
+            return
+        else:
+            print(ProcessingUnit.reg)
+        return
+    print("Cycle number -> ", masterClock)
+    print("Content of First Pipeline Register -------------------------------------- ")
+    if(states[1]!=None):
+        print("IR -> ",states[1].IR)
+    else: print("EMPTY")
+    print("Content of Second Pipeline Register -------------------------------------")
+    if(states[2]!=None):
+        print("Opcode -> ", states[2].opcode)
+        if(states[2].RS1 != -1):
+            print("RS1 -> ",states[2].RS1)
+        if(states[2].RS2 != -1):
+            print("RS2 -> ",states[2].RS2)
+        if(states[2].RD != 0):
+            print("RD -> ", states[2].RD)
+        print("Immediate -> ", states[2].immed)
+        if(states[2].fun3 != -1):
+            print("Funct3 -> ", states[2].fun3)
+        if(states[2].fun7 != -1):
+            print("Funct7 -> ", states[2].fun7)
+    else: print("EMPTY")
+    print("Content of Third Pipeline Register ---------------------------------------")
+    if(states[3]!=None):
+        print("RZ -> ", states[3].RZ)
+    else: print("EMPTY")
+    print("Content of Fourth Pipeline Register ---------------------------------------")
+    if(states[4]!=None):
+        print("RY -> ", states[4].RY)
+    else: print("EMPTY")
+    if(Knob3 == True):
+        print("Content of Register File ------------------------------------------------------------------")
+        print(ProcessingUnit.reg)
 
 def check(num, states):
     dont = True
@@ -61,20 +122,22 @@ def check(num, states):
         if(states[4]!=None):
             print("RY -> ", states[4].RY)
         else: print("EMPTY")
-        
-states=[None for i in range(5)] # don't change it
-predictionEnabled=1
+
+
+states =[None for i in range(5)] # don't change it
+predictionEnabled =1
 hduob = HDU()
 prediction_enabled = 1
 Knob1ForPipelining= True # don't change it
 Knob2ForDataForwarding = True
 Knob3PrintingRegFile = False
 Knob4PrintingPipelineRegister = False
-Knob5PrintingPipelineRegForSpecificInst = True
+Knob5PrintingPipelineRegForSpecificInst = False
 num = -4
 if(Knob5PrintingPipelineRegForSpecificInst == True):
     num = int(input("Enter the instruction number which you want to observe : "))
     num = num*4
+
 controlChange = False
 cntBranchHazards = 0
 cntBranchHazardStalls = 0
@@ -86,13 +149,134 @@ cntDataHazards = 0
 cntDataHazardsStalls = 0
 ProcessingUnit = CPU(prediction_enabled)
 ProcessingUnit.readFile()
+# stats to be printed variables
 master_PC=0
 masterClock = 0
+CPI = 0
+LoadAndStoreInstructions = 0
+ALUInst = 0
+ControlInst = 0
+stallsCount = 0
+DataHazardCount = 0
+ControlHazardCount = 0
+BranchMisprediction = 0
+StallsDuetoDataHazards = 0
+StallsDuetoControlHazards = 0
+InstCount = 0
+stall = -1
+programExecuted = 0
+# states[0] - fetch
+# states[1] - Decode
+# states[2] - execute
+# states[3] - MemoryAccess
+# states[4] - writeback
+
+def resetAll():
+    global programExecuted,states,predictionEnabled,hduob,prediction_enabled,Knob1ForPipelining,Knob2ForDataForwarding,Knob3PrintingRegFile,Knob4PrintingPipelineRegister,Knob5PrintingPipelineRegForSpecificInst,num,controlChange,cntBranchHazards,cntBranchHazardStalls,controlChange_pc,controlHazard,controlHazard_pc,btb,cntDataHazards,cntDataHazardsStalls,ProcessingUnit,master_PC,masterClock,CPI,LoadAndStoreInstructions,ALUInst,ControlInst,stallsCount,DataHazardCount,ControlHazardCount,BranchMisprediction,StallsDuetoDataHazards,StallsDuetoControlHazards,InstCount,stall
+    states =[None for i in range(5)] # don't change it
+    predictionEnabled =1
+    hduob = HDU()
+    prediction_enabled = 1
+    Knob1ForPipelining= True # don't change it
+    Knob2ForDataForwarding = True
+    Knob3PrintingRegFile = False
+    Knob4PrintingPipelineRegister = False
+    Knob5PrintingPipelineRegForSpecificInst = False
+    num = -4
+    if(Knob5PrintingPipelineRegForSpecificInst == True):
+        num = int(input("Enter the instruction number which you want to observe : "))
+        num = num*4
+
+    controlChange = False
+    cntBranchHazards = 0
+    cntBranchHazardStalls = 0
+    controlChange_pc = 0
+    controlHazard = False
+    controlHazard_pc = 0
+    btb = BTB()
+    cntDataHazards = 0
+    cntDataHazardsStalls = 0
+    ProcessingUnit = CPU(prediction_enabled)
+    ProcessingUnit.readFile()
+    # stats to be printed variables
+    master_PC=0
+    masterClock = 0
+    CPI = 0
+    LoadAndStoreInstructions = 0
+    ALUInst = 0
+    ControlInst = 0
+    stallsCount = 0
+    DataHazardCount = 0
+    ControlHazardCount = 0
+    BranchMisprediction = 0
+    StallsDuetoDataHazards = 0
+    StallsDuetoControlHazards = 0
+    InstCount = 0
+    stall = -1
+    programExecuted = 0
+    
+    ui.reg1.setText('x0:0')
+    ui.reg2.setText('x1:0')
+    ui.reg3.setText('x2:0')
+    ui.reg4.setText('x3:0')
+    ui.reg5.setText('x4:0')
+    ui.reg6.setText('x5:0')
+    ui.reg7.setText('x6:0')
+    ui.reg8.setText('x7:0')
+    ui.reg9.setText('x8:0')
+    ui.reg10.setText('x9:0')
+    ui.reg11.setText('x10:0')
+    ui.reg12.setText('x11:0')
+    ui.reg13.setText('x12:0')
+    ui.reg14.setText('x13:0')
+    ui.reg15.setText('x14:0')
+    ui.reg16.setText('x15:0')
+    ui.label_14.setText("")
+    ui.label_5.setText("")
+    ui.label_4.setText("")
+    ui.label_8.setText("")
+    ui.label_10.setText("")
+    ui.label_11.setText("")
+    ui.label_7.setText("")
+    ui.label_1.setText("")
+    ui.label_13.setText("")
+    ui.label_2.setText("")
+    ui.label_9.setText("")
+    ui.label_12.setText("")
+    ui.label_3.setText("")
+    ui.label_15.setText("")
+    ui.label_6.setText("")
+    ui.label_16.setText("")
+
+    ui.label_26.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.label_27.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.label_28.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.label_29.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.label_30.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.label_31.setStyleSheet("background:rgb(85, 255, 255);color:black")
+
+    ui.label_19.setText("Clock: 0")
+
+    ui.pipeline1.setText("None")
+    ui.pipeline2.setText("None")
+    ui.pipeline1_2.setText("None")
+    ui.pipeline2_2.setText("None")
+    ui.pipeline2_3.setText("None")
 
 def mainFunc(isStep):
-    global states,master_PC, masterClock,predictionEnabled,hduob,prediction_enabled,controlChange,cntBranchHazards,cntBranchHazardStalls,controlChange_pc,controlHazard,controlHazard_pc,btb,cntDataHazards,cntDataHazardsStalls,ProcessingUnit
-    while True:
-
+    global programExecuted,states,predictionEnabled,hduob,prediction_enabled,Knob1ForPipelining,Knob2ForDataForwarding,Knob3PrintingRegFile,Knob4PrintingPipelineRegister,Knob5PrintingPipelineRegForSpecificInst,num,controlChange,cntBranchHazards,cntBranchHazardStalls,controlChange_pc,controlHazard,controlHazard_pc,btb,cntDataHazards,cntDataHazardsStalls,ProcessingUnit,master_PC,masterClock,CPI,LoadAndStoreInstructions,ALUInst,ControlInst,stallsCount,DataHazardCount,ControlHazardCount,BranchMisprediction,StallsDuetoDataHazards,StallsDuetoControlHazards,InstCount,stall
+    while programExecuted == 0:
+        ui.label_26.setStyleSheet("background:rgb(85, 255, 255);color:black")
+        ui.label_27.setStyleSheet("background:rgb(85, 255, 255);color:black")
+        ui.label_28.setStyleSheet("background:rgb(85, 255, 255);color:black")
+        ui.label_29.setStyleSheet("background:rgb(85, 255, 255);color:black")
+        ui.label_30.setStyleSheet("background:rgb(85, 255, 255);color:black")
+        ui.label_31.setStyleSheet("background:rgb(85, 255, 255);color:black")
+        ui.pipeline1.setText("None")
+        ui.pipeline2.setText("None")
+        ui.pipeline1_2.setText("None")
+        ui.pipeline2_2.setText("None")
+        ui.pipeline2_3.setText("None")
         if Knob1ForPipelining:
             alreadyUpdatedPC = 0
             for i in reversed(range(5)):
@@ -104,6 +288,10 @@ def mainFunc(isStep):
                     if(states[i] !=None and states[i].predictionPC!=-1):
                         master_PC = states[i].predictionPC
                         alreadyUpdatedPC = 1
+                    if states[0]!=None:
+                        ui.pipeline1.setText(str(states[0].PC//4 + 1) + " th instruction." )
+                    else:
+                        ui.pipeline1.setText("None")
                     states[i+1]=states[i]
                     states[i]=None
                 if(i==1):
@@ -116,6 +304,10 @@ def mainFunc(isStep):
                         master_PC = states[i].PC + 4
                     elif(controlHazard==-1):
                         master_PC = control_hazard_pc
+                    if states[1]!=None:
+                        ui.pipeline2.setText(str(states[1].PC//4 + 1) + " th instruction." )
+                    else:
+                        ui.pipeline2.setText("None")
                     states[i+1] = states[i]
                     states[i]=None         
                 if(i==2):
@@ -124,6 +316,10 @@ def mainFunc(isStep):
                     if(stall == i):
                         break
                     ProcessingUnit.Execute(states[i])
+                    if states[2]!=None:
+                        ui.pipeline1_2.setText(str(states[2].PC//4 + 1) + " th instruction." )
+                    else:
+                        ui.pipeline1_2.setText("None")
                     states[i+1]=states[i]
                     states[i]=None                
                 if(i==3):
@@ -132,6 +328,10 @@ def mainFunc(isStep):
                     if(stall == i):
                         break
                     ProcessingUnit.MemoryAccess(states[i])
+                    if states[3]!=None:
+                        ui.pipeline2_2.setText(str(states[3].PC//4 + 1) + " th instruction." )
+                    else:
+                        ui.pipeline2_2.setText("None")
                     states[i+1]=states[i]
                     states[i]=None
                 if(i==4):
@@ -140,6 +340,10 @@ def mainFunc(isStep):
                     if(stall == i):
                         break
                     ProcessingUnit.RegisterUpdate(states[i])
+                    if states[4]!=None:
+                        ui.pipeline2_3.setText(str(states[4].PC//4 + 1) + " th instruction." )
+                    else:
+                        ui.pipeline2_3.setText("None")
                     states[i]=None  
                 isHazard, states, stall, stallparameters = checkHazardous(states,Knob2ForDataForwarding)
                 if((isHazard == 1 and Knob2ForDataForwarding == False) or (stall != -1 and Knob2ForDataForwarding == False)):
@@ -159,20 +363,23 @@ def mainFunc(isStep):
                 master_PC = state.PC
                 ProcessingUnit.RegisterUpdate(state)
                 state = State(master_PC)
-
         printPipelineRegisters(states,Knob3PrintingRegFile,masterClock,Knob4PrintingPipelineRegister,ProcessingUnit)
         masterClock +=1
+        ui.regUpdateGUI()
+        ui.memUpdateGUI()
+        ui.label_19.setText("Clock: "+str(masterClock))
+
         if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:
+            programExecuted = 1
             break
         if isStep == 1:
             break
-
-    print("HHH",ProcessingUnit.dataMemory)
 
 class Ui_MainWindow(object):
     def __init__(self):
         self.regBtn = 0
         self.memCount = 0
+        self.maxCount = 10**10
     def regUpdateGUI(self):
         if self.regBtn == 0:
             self.reg1.setText('x0:' +str(ProcessingUnit.reg[0]))
@@ -214,6 +421,14 @@ class Ui_MainWindow(object):
     def regDownPressed(self):
         self.regBtn = 1
         self.regUpdateGUI()
+    def memDownPressed(self):
+        if self.memCount + 16 <= self.maxCount:
+            self.memCount += 16
+        self.memUpdateGUI()
+    def memUpPressed(self):
+        if self.memCount - 16 >= 0:
+            self.memCount -= 16
+        self.memUpdateGUI()
 
     def convert(self, a):
         ans = ""
@@ -224,54 +439,41 @@ class Ui_MainWindow(object):
     def memUpdateGUI(self):
         memAddresses = list(ProcessingUnit.dataMemory.keys())[:]
         cnt = self.memCount
-        if cnt+0 == len(memAddresses):
-            return
-        self.label_1.setText(str(memAddresses[cnt+0]) + " 1: " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+0]]))
-        if cnt+1 == len(memAddresses):
-            return
-        self.label_2.setText(str(memAddresses[cnt+1]) + " 2: " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+1]]))
-        if cnt+2 == len(memAddresses):
-            return
-        self.label_3.setText(str(memAddresses[cnt+2]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+2]]))
-        if cnt+3 == len(memAddresses):
-            return
-        self.label_4.setText(str(memAddresses[cnt+3]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+3]]))
-        if cnt+4 == len(memAddresses):
-            return
-        self.label_5.setText(str(memAddresses[cnt+4]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+4]]))
-        if cnt+5 == len(memAddresses):
-            return
-        self.label_6.setText(str(memAddresses[cnt+5]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+5]]))
-        if cnt+6 == len(memAddresses):
-            return
-        self.label_7.setText(str(memAddresses[cnt+6]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+6]]))
-        if cnt+7 == len(memAddresses):
-            return
-        self.label_8.setText(str(memAddresses[cnt+7]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+7]]))
-        if cnt+8 == len(memAddresses):
-            return
-        self.label_9.setText(str(memAddresses[cnt+8]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+8]]))
-        if cnt+9 == len(memAddresses):
-            return
-        self.label_10.setText(str(memAddresses[cnt+9]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+9]]))
-        if cnt+10 == len(memAddresses):
-            return
-        self.label_11.setText(str(memAddresses[cnt+10]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+10]]))
-        if cnt+11 == len(memAddresses):
-            return
-        self.label_12.setText(str(memAddresses[cnt+11]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+11]]))
-        if cnt+12 == len(memAddresses):
-            return
-        self.label_13.setText(str(memAddresses[cnt+12]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+12]]))
-        if cnt+13 == len(memAddresses):
-            return
-        self.label_14.setText(str(memAddresses[cnt+13]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+13]]))
-        if cnt+14 == len(memAddresses):
-            return
-        self.label_15.setText(str(memAddresses[cnt+14]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+14]]))
-        if cnt+15 == len(memAddresses):
-            return
-        self.label_16.setText(str(memAddresses[cnt+15]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+15]]))
+        self.label_14.setText("")
+        self.label_5.setText("")
+        self.label_4.setText("")
+        self.label_8.setText("")
+        self.label_10.setText("")
+        self.label_11.setText("")
+        self.label_7.setText("")
+        self.label_1.setText("")
+        self.label_13.setText("")
+        self.label_2.setText("")
+        self.label_9.setText("")
+        self.label_12.setText("")
+        self.label_3.setText("")
+        self.label_15.setText("")
+        self.label_6.setText("")
+        self.label_16.setText("")
+        try:
+            self.label_1.setText(str(memAddresses[cnt+0]) + " 1: " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+0]]))
+            self.label_2.setText(str(memAddresses[cnt+1]) + " 2: " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+1]]))
+            self.label_3.setText(str(memAddresses[cnt+2]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+2]]))
+            self.label_4.setText(str(memAddresses[cnt+3]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+3]]))
+            self.label_5.setText(str(memAddresses[cnt+4]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+4]]))
+            self.label_6.setText(str(memAddresses[cnt+5]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+5]]))
+            self.label_7.setText(str(memAddresses[cnt+6]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+6]]))
+            self.label_8.setText(str(memAddresses[cnt+7]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+7]]))
+            self.label_9.setText(str(memAddresses[cnt+8]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+8]]))
+            self.label_10.setText(str(memAddresses[cnt+9]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+9]]))
+            self.label_11.setText(str(memAddresses[cnt+10]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+10]]))
+            self.label_12.setText(str(memAddresses[cnt+11]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+11]]))
+            self.label_13.setText(str(memAddresses[cnt+12]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+12]]))
+            self.label_14.setText(str(memAddresses[cnt+13]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+13]]))
+            self.label_15.setText(str(memAddresses[cnt+14]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+14]]))
+            self.label_16.setText(str(memAddresses[cnt+15]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+15]]))
+        except:
+            self.maxCount = cnt
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -415,13 +617,14 @@ class Ui_MainWindow(object):
         self.label_16.setObjectName("label_16")
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(910, 760, 93, 41))
-        self.pushButton.setStyleSheet("color:white\n"
-"")
+        self.pushButton.setStyleSheet("color:white\n")
+        self.pushButton.clicked.connect(self.memUpPressed)
         self.pushButton.setObjectName("pushButton")
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_2.setGeometry(QtCore.QRect(1010, 760, 93, 41))
         self.pushButton_2.setStyleSheet("color:white")
         self.pushButton_2.setObjectName("pushButton_2")
+        self.pushButton_2.clicked.connect(self.memDownPressed)
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(910, 9, 211, 31))
         font = QtGui.QFont()
@@ -645,6 +848,7 @@ class Ui_MainWindow(object):
         self.pushButton_9.setFont(font)
         self.pushButton_9.setStyleSheet("color:white")
         self.pushButton_9.setObjectName("pushButton_9")
+        self.pushButton_9.clicked.connect(resetAll)
         self.pushButton_8 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_8.setGeometry(QtCore.QRect(200, 10, 120, 40))
         font = QtGui.QFont()
@@ -798,7 +1002,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_26.setFont(font)
-        self.label_26.setStyleSheet("color:white;background:rgb(85, 255, 255)")
+        self.label_26.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_26.setAlignment(QtCore.Qt.AlignCenter)
         self.label_26.setObjectName("label_26")
         self.label_27 = QtWidgets.QLabel(self.centralwidget)
@@ -806,7 +1010,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_27.setFont(font)
-        self.label_27.setStyleSheet("color:white;background:rgb(85, 255, 255)")
+        self.label_27.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_27.setAlignment(QtCore.Qt.AlignCenter)
         self.label_27.setObjectName("label_27")
         self.label_28 = QtWidgets.QLabel(self.centralwidget)
@@ -814,7 +1018,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_28.setFont(font)
-        self.label_28.setStyleSheet("color:white;background:rgb(85, 255, 255)")
+        self.label_28.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_28.setAlignment(QtCore.Qt.AlignCenter)
         self.label_28.setObjectName("label_28")
         self.line_7 = QtWidgets.QFrame(self.centralwidget)
@@ -828,7 +1032,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_29.setFont(font)
-        self.label_29.setStyleSheet("color:white;background:rgb(85, 255, 255)")
+        self.label_29.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_29.setAlignment(QtCore.Qt.AlignCenter)
         self.label_29.setObjectName("label_29")
         self.label_30 = QtWidgets.QLabel(self.centralwidget)
@@ -836,7 +1040,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_30.setFont(font)
-        self.label_30.setStyleSheet("color:white;background:rgb(85, 255, 255)")
+        self.label_30.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_30.setAlignment(QtCore.Qt.AlignCenter)
         self.label_30.setObjectName("label_30")
         self.label_31 = QtWidgets.QLabel(self.centralwidget)
@@ -844,7 +1048,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_31.setFont(font)
-        self.label_31.setStyleSheet("color:white;background:rgb(85, 255, 255)")
+        self.label_31.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_31.setAlignment(QtCore.Qt.AlignCenter)
         self.label_31.setObjectName("label_31")
         self.line_6 = QtWidgets.QFrame(self.centralwidget)
@@ -920,13 +1124,13 @@ class Ui_MainWindow(object):
         self.pushButton_10.setText(_translate("MainWindow", "5 knobs"))
         self.pushButton_11.setText(_translate("MainWindow", "5 knobs"))
         self.pushButton_12.setText(_translate("MainWindow", "5 knobs"))
-        self.label_19.setText(_translate("MainWindow", "CLOCK:  7"))
-        self.pipeline2_4.setText(_translate("MainWindow", ""))
-        self.pipeline2_5.setText(_translate("MainWindow", ""))
-        self.pipeline1_3.setText(_translate("MainWindow", ""))
-        self.pipeline1_4.setText(_translate("MainWindow", ""))
-        self.pipeline2_6.setText(_translate("MainWindow", ""))
-        self.label_20.setText(_translate("MainWindow", "ERROR"))
+        self.label_19.setText(_translate("MainWindow", "CLOCK:  0"))
+        self.pipeline2_4.setText(_translate("MainWindow", "Decode"))
+        self.pipeline2_5.setText(_translate("MainWindow", "Memory Acc"))
+        self.pipeline1_3.setText(_translate("MainWindow", "Execute"))
+        self.pipeline1_4.setText(_translate("MainWindow", "Fetch"))
+        self.pipeline2_6.setText(_translate("MainWindow", "Reg Update"))
+        self.label_20.setText(_translate("MainWindow", "NO ERROR"))
         self.label_26.setText(_translate("MainWindow", "M"))
         self.label_27.setText(_translate("MainWindow", "D"))
         self.label_28.setText(_translate("MainWindow", "E"))

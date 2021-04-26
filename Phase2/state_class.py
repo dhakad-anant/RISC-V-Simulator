@@ -548,18 +548,18 @@ class CPU:
             state.RZ = int(InA>=InB)
             state.MuxINC_select = state.RZ
 
-    def IAG(self,state):
+    # def IAG(self,state):
         
-        if(state.MuxPC_select == 0):
-            state.PC = state.RA
-        else:
-            if(state.MuxINC_select == 0):
-                state.PC = state.PC + 4
-            else:
-                state.PC = state.PC + state.immed
+    #     if(state.MuxPC_select == 0):
+    #         state.PC = state.RA
+    #     else:
+    #         if(state.MuxINC_select == 0):
+    #             state.PC = state.PC + 4
+    #         else:
+    #             state.PC = state.PC + state.immed
         
     def MemoryAccess(self,state):
-        self.IAG(state)
+        # self.IAG(state)
 
         if state.MuxY_select == 0:
             state.RY = state.RZ
