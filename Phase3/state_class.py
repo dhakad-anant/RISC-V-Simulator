@@ -1,4 +1,5 @@
 from collections import defaultdict
+import math 
 
 class State:
     def __init__(self, pc=0):
@@ -589,17 +590,77 @@ class CPU:
         if state.RF_Write == 1 and state.RD != 0:
             self.reg[state.RD] = state.RY
 
-class CacheMemory:
-    def __init__(self, numSets, cacheAssociativity, blockSize):
-        self.numSets = numSets
-        self.cacheAssociativity = cacheAssociativity
-        self
-        # self.2d array for data 
-        # self.1d array for tag
-        tagArray = [[0 for i in range(cacheAssociativity)] for j in range(numSets)]
-        dataArray = [[[0 for k in range(blockSize)] for i in range(cacheAssociativity)] for j in range(numSets)]
-    def readCache(self, address): # 32 bit integer
-        
-    def writeCache(self):
+
+
+# Phase 3 Code
+
+class MainMemory:
+    def __init__(self):
         pass
+    
+
+class CacheMemory:
+    def __init__(self, cacheSize, blockSize, cacheAssociativity):
+        # make a local variable fo the MainMemory class
+
+        self.cacheAssociativity = cacheAssociativity
+
+        self.numSets = self.cacheSize / self.blockSize
+        self.indexSize = math.log2(self.numSets)
+
+        self.tagSize = 32 - self.indexSize - self.blockOffsetSize
+        self.blockOffsetSize = math.log2(blockSize)
+
+        self.blockOffset = 0
+        self.index = 0
+        self.tag = 0
+
+        self.tagArray = [[0 for i in range(cacheAssociativity)] for j in range(numSets)]
+        self.dataArray = [[[0 for k in range(blockSize)] for i in range(cacheAssociativity)] for j in range(numSets)]
+
+        self.missCount = 0
+
+        # create valid bit array and create dirty bit array
+    
+    def readCache(self, address): # 32 bit integer
+        self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
+        self.index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
+        self.tag = address &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
+        miss = 1
+        way = -1
+        if self.tag in self.tagArray[self.index]:
+            way = self.tagArray[self.index].index(self.tag)
+            miss = 0
+        word = [0,0,0,0]  # stores an array of 4 bytes
+        if miss == 0:
+            #todo evaluate this word
+            word = self.dataArray[self.index][way][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
+            # [1] or [1,2] or [1,2,3] or [1,2,3,4]
+            # Assumption leftmost is the MSB and right most is the LSB
+            # 1*10^3 + 2*10^2 + 3*10^1 + 4*10^0
+            word.reverse()
+            ans = ""   # ans is of int format
+            for i in word:
+                ans = ans + bin(i)[2:]
+            # evaluate this word before returning
+            # 1 word = 4 bytes
+            return word
+        else: 
+            # READ from the Main memory 
+            # Question: How to design to the main memory? Is there any specific format
+            # in this case it will return none, check in the caller code
+            # Also add the data in the cache, find the victim block
+            self.missCount += 1
+
+    def writeCache(self, address):
+        
+        pass
+
+# create two objects of the above class
+CacheMemory = instructionCache()
+CacheMemory = dataCache()
+
+# 0x100abcd - 10
+
+
     
