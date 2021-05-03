@@ -570,21 +570,34 @@ class CPU:
             else:
                 state.PC1 = state.PC + state.immed
         
-    def MemoryAccess(self,state): #, cacheMemory):
-        # cacheMemory.readCache()
+    def MemoryAccess(self,state, cacheMemory):
         if self.isPipelined == 0:
             self.IAG(state)
-
         if state.MuxY_select == 0:
             state.RY = state.RZ
         elif state.MuxY_select == 1:
             state.MAR = str(hex(state.RZ)).lower()
-            state.MDR = state.RM
-            state.RY = int(self.ProcessorMemoryInterface(state),16)
-            if state.RY > 2**31 - 1:
-                state.RY = -(2**32 - state.RY)
+            word = cacheMemory.readCache(state.MAR)
+            if word==None:
+                state.MDR = state.RM
+                state.RY = int(self.ProcessorMemoryInterface(state),16)
+                if state.RY > 2**31 - 1:
+                    state.RY = -(2**32 - state.RY)
+                cacheMemory.updateCache() #mind the parameters yourself gentlemen
+            else:
+                temp = word[:state.numBytes]
+                temp.reverse()
+                ans = '0x'
+                for i in temp:
+                    curr =  hex(i)[2:]
+                    ans += '0'*(2-len(curr)) + curr
+                state.RY = int(ans,16)
+                if state.RY > 2**31 - 1:
+                    state.RY = -(2**32 - state.RY)
         elif state.MuxY_select == 2:
             state.RY = state.PC_Temp
+
+
 
     def RegisterUpdate(self,state):
         if state.RF_Write == 1 and state.RD != 0:
@@ -617,48 +630,75 @@ class CacheMemory:
 
         self.tagArray = [[0 for i in range(cacheAssociativity)] for j in range(numSets)]
         self.dataArray = [[[0 for k in range(blockSize)] for i in range(cacheAssociativity)] for j in range(numSets)]
-
         self.missCount = 0
-
         # create valid bit array and create dirty bit array
     
-    def readCache(self, address): # 32 bit integer
+
+
+    def readCache(self,address,ProcessingUnit):
+        
         self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
         self.index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
         self.tag = address &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
-        miss = 1
-        way = -1
+        whichWay = -1
         if self.tag in self.tagArray[self.index]:
-            way = self.tagArray[self.index].index(self.tag)
-            miss = 0
-        word = [0,0,0,0]  # stores an array of 4 bytes
-        if miss == 0:
-            #todo evaluate this word
-            word = self.dataArray[self.index][way][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
-            # [1] or [1,2] or [1,2,3] or [1,2,3,4]
-            # Assumption leftmost is the MSB and right most is the LSB
-            # 1*10^3 + 2*10^2 + 3*10^1 + 4*10^0
-            word.reverse()
-            ans = ""   # ans is of int format
-            for i in word:
-                ans = ans + bin(i)[2:]
-            # evaluate this word before returning
-            # 1 word = 4 bytes
-            return word
+            whichWay = self.tagArray[self.index].index(self.tag)
         else: 
-            # READ from the Main memory 
-            # Question: How to design to the main memory? Is there any specific format
-            # in this case it will return none, check in the caller code
-            # Also add the data in the cache, find the victim block
-            self.missCount += 1
+            return None 
+        word = []
+        # todo evaluate this word
+        word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
+        return word
+        # word = [1,2,3,4]
+        # [1] or [1,2] or [1,2,3] or [1,2,3,4]
+        # Assumption leftmost is the MSB and right most is the LSB
+        word.reverse()
+        ans = ""   # ans is of int format
+        for i in word:
+            ans = ans + bin(i)[2:]
+        # evaluate this word before returning
+        # 1 word = 4 bytes
+        return word
 
-    def writeCache(self, address):
-        
+
+    def updateCache(self):
         pass
 
+
+    # def readCache(self, address): # 32 bit integer
+    #     self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
+    #     self.index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
+    #     self.tag = address &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
+    #     miss = 1
+    #     way = -1
+    #     if self.tag in self.tagArray[self.index]:
+    #         way = self.tagArray[self.index].index(self.tag)
+    #         miss = 0
+    #     word = [0,0,0,0]  # stores an array of 4 bytes
+    #     if miss == 0:
+    #         #todo evaluate this word
+    #         word = self.dataArray[self.index][way][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
+    #         # [1] or [1,2] or [1,2,3] or [1,2,3,4]
+    #         # Assumption leftmost is the MSB and right most is the LSB
+    #         # 1*10^3 + 2*10^2 + 3*10^1 + 4*10^0
+    #         word.reverse()
+    #         ans = ""   # ans is of int format
+    #         for i in word:
+    #             ans = ans + bin(i)[2:]
+    #         # evaluate this word before returning
+    #         # 1 word = 4 bytes
+    #         return word
+    #     else: 
+    #         # READ from the Main memory 
+    #         # Question: How to design to the main memory? Is there any specific format
+    #         # in this case it will return none, check in the caller code
+    #         # Also add the data in the cache, find the victim block
+    #         self.missCount += 1
+
+
 # create two objects of the above class
-CacheMemory = instructionCache()
-CacheMemory = dataCache()
+# CacheMemory = instructionCache()
+# CacheMemory = dataCache()
 
 # 0x100abcd - 10
 

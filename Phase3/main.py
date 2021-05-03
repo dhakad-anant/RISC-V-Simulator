@@ -114,6 +114,7 @@ cntDataHazards = 0
 cntDataHazardsStalls = 0
 ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
 ProcessingUnit.readFile()
+
 # stats to be printed variables
 master_PC=0
 masterClock = 0
