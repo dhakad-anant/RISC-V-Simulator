@@ -85,9 +85,9 @@ class CPU:
         return True
     
 
-    def readInstructionMem(self,pc,instrCacheMemObj):
+    def readInstructionMem(self,pc,instrCacheMemObj,mainMemoryObject):
         MAR = hex(pc)
-        ans = instrCacheMemObj.readCache(MAR)
+        ans = instrCacheMemObj.readCache(MAR,mainMemoryObject)
         # ans = self.instructionMemory[MAR]
         if(ans[0]==0 and ans[1]==0 and ans[2]==0 and ans[3]==0):
             return "Invalid"
@@ -235,7 +235,7 @@ class CPU:
     def Fetch(self,state,btb,mainMemoryObject,instrCacheMemObj):
         pc=state.PC
         newPC = -1
-        ir=self.readInstructionMem(pc,mainMemoryObject,instrCacheMemObj)
+        ir=self.readInstructionMem(pc,instrCacheMemObj,mainMemoryObject)
         if(ir=="Invalid"):
             return None
         state.IR=ir
@@ -666,7 +666,7 @@ class MainMemory:
     
     def readFile(self, blockOffset):
         try:
-            mcFile = open("Phase3/input.mc","r")
+            mcFile = open("input.mc","r")
         except:
             print("File Not Found!")
             return
@@ -741,9 +741,9 @@ class InstrCacheMemory:
         self.cacheAssociativity = cacheAssociativity
 
         self.numSets = cacheSize // blockSize
-        self.indexSize = math.log2(self.numSets)
+        self.indexSize = int(math.log2(self.numSets))
 
-        self.blockOffsetSize = math.log2(blockSize)
+        self.blockOffsetSize = int(math.log2(blockSize))
         self.tagSize = 32 - self.indexSize - self.blockOffsetSize
         
         self.blockOffset = 0
@@ -776,18 +776,18 @@ class InstrCacheMemory:
 
 
     def readCache(self,address,mainMemoryObject):
-        self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
-        self.index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
-        self.tag = address &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
+        self.blockOffset = int(address,16) &  (2**self.blockOffsetSize - 1)
+        self.index = int(address,16) &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
+        self.tag = int(address,16) &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
         whichWay = -1
         word = []
         if self.tag in self.tagArray[self.index]:
             whichWay = self.tagArray[self.index].index(self.tag)
-            word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
+            word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockOffset,self.blockOffset + 4)]
             return word
         else: 
-            blockoffset = address & (2**blockOffsetSize-1)
-            var = address & (2**31 - 2**blockOffsetSize)
+            blockoffset = int(address,16) & (2**blockOffsetSize-1)
+            var = int(address,16) & (2**31 - 2**blockOffsetSize)
             block = mainMemoryObject.instructionMemory[var]
             word = block[blockoffset//4]
             self.updateCache()
