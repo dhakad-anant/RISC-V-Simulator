@@ -166,7 +166,8 @@ mainMemory = MainMemory(blockSize)
 
 
 ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
-ProcessingUnit.readFile()
+# ProcessingUnit.readFile()
+mainMemory.readFile()
 # stats to be printed variables
 master_PC=0
 masterClock = 0
@@ -409,7 +410,8 @@ def mainFunc(isStep):
                         StallsDuetoDataHazards += 1
                         stallsCount += 1
                         break
-                    ProcessingUnit.MemoryAccess(states[i])
+                    
+                    ProcessingUnit.MemoryAccess(states[i],dataCacheMemory,MainMemory)
                     if states[3]!=None:
                         ui.pipeline2_2.setText(str(states[3].PC//4 + 1) + " th instruction." )
                     else:
@@ -457,7 +459,7 @@ def mainFunc(isStep):
                     break
                 ProcessingUnit.Decode(state,btb)
                 ProcessingUnit.Execute(state)
-                ProcessingUnit.MemoryAccess(state)
+                ProcessingUnit.MemoryAccess(states[i],dataCacheMemory,MainMemory)
                 master_PC = state.PC1
                 ProcessingUnit.RegisterUpdate(state)
                 state = State(master_PC)

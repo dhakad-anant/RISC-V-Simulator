@@ -603,8 +603,8 @@ class CPU:
                 state.PC1 = state.PC + 4
             else:
                 state.PC1 = state.PC + state.immed
-        
-    def MemoryAccess(self,state,cacheMemoryObject,mainMemoryObject):
+    
+    def MemoryAccess(self,state,dataCacheMemObj,mainMemoryObject):
         if self.isPipelined == 0:
             self.IAG(state)
         if state.MuxY_select == 0:
@@ -612,7 +612,7 @@ class CPU:
         elif state.MuxY_select == 1:
             state.MAR = str(hex(state.RZ)).lower()
             state.MDR = state.RM
-            state.RY = int(self.ProcessorMemoryInterface(state,cacheMemoryObject,mainMemoryObject),16)
+            state.RY = int(self.ProcessorMemoryInterface(state,dataCacheMemObj,mainMemoryObject),16)
             if state.RY > 2**31 - 1:
                 state.RY = -(2**32 - state.RY)
             # state.MAR = str(hex(state.RZ)).lower()
