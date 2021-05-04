@@ -124,7 +124,6 @@ class CPU:
     #             self.dataMemory[newY][(y - newY)/4][1] = (int(y[1],16) & int('0xFF00',16))>>8
     #             self.dataMemory[newY][(y - newY)/4][2] = (int(y[1],16) & int('0xFF0000',16))>>16
     #             self.dataMemory[newY][(y - newY)/4][3] = (int(y[1],16) & int('0xFF000000',16))>>24
-
     #         if '$' in y:
     #             flag = 1    
     #         if flag==0:
@@ -148,16 +147,13 @@ class CPU:
             twosCompli = (''.join(twosCompli))
             twosCompli = - (int(twosCompli,2) + 1)
             return twosCompli
-
-    def ProcessorMemoryInterface(self, state, mainMemoryObject,blockOffsetSize):
+    
+    
+    def ProcessorMemoryInterface(self, state, cacheMemoryObject):
         # Set MAR in Fetch
-        # newY = y[0] & (2**31 - (2**(blockOffset)))
         if state.MuxMA_select == 0:
             if state.Mem_Read == 1:
-                blockoffset = state.MAR & (2**blockOffsetSize-1)
-                var = state.MAR & (2**31 - 2**blockOffsetSize)
-                block = mainMemoryObject.dataMemory[var]
-                word = block[blockoffset//4]
+                word = cacheMemoryObject.readCache(state.MAR)
                 temp = word[:state.numBytes]
                 temp.reverse()
                 ans = '0x'
@@ -165,6 +161,17 @@ class CPU:
                     curr =  hex(i)[2:]
                     ans += '0'*(2-len(curr)) + curr
                 return ans
+                # # blockoffset = state.MAR & (2**blockOffsetSize-1)
+                # # var = state.MAR & (2**31 - 2**blockOffsetSize)
+                # # block = mainMemoryObject.dataMemory[var]
+                # # word = block[blockoffset//4]
+                # # temp = word[:state.numBytes]
+                # # temp.reverse()
+                # # ans = '0x'
+                # # for i in temp:
+                # #     curr =  hex(i)[2:]
+                # #     ans += '0'*(2-len(curr)) + curr
+                # return ans
             elif state.Mem_Write == 1:
                 for i in range (state.numBytes):
                     mainMemoryObject.dataMemory[state.MAR][i] = (state.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
@@ -190,8 +197,6 @@ class CPU:
         num *= (-1)
         return num
 
-
-    
     def ImmediateSign(self,num,state):
     
         if(state.immed & 2**(num-1) == 0):
@@ -572,34 +577,37 @@ class CPU:
             else:
                 state.PC1 = state.PC + state.immed
         
-    def MemoryAccess(self,state, cacheMemory):
+    def MemoryAccess(self,state):
         if self.isPipelined == 0:
             self.IAG(state)
         if state.MuxY_select == 0:
             state.RY = state.RZ
         elif state.MuxY_select == 1:
             state.MAR = str(hex(state.RZ)).lower()
-            word = cacheMemory.readCache(state.MAR)
-            if word==None:
-                state.MDR = state.RM
-                state.RY = int(self.ProcessorMemoryInterface(state),16)
-                if state.RY > 2**31 - 1:
-                    state.RY = -(2**32 - state.RY)
-                cacheMemory.updateCache() #mind the parameters yourself gentlemen
-            else:
-                temp = word[:state.numBytes]
-                temp.reverse()
-                ans = '0x'
-                for i in temp:
-                    curr =  hex(i)[2:]
-                    ans += '0'*(2-len(curr)) + curr
-                state.RY = int(ans,16)
-                if state.RY > 2**31 - 1:
-                    state.RY = -(2**32 - state.RY)
+            state.MDR = state.RM
+            state.RY = int(self.ProcessorMemoryInterface(state),16)
+            if state.RY > 2**31 - 1:
+                state.RY = -(2**32 - state.RY)
+            # state.MAR = str(hex(state.RZ)).lower()
+            # word = cacheMemory.readCache(state.MAR)
+            # if word==None:
+            #     state.MDR = state.RM
+            #     state.RY = int(self.ProcessorMemoryInterface(state),16)
+            #     if state.RY > 2**31 - 1:
+            #         state.RY = -(2**32 - state.RY)
+            #     cacheMemory.updateCache() #mind the parameters yourself gentlemen
+            # else:
+            #     temp = word[:state.numBytes]
+            #     temp.reverse()
+            #     ans = '0x'
+            #     for i in temp:
+            #         curr =  hex(i)[2:]
+            #         ans += '0'*(2-len(curr)) + curr
+            #     state.RY = int(ans,16)
+            #     if state.RY > 2**31 - 1:
+            #         state.RY = -(2**32 - state.RY)
         elif state.MuxY_select == 2:
             state.RY = state.PC_Temp
-
-
 
     def RegisterUpdate(self,state):
         if state.RF_Write == 1 and state.RD != 0:
@@ -713,32 +721,50 @@ class CacheMemory:
         self.missCount = 0
         # create valid bit array and create dirty bit array
     
+    # state.MAR = str(hex(state.RZ)).lower()
+    # word = cacheMemory.readCache(state.MAR)
+    # if word==None:
+    #     state.MDR = state.RM
+    #     state.RY = int(self.ProcessorMemoryInterface(state),16)
+    #     if state.RY > 2**31 - 1:
+    #         state.RY = -(2**32 - state.RY)
+    #     cacheMemory.updateCache() #mind the parameters yourself gentlemen
+    # else:
+    #     temp = word[:state.numBytes]
+    #     temp.reverse()
+    #     ans = '0x'
+    #     for i in temp:
+    #         curr =  hex(i)[2:]
+    #         ans += '0'*(2-len(curr)) + curr
+    #     state.RY = int(ans,16)
+    #     if state.RY > 2**31 - 1:
+    #         state.RY = -(2**32 - state.RY)
 
-
-    def readCache(self,address,ProcessingUnit):
+    def readCache(self,address,mainMemoryObject):
         
         self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
         self.index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
         self.tag = address &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
         whichWay = -1
+        word = []
         if self.tag in self.tagArray[self.index]:
             whichWay = self.tagArray[self.index].index(self.tag)
+            word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
+            return word
         else: 
-            return None 
-        word = []
+            blockoffset = address & (2**blockOffsetSize-1)
+            var = address & (2**31 - 2**blockOffsetSize)
+            block = mainMemoryObject.dataMemory[var]
+            word = block[blockoffset//4]
+            self.updateCache()
+            return word
         # todo evaluate this word
-        word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
-        return word
+        # word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
         # word = [1,2,3,4]
         # [1] or [1,2] or [1,2,3] or [1,2,3,4]
         # Assumption leftmost is the MSB and right most is the LSB
-        word.reverse()
-        ans = ""   # ans is of int format
-        for i in word:
-            ans = ans + bin(i)[2:]
-        # evaluate this word before returning
         # 1 word = 4 bytes
-        return word
+        # return word
 
 
     def updateCache(self):
