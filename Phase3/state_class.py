@@ -805,7 +805,7 @@ class InstrCacheMemory:
 
 
 
-class CacheMemory:
+class DataCacheMemory:
     def __init__(self, cacheSize, blockSize, cacheAssociativity):
         # make a local variable fo the MainMemory class
 

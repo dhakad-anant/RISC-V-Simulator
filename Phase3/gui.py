@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from state_class import CPU,State,BTB,MainMemory
+from state_class import CPU,State,BTB,MainMemory,DataCacheMemory, InstrCacheMemory
 from hdu_class import HDU
 from sys import stdout
 
@@ -149,10 +149,23 @@ btb = BTB()
 cntDataHazards = 0
 cntDataHazardsStalls = 0
 
-mainMemoryObject = MainMemory()
+
+#______________________________________________________________________inputs_____________________________________________________
+
+cacheSize = int(input("Please Enter the cacheSize"))
+blockSize = int(input("Please Enter the blockSize"))
+cacheAssociativity = int(input("Please Enter the cacheAssociativity"))
+
+
+
+dataCacheMemory = DataCacheMemory(cacheSize,blockSize,cacheAssociativity)
+InstrCacheMemory = InstrCacheMemory(cacheSize,blockSize,cacheAssociativity)
+mainMemory = MainMemory(blockSize)
+
+
+
 
 ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
-
 ProcessingUnit.readFile()
 # stats to be printed variables
 master_PC=0
@@ -338,7 +351,8 @@ def mainFunc(isStep):
                     check(num,states)
                 if(i==0):
                     states[i] = State(master_PC)
-                    states[i] = ProcessingUnit.Fetch(states[i],btb)
+                    # def Fetch(self,state,btb,mainMemoryObject,instrCacheMemObj)
+                    states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,InstrCacheMemory)
                     if(states[i] !=None and states[i].predictionPC!=-1):
                         master_PC = states[i].predictionPC
                         ControlHazardCount += 1
@@ -436,7 +450,8 @@ def mainFunc(isStep):
         else:
             global state
             while(state != None):
-                state = ProcessingUnit.Fetch(state,btb)
+                # states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,InstrCacheMemory)
+                state = ProcessingUnit.Fetch(state,btb,mainMemory,InstrCacheMemory)
                 if(state == None):
                     programExecuted = 1
                     break
