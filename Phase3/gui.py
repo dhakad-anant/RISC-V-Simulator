@@ -151,7 +151,7 @@ cntDataHazardsStalls = 0
 
 mainMemoryObject = MainMemory()
 
-ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled, mainMemoryObject)
+ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
 
 ProcessingUnit.readFile()
 # stats to be printed variables

@@ -62,7 +62,7 @@ class BTB:
 
 
 class CPU:
-    def __init__(self, isPipelined ,predictionEnabled = 1, mainMemoryObject):
+    def __init__(self, isPipelined ,predictionEnabled = 1):
         # self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
         # self.instructionMemory = defaultdict(lambda: [0,0,0,0])
         #to change instructionMemory
@@ -70,8 +70,7 @@ class CPU:
         self.reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
         self.reg[3] = int("0x10000000",16) # pointer to begining of data segment
         self.isPipelined = isPipelined
-
-        self.localObject = mainMemoryObject
+        
 
     # def validateDataSegment(self,y):
     #     if len(y)!=2:
@@ -150,22 +149,25 @@ class CPU:
             twosCompli = - (int(twosCompli,2) + 1)
             return twosCompli
 
-    def ProcessorMemoryInterface(self, state):
+    def ProcessorMemoryInterface(self, state, mainMemoryObject,blockOffsetSize):
         # Set MAR in Fetch
         # newY = y[0] & (2**31 - (2**(blockOffset)))
         if state.MuxMA_select == 0:
             if state.Mem_Read == 1:
-                pass
-                # temp = self.dataMemory[state.MAR][:state.numBytes]
-                # temp.reverse()
-                # ans = '0x'
-                # for i in temp:
-                #     curr =  hex(i)[2:]
-                #     ans += '0'*(2-len(curr)) + curr
-                # return ans
+                blockoffset = state.MAR & (2**blockOffsetSize-1)
+                var = state.MAR & (2**31 - 2**blockOffsetSize)
+                block = mainMemoryObject.dataMemory[var]
+                word = block[blockoffset//4]
+                temp = word[:state.numBytes]
+                temp.reverse()
+                ans = '0x'
+                for i in temp:
+                    curr =  hex(i)[2:]
+                    ans += '0'*(2-len(curr)) + curr
+                return ans
             elif state.Mem_Write == 1:
                 for i in range (state.numBytes):
-                    self.dataMemory[state.MAR][i] = (state.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
+                    mainMemoryObject.dataMemory[state.MAR][i] = (state.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
                 return '0x1'
 
     def GenerateControlSignals(self,reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB,state):
@@ -188,17 +190,7 @@ class CPU:
         num *= (-1)
         return num
 
-    def readInstructionMem(self,pc):
-        MAR = hex(pc)
-        ans = self.instructionMemory[MAR]
-        if(ans[0]==0 and ans[1]==0 and ans[2]==0 and ans[3]==0):
-            return "Invalid"
-        newans = ""
-        x=len(ans)
-        for i in range(len(ans)):
-            newans += str(ans[x-1-i])
-        newans = '0x'+newans
-        return newans
+
     
     def ImmediateSign(self,num,state):
     
@@ -208,7 +200,7 @@ class CPU:
         state.immed += 1
         state.immed *= (-1)
     
-    def Fetch(self,state,btb):
+    def Fetch(self,state,btb,mainMemoryObject):
         pc=state.PC
         newPC = -1
         ir=self.readInstructionMem(pc)
@@ -621,7 +613,6 @@ class MainMemory:
     def __init__(self, blockSize):
         self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
         self.instructionMemory = defaultdict(lambda: [0,0,0,0])
-    
             
     def validateDataSegment(self,y):
         if len(y)!=2:
@@ -689,6 +680,17 @@ class MainMemory:
                     self.instructionMemory[y[0]][i] = '0'*(2-len(self.instructionMemory[y[0]][i])) + self.instructionMemory[y[0]][i]
                     self.instructionMemory[y[0]][i] = self.instructionMemory[y[0]][i].lower()
 
+    def readInstructionMem(self,pc):
+        MAR = hex(pc)
+        ans = self.instructionMemory[MAR]
+        if(ans[0]==0 and ans[1]==0 and ans[2]==0 and ans[3]==0):
+            return "Invalid"
+        newans = ""
+        x=len(ans)
+        for i in range(len(ans)):
+            newans += str(ans[x-1-i])
+        newans = '0x'+newans
+        return newans
 
 class CacheMemory:
     def __init__(self, cacheSize, blockSize, cacheAssociativity):

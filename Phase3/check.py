@@ -1,1 +1,2 @@
-print(bin(2147483632)[2:])
+a = hex(50)
+print(a)
