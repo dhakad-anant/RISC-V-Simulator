@@ -647,7 +647,7 @@ class CPU:
 class MainMemory:
     def __init__(self, blockSize):
         self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
-        self.instructionMemory = defaultdict(lambda: [0,0,0,0])
+        self.instructionMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
             
     def validateDataSegment(self,y):
         if len(y)!=2:
@@ -683,12 +683,13 @@ class MainMemory:
                 # 0x10000002
                 # 0x11111110
                 # 2**31-(2**4)
-                newY = y[0] & (2**31 - (2**(blockOffset)))
+                newY = int(y[0],16) & (2**31 - (2**(blockOffset)))
+                newY = str(hex(newY))
 
-                self.dataMemory[newY][(y - newY)/4][0] = (int(y[1],16) & int('0xFF',16))
-                self.dataMemory[newY][(y - newY)/4][1] = (int(y[1],16) & int('0xFF00',16))>>8
-                self.dataMemory[newY][(y - newY)/4][2] = (int(y[1],16) & int('0xFF0000',16))>>16
-                self.dataMemory[newY][(y - newY)/4][3] = (int(y[1],16) & int('0xFF000000',16))>>24
+                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][0] = (int(y[1],16) & int('0xFF',16))
+                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][1] = (int(y[1],16) & int('0xFF00',16))>>8
+                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][2] = (int(y[1],16) & int('0xFF0000',16))>>16
+                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][3] = (int(y[1],16) & int('0xFF000000',16))>>24
 
             if '$' in y:
                 flag = 1    
@@ -698,11 +699,12 @@ class MainMemory:
                     print("ERROR : Invalid Instruction format in the input.mc file")                    
                     exit(1)
                 y[1] = y[1].lower() 
-                newY = y[0] & (2**31 - (2**(blockOffset)))
+                newY = int(y[0],16) & (2**31 - (2**(blockOffset)))
+                newY = str(hex(newY))
                 for i in range (4):
-                    self.instructionMemory[newY][(y - newY)/4][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
-                    self.instructionMemory[newY][(y - newY)/4][i] = '0'*(2-len(self.instructionMemory[newY][(y - newY)/4][i])) + self.instructionMemory[newY][(y - newY)/4][i]
-                    self.instructionMemory[newY][(y - newY)/4][i] = self.instructionMemory[newY][(y - newY)/4][i].lower()
+                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
+                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = '0'*(2-len(self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i])) + self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i]
+                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i].lower()
 
     def validateInstruction(self,y):
         if len(y)!=2:
