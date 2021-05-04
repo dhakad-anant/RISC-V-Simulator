@@ -62,40 +62,41 @@ class BTB:
 
 
 class CPU:
-    def __init__(self, isPipelined, predictionEnabled = 1,blockSize):
-        self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
-        self.instructionMemory = defaultdict(lambda: [0,0,0,0])
+    def __init__(self, isPipelined ,predictionEnabled = 1):
+        # self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
+        # self.instructionMemory = defaultdict(lambda: [0,0,0,0])
         #to change instructionMemory
         self.reg = [0]*32
         self.reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
         self.reg[3] = int("0x10000000",16) # pointer to begining of data segment
         self.isPipelined = isPipelined
-    def validateDataSegment(self,y):
-        if len(y)!=2:
-            return False
-        addr,data = y[0],y[1]
-        if addr[:2]!='0x' or data[:2]!='0x':
-            return False
-        try:
-            if int(addr,16)<int("0x10000000",16):
-                return False
-            int(data,16)
-        except:
-            return False 
-        return True
 
-    def validateInstruction(self,y):
-        if len(y)!=2:
-            return False
-        addr,data = y[0],y[1]
-        if addr[:2]!='0x' or data[:2]!='0x':
-            return False
-        try:
-            temp = int(addr,16)
-            temp1 = int(data,16)
-        except:
-            return False
-        return True
+    # def validateDataSegment(self,y):
+    #     if len(y)!=2:
+    #         return False
+    #     addr,data = y[0],y[1]
+    #     if addr[:2]!='0x' or data[:2]!='0x':
+    #         return False
+    #     try:
+    #         if int(addr,16)<int("0x10000000",16):
+    #             return False
+    #         int(data,16)
+    #     except:
+    #         return False 
+    #     return True
+
+    # def validateInstruction(self,y):
+    #     if len(y)!=2:
+    #         return False
+    #     addr,data = y[0],y[1]
+    #     if addr[:2]!='0x' or data[:2]!='0x':
+    #         return False
+    #     try:
+    #         temp = int(addr,16)
+    #         temp1 = int(data,16)
+    #     except:
+    #         return False
+    #     return True
 
     def readFile(self, blockOffset):
         try:
@@ -146,10 +147,6 @@ class CPU:
             twosCompli = (''.join(twosCompli))
             twosCompli = - (int(twosCompli,2) + 1)
             return twosCompli
-
-
-
-
 
     def ProcessorMemoryInterface(self, state):
         # Set MAR in Fetch
@@ -619,9 +616,38 @@ class CPU:
 # Phase 3 Code
 
 class MainMemory:
-    def __init__(self):
-        pass
+    def __init__(self, blockSize):
+        self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
+        self.instructionMemory = defaultdict(lambda: [0,0,0,0])
     
+            
+    def validateDataSegment(self,y):
+        if len(y)!=2:
+            return False
+        addr,data = y[0],y[1]
+        if addr[:2]!='0x' or data[:2]!='0x':
+            return False
+        try:
+            if int(addr,16)<int("0x10000000",16):
+                return False
+            int(data,16)
+        except:
+            return False 
+        return True
+
+    def validateInstruction(self,y):
+        if len(y)!=2:
+            return False
+        addr,data = y[0],y[1]
+        if addr[:2]!='0x' or data[:2]!='0x':
+            return False
+        try:
+            temp = int(addr,16)
+            temp1 = int(data,16)
+        except:
+            return False
+        return True
+
 
 class CacheMemory:
     def __init__(self, cacheSize, blockSize, cacheAssociativity):
