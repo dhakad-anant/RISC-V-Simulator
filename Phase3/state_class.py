@@ -62,7 +62,7 @@ class BTB:
 
 
 class CPU:
-    def __init__(self, isPipelined ,predictionEnabled = 1):
+    def __init__(self, isPipelined ,predictionEnabled = 1, mainMemoryObject):
         # self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
         # self.instructionMemory = defaultdict(lambda: [0,0,0,0])
         #to change instructionMemory
@@ -70,6 +70,8 @@ class CPU:
         self.reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
         self.reg[3] = int("0x10000000",16) # pointer to begining of data segment
         self.isPipelined = isPipelined
+
+        self.localObject = mainMemoryObject
 
     # def validateDataSegment(self,y):
     #     if len(y)!=2:
@@ -98,44 +100,44 @@ class CPU:
     #         return False
     #     return True
 
-    def readFile(self, blockOffset):
-        try:
-            mcFile = open("input.mc","r")
-        except:
-            print("File Not Found!")
-            return
-        # load the data segment
-        flag = 0
-        for x in mcFile:
-            #creating a hashmap, data segment stored
-            y = x.split('\n')[0].split()
-            y[1] = y[1].lower()
-            if flag==1:
-                if self.validateDataSegment(y)==False:
-                    print("ERROR : Invalid Data Segment format in the input.mc file")
-                    exit(1)
-                # 0x10000002
-                # 0x11111110
-                # 2**31-(2**4)
-                newY = y[0] & (2**31 - (2**(blockOffset)))
+    # def readFile(self, blockOffset):
+    #     try:
+    #         mcFile = open("input.mc","r")
+    #     except:
+    #         print("File Not Found!")
+    #         return
+    #     # load the data segment
+    #     flag = 0
+    #     for x in mcFile:
+    #         #creating a hashmap, data segment stored
+    #         y = x.split('\n')[0].split()
+    #         y[1] = y[1].lower()
+    #         if flag==1:
+    #             if self.validateDataSegment(y)==False:
+    #                 print("ERROR : Invalid Data Segment format in the input.mc file")
+    #                 exit(1)
+    #             # 0x10000002
+    #             # 0x11111110
+    #             # 2**31-(2**4)
+    #             newY = y[0] & (2**31 - (2**(blockOffset)))
 
-                self.dataMemory[newY][(y - newY)/4][0] = (int(y[1],16) & int('0xFF',16))
-                self.dataMemory[newY][(y - newY)/4][1] = (int(y[1],16) & int('0xFF00',16))>>8
-                self.dataMemory[newY][(y - newY)/4][2] = (int(y[1],16) & int('0xFF0000',16))>>16
-                self.dataMemory[newY][(y - newY)/4][3] = (int(y[1],16) & int('0xFF000000',16))>>24
+    #             self.dataMemory[newY][(y - newY)/4][0] = (int(y[1],16) & int('0xFF',16))
+    #             self.dataMemory[newY][(y - newY)/4][1] = (int(y[1],16) & int('0xFF00',16))>>8
+    #             self.dataMemory[newY][(y - newY)/4][2] = (int(y[1],16) & int('0xFF0000',16))>>16
+    #             self.dataMemory[newY][(y - newY)/4][3] = (int(y[1],16) & int('0xFF000000',16))>>24
 
-            if '$' in y:
-                flag = 1    
-            if flag==0:
-                y = x.split('\n')[0].split()
-                if self.validateInstruction(y)== False:
-                    print("ERROR : Invalid Instruction format in the input.mc file")                    
-                    exit(1)
-                y[1] = y[1].lower() 
-                for i in range (4):
-                    self.instructionMemory[y[0]][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
-                    self.instructionMemory[y[0]][i] = '0'*(2-len(self.instructionMemory[y[0]][i])) + self.instructionMemory[y[0]][i]
-                    self.instructionMemory[y[0]][i] = self.instructionMemory[y[0]][i].lower()
+    #         if '$' in y:
+    #             flag = 1    
+    #         if flag==0:
+    #             y = x.split('\n')[0].split()
+    #             if self.validateInstruction(y)== False:
+    #                 print("ERROR : Invalid Instruction format in the input.mc file")                    
+    #                 exit(1)
+    #             y[1] = y[1].lower() 
+    #             for i in range (4):
+    #                 self.instructionMemory[y[0]][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
+    #                 self.instructionMemory[y[0]][i] = '0'*(2-len(self.instructionMemory[y[0]][i])) + self.instructionMemory[y[0]][i]
+    #                 self.instructionMemory[y[0]][i] = self.instructionMemory[y[0]][i].lower()
     
     def sra(self, number,times):     #correct function
         bx = bin(number)[2:]
@@ -647,6 +649,45 @@ class MainMemory:
         except:
             return False
         return True
+    
+    def readFile(self, blockOffset):
+        try:
+            mcFile = open("input.mc","r")
+        except:
+            print("File Not Found!")
+            return
+        # load the data segment
+        flag = 0
+        for x in mcFile:
+            #creating a hashmap, data segment stored
+            y = x.split('\n')[0].split()
+            y[1] = y[1].lower()
+            if flag==1:
+                if self.validateDataSegment(y)==False:
+                    print("ERROR : Invalid Data Segment format in the input.mc file")
+                    exit(1)
+                # 0x10000002
+                # 0x11111110
+                # 2**31-(2**4)
+                newY = y[0] & (2**31 - (2**(blockOffset)))
+
+                self.dataMemory[newY][(y - newY)/4][0] = (int(y[1],16) & int('0xFF',16))
+                self.dataMemory[newY][(y - newY)/4][1] = (int(y[1],16) & int('0xFF00',16))>>8
+                self.dataMemory[newY][(y - newY)/4][2] = (int(y[1],16) & int('0xFF0000',16))>>16
+                self.dataMemory[newY][(y - newY)/4][3] = (int(y[1],16) & int('0xFF000000',16))>>24
+
+            if '$' in y:
+                flag = 1    
+            if flag==0:
+                y = x.split('\n')[0].split()
+                if self.validateInstruction(y)== False:
+                    print("ERROR : Invalid Instruction format in the input.mc file")                    
+                    exit(1)
+                y[1] = y[1].lower() 
+                for i in range (4):
+                    self.instructionMemory[y[0]][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
+                    self.instructionMemory[y[0]][i] = '0'*(2-len(self.instructionMemory[y[0]][i])) + self.instructionMemory[y[0]][i]
+                    self.instructionMemory[y[0]][i] = self.instructionMemory[y[0]][i].lower()
 
 
 class CacheMemory:

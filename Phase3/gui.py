@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from state_class import CPU,State,BTB
+from state_class import CPU,State,BTB,MainMemory
 from hdu_class import HDU
 from sys import stdout
 
@@ -148,7 +148,11 @@ controlHazard_pc = 0
 btb = BTB()
 cntDataHazards = 0
 cntDataHazardsStalls = 0
-ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
+
+mainMemoryObject = MainMemory()
+
+ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled, mainMemoryObject)
+
 ProcessingUnit.readFile()
 # stats to be printed variables
 master_PC=0
