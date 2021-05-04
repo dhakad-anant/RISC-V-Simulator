@@ -347,6 +347,7 @@ def mainFunc(isStep):
         ui.pipeline2_2.setText("None")
         ui.pipeline2_3.setText("None")
         if Knob1ForPipelining:
+            
             alreadyUpdatedPC = 0
             for i in reversed(range(5)):
                 if(Knob5PrintingPipelineRegForSpecificInst ==True):
@@ -450,9 +451,12 @@ def mainFunc(isStep):
                 ui.label_20.setText("DataHzd: "+str(DataHazardCount)+", CtrlHzd: "+str(ControlHazardCount))
             if(alreadyUpdatedPC == 0):
                 master_PC += 4
+            
         else:
             global state
             while(state != None):
+                print("heyaaaaaaaaaaaaa")
+                # print(state)
                 # states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,InstrCacheMemory)
                 state = ProcessingUnit.Fetch(state,btb,mainMemory,InstrCacheMemory)
                 if(state == None):
@@ -460,7 +464,7 @@ def mainFunc(isStep):
                     break
                 ProcessingUnit.Decode(state,btb)
                 ProcessingUnit.Execute(state)
-                ProcessingUnit.MemoryAccess(states[i],dataCacheMemory,MainMemory)
+                ProcessingUnit.MemoryAccess(state,dataCacheMemory,MainMemory)
                 master_PC = state.PC1
                 ProcessingUnit.RegisterUpdate(state)
                 state = State(master_PC)
@@ -470,6 +474,7 @@ def mainFunc(isStep):
                 ui.label_19.setText("Clock: "+str(5*clockNonPipeline))
                 if isStep == 1:
                     break
+            print("afterwhite")
         printPipelineRegisters(states,Knob3PrintingRegFile,masterClock,Knob4PrintingPipelineRegister,ProcessingUnit)
         if Knob1ForPipelining == 1:
             masterClock +=1
@@ -490,7 +495,7 @@ def mainFunc(isStep):
 
         if isStep == 1:
             break
-
+    print(ProcessingUnit.reg)
 
 def printinOutputFile():
     global masterClock
@@ -574,7 +579,9 @@ class Ui_MainWindow(object):
         return ans
         
     def memUpdateGUI(self):
-        memAddresses = list(ProcessingUnit.dataMemory.keys())[:]
+        # memAddresses = list(ProcessingUnit.dataMemory.keys())[:]
+        # memAddresses = list(mainMemory.dataMemory.keys())[:]
+        pass
         cnt = self.memCount
         self.label_14.setText("")
         self.label_5.setText("")
@@ -813,8 +820,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.reg3.setFont(font)
-        self.reg3.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n"
-"")
+        self.reg3.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg3.setAlignment(QtCore.Qt.AlignCenter)
         self.reg3.setObjectName("reg3")
         self.reg9 = QtWidgets.QLabel(self.centralwidget)

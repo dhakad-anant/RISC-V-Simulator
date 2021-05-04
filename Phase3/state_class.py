@@ -752,7 +752,9 @@ class InstrCacheMemory:
 
         self.tagArray = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.dataArray = [[[0 for k in range(blockSize)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
+        self.validBit = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.missCount = 0
+
         # create valid bit array and create dirty bit array
     
     # state.MAR = str(hex(state.RZ)).lower()
@@ -779,19 +781,24 @@ class InstrCacheMemory:
         self.blockOffset = int(address,16) &  (2**self.blockOffsetSize - 1)
         self.index = int(address,16) &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
         self.tag = int(address,16) &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
+        # print(int(address,16))
         whichWay = -1
         word = []
         if self.tag in self.tagArray[self.index]:
             whichWay = self.tagArray[self.index].index(self.tag)
             word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockOffset,self.blockOffset + 4)]
-            return word
-        else: 
-            blockoffset = int(address,16) & (2**blockOffsetSize-1)
-            var = int(address,16) & (2**31 - 2**blockOffsetSize)
-            block = mainMemoryObject.instructionMemory[var]
-            word = block[blockoffset//4]
-            self.updateCache()
-            return word
+            if  self.validBit[self.index][whichWay]==1:
+                return word
+        self.validBit[self.index][whichWay]
+        blockoffset = int(address,16) & (2**self.blockOffsetSize-1)
+        var = int(address,16) & (2**31 - 2**self.blockOffsetSize)
+        block = mainMemoryObject.instructionMemory[hex(var)]
+        # print("mainMemoryObject.instructionMemory",mainMemoryObject.instructionMemory)
+        # print("var",var)
+        # print("block",block)
+        word = block[blockoffset//4]
+        self.updateCache()
+        return word
         # todo evaluate this word
         # word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
         # word = [1,2,3,4]
