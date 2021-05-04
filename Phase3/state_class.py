@@ -71,6 +71,33 @@ class CPU:
         self.reg[3] = int("0x10000000",16) # pointer to begining of data segment
         self.isPipelined = isPipelined
         
+    def validateInstruction(self,y):
+        if len(y)!=2:
+            return False
+        addr,data = y[0],y[1]
+        if addr[:2]!='0x' or data[:2]!='0x':
+            return False
+        try:
+            temp = int(addr,16)
+            temp1 = int(data,16)
+        except:
+            return False
+        return True
+    
+
+    def readInstructionMem(self,pc,instrCacheMemObj):
+        MAR = hex(pc)
+        ans = instrCacheMemObj.readCache(MAR)
+        # ans = self.instructionMemory[MAR]
+        if(ans[0]==0 and ans[1]==0 and ans[2]==0 and ans[3]==0):
+            return "Invalid"
+        newans = ""
+        x=len(ans)
+        for i in range(len(ans)):
+            newans += str(ans[x-1-i])
+        newans = '0x'+newans
+        return newans
+
 
     # def validateDataSegment(self,y):
     #     if len(y)!=2:
@@ -149,11 +176,11 @@ class CPU:
             return twosCompli
  
     
-    def ProcessorMemoryInterface(self, state, cacheMemoryObject):
+    def ProcessorMemoryInterface(self, state, cacheMemoryObject,mainMemoryObject):
         # Set MAR in Fetch
         if state.MuxMA_select == 0:
             if state.Mem_Read == 1:
-                word = cacheMemoryObject.readCache(state.MAR)
+                word = cacheMemoryObject.readCache(state.MAR,mainMemoryObject)
                 temp = word[:state.numBytes]
                 temp.reverse()
                 ans = '0x'
@@ -205,10 +232,10 @@ class CPU:
         state.immed += 1
         state.immed *= (-1)
     
-    def Fetch(self,state,btb,mainMemoryObject):
+    def Fetch(self,state,btb,mainMemoryObject,instrCacheMemObj):
         pc=state.PC
         newPC = -1
-        ir=self.readInstructionMem(pc)
+        ir=self.readInstructionMem(pc,mainMemoryObject,instrCacheMemObj)
         if(ir=="Invalid"):
             return None
         state.IR=ir
@@ -577,7 +604,7 @@ class CPU:
             else:
                 state.PC1 = state.PC + state.immed
         
-    def MemoryAccess(self,state):
+    def MemoryAccess(self,state,cacheMemoryObject,mainMemoryObject):
         if self.isPipelined == 0:
             self.IAG(state)
         if state.MuxY_select == 0:
@@ -585,7 +612,7 @@ class CPU:
         elif state.MuxY_select == 1:
             state.MAR = str(hex(state.RZ)).lower()
             state.MDR = state.RM
-            state.RY = int(self.ProcessorMemoryInterface(state),16)
+            state.RY = int(self.ProcessorMemoryInterface(state,cacheMemoryObject,mainMemoryObject),16)
             if state.RY > 2**31 - 1:
                 state.RY = -(2**32 - state.RY)
             # state.MAR = str(hex(state.RZ)).lower()
@@ -636,18 +663,6 @@ class MainMemory:
             return False 
         return True
 
-    def validateInstruction(self,y):
-        if len(y)!=2:
-            return False
-        addr,data = y[0],y[1]
-        if addr[:2]!='0x' or data[:2]!='0x':
-            return False
-        try:
-            temp = int(addr,16)
-            temp1 = int(data,16)
-        except:
-            return False
-        return True
     
     def readFile(self, blockOffset):
         try:
@@ -688,17 +703,107 @@ class MainMemory:
                     self.instructionMemory[y[0]][i] = '0'*(2-len(self.instructionMemory[y[0]][i])) + self.instructionMemory[y[0]][i]
                     self.instructionMemory[y[0]][i] = self.instructionMemory[y[0]][i].lower()
 
-    def readInstructionMem(self,pc):
-        MAR = hex(pc)
-        ans = self.instructionMemory[MAR]
-        if(ans[0]==0 and ans[1]==0 and ans[2]==0 and ans[3]==0):
-            return "Invalid"
-        newans = ""
-        x=len(ans)
-        for i in range(len(ans)):
-            newans += str(ans[x-1-i])
-        newans = '0x'+newans
-        return newans
+    # def validateInstruction(self,y):
+    #     if len(y)!=2:
+    #         return False
+    #     addr,data = y[0],y[1]
+    #     if addr[:2]!='0x' or data[:2]!='0x':
+    #         return False
+    #     try:
+    #         temp = int(addr,16)
+    #         temp1 = int(data,16)
+    #     except:
+    #         return False
+    #     return True
+    
+    # def readInstructionMem(self,pc):
+    #     MAR = hex(pc)
+    #     ans = self.instructionMemory[MAR]
+    #     if(ans[0]==0 and ans[1]==0 and ans[2]==0 and ans[3]==0):
+    #         return "Invalid"
+    #     newans = ""
+    #     x=len(ans)
+    #     for i in range(len(ans)):
+    #         newans += str(ans[x-1-i])
+    #     newans = '0x'+newans
+    #     return newans
+
+
+
+
+class InstrCacheMemory:
+    def __init__(self, cacheSize, blockSize, cacheAssociativity):
+        # make a local variable fo the MainMemory class
+
+        self.cacheAssociativity = cacheAssociativity
+
+        self.numSets = self.cacheSize / self.blockSize
+        self.indexSize = math.log2(self.numSets)
+
+        self.tagSize = 32 - self.indexSize - self.blockOffsetSize
+        self.blockOffsetSize = math.log2(blockSize)
+
+        self.blockOffset = 0
+        self.index = 0
+        self.tag = 0
+
+        self.tagArray = [[0 for i in range(cacheAssociativity)] for j in range(numSets)]
+        self.dataArray = [[[0 for k in range(blockSize)] for i in range(cacheAssociativity)] for j in range(numSets)]
+        self.missCount = 0
+        # create valid bit array and create dirty bit array
+    
+    # state.MAR = str(hex(state.RZ)).lower()
+    # word = cacheMemory.readCache(state.MAR)
+    # if word==None:
+    #     state.MDR = state.RM
+    #     state.RY = int(self.ProcessorMemoryInterface(state),16)
+    #     if state.RY > 2**31 - 1:
+    #         state.RY = -(2**32 - state.RY)
+    #     cacheMemory.updateCache() #mind the parameters yourself gentlemen
+    # else:
+    #     temp = word[:state.numBytes]
+    #     temp.reverse()
+    #     ans = '0x'
+    #     for i in temp:
+    #         curr =  hex(i)[2:]
+    #         ans += '0'*(2-len(curr)) + curr
+    #     state.RY = int(ans,16)
+    #     if state.RY > 2**31 - 1:
+    #         state.RY = -(2**32 - state.RY)
+
+
+    def readCache(self,address,mainMemoryObject):
+        self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
+        self.index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
+        self.tag = address &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
+        whichWay = -1
+        word = []
+        if self.tag in self.tagArray[self.index]:
+            whichWay = self.tagArray[self.index].index(self.tag)
+            word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
+            return word
+        else: 
+            blockoffset = address & (2**blockOffsetSize-1)
+            var = address & (2**31 - 2**blockOffsetSize)
+            block = mainMemoryObject.instructionMemory[var]
+            word = block[blockoffset//4]
+            self.updateCache()
+            return word
+        # todo evaluate this word
+        # word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
+        # word = [1,2,3,4]
+        # [1] or [1,2] or [1,2,3] or [1,2,3,4]
+        # Assumption leftmost is the MSB and right most is the LSB
+        # 1 word = 4 bytes
+        # return word
+
+
+    def updateCache(self):
+        pass
+
+
+
+
 
 class CacheMemory:
     def __init__(self, cacheSize, blockSize, cacheAssociativity):
@@ -739,6 +844,7 @@ class CacheMemory:
     #     state.RY = int(ans,16)
     #     if state.RY > 2**31 - 1:
     #         state.RY = -(2**32 - state.RY)
+
 
     def readCache(self,address,mainMemoryObject):
         self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
