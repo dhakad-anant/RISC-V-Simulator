@@ -666,7 +666,7 @@ class MainMemory:
     
     def readFile(self, blockOffset):
         try:
-            mcFile = open("input.mc","r")
+            mcFile = open("Phase3/input.mc","r")
         except:
             print("File Not Found!")
             return
@@ -737,18 +737,18 @@ class InstrCacheMemory:
 
         self.cacheAssociativity = cacheAssociativity
 
-        self.numSets = self.cacheSize / self.blockSize
+        self.numSets = cacheSize // blockSize
         self.indexSize = math.log2(self.numSets)
 
-        self.tagSize = 32 - self.indexSize - self.blockOffsetSize
         self.blockOffsetSize = math.log2(blockSize)
-
+        self.tagSize = 32 - self.indexSize - self.blockOffsetSize
+        
         self.blockOffset = 0
         self.index = 0
         self.tag = 0
 
-        self.tagArray = [[0 for i in range(cacheAssociativity)] for j in range(numSets)]
-        self.dataArray = [[[0 for k in range(blockSize)] for i in range(cacheAssociativity)] for j in range(numSets)]
+        self.tagArray = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
+        self.dataArray = [[[0 for k in range(blockSize)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.missCount = 0
         # create valid bit array and create dirty bit array
     
@@ -811,18 +811,18 @@ class DataCacheMemory:
 
         self.cacheAssociativity = cacheAssociativity
 
-        self.numSets = self.cacheSize / self.blockSize
+        self.numSets = cacheSize // blockSize
         self.indexSize = math.log2(self.numSets)
 
-        self.tagSize = 32 - self.indexSize - self.blockOffsetSize
         self.blockOffsetSize = math.log2(blockSize)
+        self.tagSize = 32 - self.indexSize - self.blockOffsetSize
 
         self.blockOffset = 0
         self.index = 0
         self.tag = 0
 
-        self.tagArray = [[0 for i in range(cacheAssociativity)] for j in range(numSets)]
-        self.dataArray = [[[0 for k in range(blockSize)] for i in range(cacheAssociativity)] for j in range(numSets)]
+        self.tagArray = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
+        self.dataArray = [[[0 for k in range(blockSize)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.missCount = 0
         # create valid bit array and create dirty bit array
     

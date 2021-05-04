@@ -11,6 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from state_class import CPU,State,BTB,MainMemory,DataCacheMemory, InstrCacheMemory
 from hdu_class import HDU
+from math import log2
 from sys import stdout
 
 def checkHazardous(states,isDataForwardingEnabled):
@@ -152,9 +153,9 @@ cntDataHazardsStalls = 0
 
 #______________________________________________________________________inputs_____________________________________________________
 
-cacheSize = int(input("Please Enter the cacheSize"))
-blockSize = int(input("Please Enter the blockSize"))
-cacheAssociativity = int(input("Please Enter the cacheAssociativity"))
+cacheSize = int(input("Please Enter the cacheSize : "))
+blockSize = int(input("Please Enter the blockSize : "))
+cacheAssociativity = int(input("Please Enter the cacheAssociativity : "))
 
 
 
@@ -167,7 +168,7 @@ mainMemory = MainMemory(blockSize)
 
 ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
 # ProcessingUnit.readFile()
-mainMemory.readFile()
+mainMemory.readFile(int(log2(blockSize)))
 # stats to be printed variables
 master_PC=0
 masterClock = 0
