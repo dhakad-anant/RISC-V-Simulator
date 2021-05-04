@@ -62,9 +62,10 @@ class BTB:
 
 
 class CPU:
-    def __init__(self, isPipelined, predictionEnabled = 1):
-        self.dataMemory = defaultdict(lambda : [0,0,0,0])
+    def __init__(self, isPipelined, predictionEnabled = 1,blockSize):
+        self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
         self.instructionMemory = defaultdict(lambda: [0,0,0,0])
+        #to change instructionMemory
         self.reg = [0]*32
         self.reg[2] = int("0x7FFFFFF0",16) # sp - STACK POINTER
         self.reg[3] = int("0x10000000",16) # pointer to begining of data segment
@@ -96,7 +97,7 @@ class CPU:
             return False
         return True
 
-    def readFile(self):
+    def readFile(self, blockOffset):
         try:
             mcFile = open("input.mc","r")
         except:
@@ -112,10 +113,15 @@ class CPU:
                 if self.validateDataSegment(y)==False:
                     print("ERROR : Invalid Data Segment format in the input.mc file")
                     exit(1)
-                self.dataMemory[y[0]][0] = (int(y[1],16) & int('0xFF',16))
-                self.dataMemory[y[0]][1] = (int(y[1],16) & int('0xFF00',16))>>8
-                self.dataMemory[y[0]][2] = (int(y[1],16) & int('0xFF0000',16))>>16
-                self.dataMemory[y[0]][3] = (int(y[1],16) & int('0xFF000000',16))>>24
+                # 0x10000002
+                # 0x11111110
+                # 2**31-(2**4)
+                newY = y[0] & (2**31 - (2**(blockOffset)))
+
+                self.dataMemory[newY][(y - newY)/4][0] = (int(y[1],16) & int('0xFF',16))
+                self.dataMemory[newY][(y - newY)/4][1] = (int(y[1],16) & int('0xFF00',16))>>8
+                self.dataMemory[newY][(y - newY)/4][2] = (int(y[1],16) & int('0xFF0000',16))>>16
+                self.dataMemory[newY][(y - newY)/4][3] = (int(y[1],16) & int('0xFF000000',16))>>24
 
             if '$' in y:
                 flag = 1    
@@ -141,18 +147,23 @@ class CPU:
             twosCompli = - (int(twosCompli,2) + 1)
             return twosCompli
 
+
+
+
+
     def ProcessorMemoryInterface(self, state):
         # Set MAR in Fetch
+        # newY = y[0] & (2**31 - (2**(blockOffset)))
         if state.MuxMA_select == 0:
             if state.Mem_Read == 1:
-                temp = self.dataMemory[state.MAR][:state.numBytes]
-                temp.reverse()
-                ans = '0x'
-                for i in temp:
-                    curr =  hex(i)[2:]
-                    ans += '0'*(2-len(curr)) + curr
-                    
-                return ans
+                pass
+                # temp = self.dataMemory[state.MAR][:state.numBytes]
+                # temp.reverse()
+                # ans = '0x'
+                # for i in temp:
+                #     curr =  hex(i)[2:]
+                #     ans += '0'*(2-len(curr)) + curr
+                # return ans
             elif state.Mem_Write == 1:
                 for i in range (state.numBytes):
                     self.dataMemory[state.MAR][i] = (state.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
