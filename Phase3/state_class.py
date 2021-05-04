@@ -147,7 +147,7 @@ class CPU:
             twosCompli = (''.join(twosCompli))
             twosCompli = - (int(twosCompli,2) + 1)
             return twosCompli
-    
+ 
     
     def ProcessorMemoryInterface(self, state, cacheMemoryObject):
         # Set MAR in Fetch
@@ -741,7 +741,6 @@ class CacheMemory:
     #         state.RY = -(2**32 - state.RY)
 
     def readCache(self,address,mainMemoryObject):
-        
         self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
         self.index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
         self.tag = address &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
