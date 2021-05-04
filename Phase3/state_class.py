@@ -698,23 +698,24 @@ class MainMemory:
                     print("ERROR : Invalid Instruction format in the input.mc file")                    
                     exit(1)
                 y[1] = y[1].lower() 
+                newY = y[0] & (2**31 - (2**(blockOffset)))
                 for i in range (4):
-                    self.instructionMemory[y[0]][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
-                    self.instructionMemory[y[0]][i] = '0'*(2-len(self.instructionMemory[y[0]][i])) + self.instructionMemory[y[0]][i]
-                    self.instructionMemory[y[0]][i] = self.instructionMemory[y[0]][i].lower()
+                    self.instructionMemory[newY][(y - newY)/4][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
+                    self.instructionMemory[newY][(y - newY)/4][i] = '0'*(2-len(self.instructionMemory[newY][(y - newY)/4][i])) + self.instructionMemory[newY][(y - newY)/4][i]
+                    self.instructionMemory[newY][(y - newY)/4][i] = self.instructionMemory[newY][(y - newY)/4][i].lower()
 
-    # def validateInstruction(self,y):
-    #     if len(y)!=2:
-    #         return False
-    #     addr,data = y[0],y[1]
-    #     if addr[:2]!='0x' or data[:2]!='0x':
-    #         return False
-    #     try:
-    #         temp = int(addr,16)
-    #         temp1 = int(data,16)
-    #     except:
-    #         return False
-    #     return True
+    def validateInstruction(self,y):
+        if len(y)!=2:
+            return False
+        addr,data = y[0],y[1]
+        if addr[:2]!='0x' or data[:2]!='0x':
+            return False
+        try:
+            temp = int(addr,16)
+            temp1 = int(data,16)
+        except:
+            return False
+        return True
     
     # def readInstructionMem(self,pc):
     #     MAR = hex(pc)
