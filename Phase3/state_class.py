@@ -936,11 +936,7 @@ class DataCacheMemory:
     #         self.missCount += 1
 
 
-# create two objects of the above class
-# CacheMemory = instructionCache()
-# CacheMemory = dataCache()
 
-# 0x100abcd - 10
 
 
     
