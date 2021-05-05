@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from state_class import CPU,State,BTB,MainMemory,DataCacheMemory, InstrCacheMemory
+from state_class import CPU,State,BTB,MainMemory,DataCacheMemory,InstrCacheMemory
 from hdu_class import HDU
 from math import log2
 from sys import stdout
@@ -294,6 +294,7 @@ def isPipelined():
         ui.pushButton_5.setStyleSheet("color:white")
         Knob1ForPipelining = False
     pass
+
 def isDataForward():
     global Knob2ForDataForwarding
     if Knob2ForDataForwarding == False:
@@ -303,6 +304,7 @@ def isDataForward():
         ui.pushButton_12.setStyleSheet("color:white")
         Knob2ForDataForwarding = False
     pass
+
 def printValuesInRegAfterEachCycle():
     global Knob3PrintingRegFile
     if Knob3PrintingRegFile == False:
@@ -312,6 +314,7 @@ def printValuesInRegAfterEachCycle():
         ui.pushButton_10.setStyleSheet("color:white")
         Knob3PrintingRegFile = False
     pass
+
 def printValuesInPipeRegAfterEachCycle():
     global Knob4PrintingPipelineRegister
     if Knob4PrintingPipelineRegister == False:
@@ -522,6 +525,7 @@ class Ui_MainWindow(object):
         self.regBtn = 0
         self.memCount = 0
         self.maxCount = 10**10
+
     def regUpdateGUI(self):
         if self.regBtn == 0:
             self.reg1.setText('x0:' +str(ProcessingUnit.reg[0]))
@@ -557,16 +561,20 @@ class Ui_MainWindow(object):
             self.reg14.setText('x29: ' + str(ProcessingUnit.reg[29]))
             self.reg15.setText('x30: ' + str(ProcessingUnit.reg[30]))
             self.reg16.setText('x31: ' + str(ProcessingUnit.reg[31]))
+
     def regUpPressed(self):
         self.regBtn = 0
         self.regUpdateGUI()
+
     def regDownPressed(self):
         self.regBtn = 1
         self.regUpdateGUI()
+
     def memDownPressed(self):
         if self.memCount + 16 <= self.maxCount:
             self.memCount += 16
         self.memUpdateGUI()
+
     def memUpPressed(self):
         if self.memCount - 16 >= 0:
             self.memCount -= 16
@@ -803,8 +811,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.reg7.setFont(font)
-        self.reg7.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n"
-"")
+        self.reg7.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg7.setAlignment(QtCore.Qt.AlignCenter)
         self.reg7.setObjectName("reg7")
         self.reg16 = QtWidgets.QLabel(self.centralwidget)
@@ -844,8 +851,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.reg1.setFont(font)
-        self.reg1.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n"
-"")
+        self.reg1.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg1.setAlignment(QtCore.Qt.AlignCenter)
         self.reg1.setObjectName("reg1")
         self.reg6 = QtWidgets.QLabel(self.centralwidget)
@@ -853,8 +859,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.reg6.setFont(font)
-        self.reg6.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n"
-"")
+        self.reg6.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg6.setAlignment(QtCore.Qt.AlignCenter)
         self.reg6.setObjectName("reg6")
         self.reg15 = QtWidgets.QLabel(self.centralwidget)
@@ -878,8 +883,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.reg5.setFont(font)
-        self.reg5.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n"
-"")
+        self.reg5.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg5.setAlignment(QtCore.Qt.AlignCenter)
         self.reg5.setObjectName("reg5")
         self.line_4 = QtWidgets.QFrame(self.centralwidget)
@@ -908,8 +912,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.reg8.setFont(font)
-        self.reg8.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n"
-"")
+        self.reg8.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg8.setAlignment(QtCore.Qt.AlignCenter)
         self.reg8.setObjectName("reg8")
         self.reg4 = QtWidgets.QLabel(self.centralwidget)
@@ -917,8 +920,7 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.reg4.setFont(font)
-        self.reg4.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n"
-"")
+        self.reg4.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg4.setAlignment(QtCore.Qt.AlignCenter)
         self.reg4.setObjectName("reg4")
         self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
@@ -931,14 +933,12 @@ class Ui_MainWindow(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.reg2.setFont(font)
-        self.reg2.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n"
-"")
+        self.reg2.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg2.setAlignment(QtCore.Qt.AlignCenter)
         self.reg2.setObjectName("reg2")
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_4.setGeometry(QtCore.QRect(720, 760, 93, 41))
-        self.pushButton_4.setStyleSheet("color:white\n"
-"")
+        self.pushButton_4.setStyleSheet("color:white\n""")
         self.pushButton_4.setObjectName("pushButton_4")
         self.pushButton_4.clicked.connect(self.regDownPressed)
         self.pipeline1 = QtWidgets.QLabel(self.centralwidget)
@@ -1287,13 +1287,12 @@ class Ui_MainWindow(object):
         self.label_31.setText(_translate("MainWindow", "E"))
 
 
-# label.setText()
 
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
+    MainWindow = QtWidgets.QMainWindow()     # MainWindow is an object of the class QMainWindow
+    ui = Ui_MainWindow()                     # ui is object of the class Ui_MainWindow()
+    ui.setupUi(MainWindow)   # calling the setupUi function inside the Ui_MainWindow class using the object of this class and as an argument we pass the MainWindow object that we have created above
     MainWindow.show()
     sys.exit(app.exec_())
