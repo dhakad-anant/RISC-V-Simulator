@@ -767,16 +767,19 @@ class Ui_MainWindow(object):
         self.label_16.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_16.setAlignment(QtCore.Qt.AlignCenter)
         self.label_16.setObjectName("label_16")
+        #-----------------------------------------------------#
         self.pushButton = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton.setGeometry(QtCore.QRect(910, 760, 93, 41))
         self.pushButton.setStyleSheet("color:white\n")
         self.pushButton.clicked.connect(self.memUpPressed)
         self.pushButton.setObjectName("pushButton")
+        #-----------------------------------------------------#
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_2.setGeometry(QtCore.QRect(1010, 760, 93, 41))
         self.pushButton_2.setStyleSheet("color:white")
         self.pushButton_2.setObjectName("pushButton_2")
         self.pushButton_2.clicked.connect(self.memDownPressed)
+        #-----------------------------------------------------#
         self.label = QtWidgets.QLabel(self.centralwidget)
         self.label.setGeometry(QtCore.QRect(910, 9, 211, 31))
         font = QtGui.QFont()
@@ -785,11 +788,13 @@ class Ui_MainWindow(object):
         self.label.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label.setAlignment(QtCore.Qt.AlignCenter)
         self.label.setObjectName("label")
+        #-----------------------------------------------------#
         self.line_3 = QtWidgets.QFrame(self.centralwidget)
         self.line_3.setGeometry(QtCore.QRect(960, 40, 118, 3))
         self.line_3.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_3.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_3.setObjectName("line_3")
+        #-----------------------------------------------------#
         self.reg14 = QtWidgets.QLabel(self.centralwidget)
         self.reg14.setGeometry(QtCore.QRect(600, 623, 247, 36))
         font = QtGui.QFont()
@@ -798,6 +803,7 @@ class Ui_MainWindow(object):
         self.reg14.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.reg14.setAlignment(QtCore.Qt.AlignCenter)
         self.reg14.setObjectName("reg14")
+        #-----------------------------------------------------#
         self.reg12 = QtWidgets.QLabel(self.centralwidget)
         self.reg12.setGeometry(QtCore.QRect(600, 535, 247, 37))
         font = QtGui.QFont()
@@ -806,6 +812,7 @@ class Ui_MainWindow(object):
         self.reg12.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.reg12.setAlignment(QtCore.Qt.AlignCenter)
         self.reg12.setObjectName("reg12")
+        #-----------------------------------------------------#
         self.reg7 = QtWidgets.QLabel(self.centralwidget)
         self.reg7.setGeometry(QtCore.QRect(600, 316, 247, 37))
         font = QtGui.QFont()
@@ -814,6 +821,7 @@ class Ui_MainWindow(object):
         self.reg7.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg7.setAlignment(QtCore.Qt.AlignCenter)
         self.reg7.setObjectName("reg7")
+        #-----------------------------------------------------#
         self.reg16 = QtWidgets.QLabel(self.centralwidget)
         self.reg16.setGeometry(QtCore.QRect(600, 710, 247, 37))
         font = QtGui.QFont()
@@ -822,6 +830,7 @@ class Ui_MainWindow(object):
         self.reg16.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.reg16.setAlignment(QtCore.Qt.AlignCenter)
         self.reg16.setObjectName("reg16")
+        #-----------------------------------------------------#
         self.reg3 = QtWidgets.QLabel(self.centralwidget)
         self.reg3.setGeometry(QtCore.QRect(600, 141, 247, 37))
         font = QtGui.QFont()
@@ -830,6 +839,7 @@ class Ui_MainWindow(object):
         self.reg3.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg3.setAlignment(QtCore.Qt.AlignCenter)
         self.reg3.setObjectName("reg3")
+        #-----------------------------------------------------#
         self.reg9 = QtWidgets.QLabel(self.centralwidget)
         self.reg9.setGeometry(QtCore.QRect(600, 404, 247, 37))
         font = QtGui.QFont()
@@ -838,6 +848,7 @@ class Ui_MainWindow(object):
         self.reg9.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.reg9.setAlignment(QtCore.Qt.AlignCenter)
         self.reg9.setObjectName("reg9")
+        #-----------------------------------------------------#
         self.label_23 = QtWidgets.QLabel(self.centralwidget)
         self.label_23.setGeometry(QtCore.QRect(620, 9, 211, 31))
         font = QtGui.QFont()
@@ -846,6 +857,7 @@ class Ui_MainWindow(object):
         self.label_23.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.label_23.setAlignment(QtCore.Qt.AlignCenter)
         self.label_23.setObjectName("label_23")
+        #-----------------------------------------------------#
         self.reg1 = QtWidgets.QLabel(self.centralwidget)
         self.reg1.setGeometry(QtCore.QRect(600, 54, 247, 37))
         font = QtGui.QFont()
@@ -854,6 +866,7 @@ class Ui_MainWindow(object):
         self.reg1.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg1.setAlignment(QtCore.Qt.AlignCenter)
         self.reg1.setObjectName("reg1")
+        #-----------------------------------------------------#
         self.reg6 = QtWidgets.QLabel(self.centralwidget)
         self.reg6.setGeometry(QtCore.QRect(600, 273, 247, 36))
         font = QtGui.QFont()
@@ -862,6 +875,7 @@ class Ui_MainWindow(object):
         self.reg6.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg6.setAlignment(QtCore.Qt.AlignCenter)
         self.reg6.setObjectName("reg6")
+        #-----------------------------------------------------#
         self.reg15 = QtWidgets.QLabel(self.centralwidget)
         self.reg15.setGeometry(QtCore.QRect(600, 666, 247, 37))
         font = QtGui.QFont()
@@ -870,6 +884,7 @@ class Ui_MainWindow(object):
         self.reg15.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.reg15.setAlignment(QtCore.Qt.AlignCenter)
         self.reg15.setObjectName("reg15")
+        #-----------------------------------------------------#
         self.reg10 = QtWidgets.QLabel(self.centralwidget)
         self.reg10.setGeometry(QtCore.QRect(600, 448, 247, 36))
         font = QtGui.QFont()
@@ -878,6 +893,7 @@ class Ui_MainWindow(object):
         self.reg10.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.reg10.setAlignment(QtCore.Qt.AlignCenter)
         self.reg10.setObjectName("reg10")
+        #-----------------------------------------------------#
         self.reg5 = QtWidgets.QLabel(self.centralwidget)
         self.reg5.setGeometry(QtCore.QRect(600, 229, 247, 37))
         font = QtGui.QFont()
@@ -886,11 +902,13 @@ class Ui_MainWindow(object):
         self.reg5.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg5.setAlignment(QtCore.Qt.AlignCenter)
         self.reg5.setObjectName("reg5")
+        #-----------------------------------------------------#
         self.line_4 = QtWidgets.QFrame(self.centralwidget)
         self.line_4.setGeometry(QtCore.QRect(670, 40, 118, 3))
         self.line_4.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_4.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_4.setObjectName("line_4")
+        #-----------------------------------------------------#
         self.reg13 = QtWidgets.QLabel(self.centralwidget)
         self.reg13.setGeometry(QtCore.QRect(600, 580, 247, 37))
         font = QtGui.QFont()
@@ -899,6 +917,7 @@ class Ui_MainWindow(object):
         self.reg13.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.reg13.setAlignment(QtCore.Qt.AlignCenter)
         self.reg13.setObjectName("reg13")
+        #-----------------------------------------------------#
         self.reg11 = QtWidgets.QLabel(self.centralwidget)
         self.reg11.setGeometry(QtCore.QRect(600, 491, 247, 37))
         font = QtGui.QFont()
@@ -907,6 +926,7 @@ class Ui_MainWindow(object):
         self.reg11.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
         self.reg11.setAlignment(QtCore.Qt.AlignCenter)
         self.reg11.setObjectName("reg11")
+        #-----------------------------------------------------#
         self.reg8 = QtWidgets.QLabel(self.centralwidget)
         self.reg8.setGeometry(QtCore.QRect(600, 360, 247, 37))
         font = QtGui.QFont()
@@ -915,6 +935,7 @@ class Ui_MainWindow(object):
         self.reg8.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg8.setAlignment(QtCore.Qt.AlignCenter)
         self.reg8.setObjectName("reg8")
+        #-----------------------------------------------------#
         self.reg4 = QtWidgets.QLabel(self.centralwidget)
         self.reg4.setGeometry(QtCore.QRect(600, 185, 247, 37))
         font = QtGui.QFont()
@@ -923,11 +944,13 @@ class Ui_MainWindow(object):
         self.reg4.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg4.setAlignment(QtCore.Qt.AlignCenter)
         self.reg4.setObjectName("reg4")
+        #-----------------------------------------------------#
         self.pushButton_3 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_3.setGeometry(QtCore.QRect(620, 760, 93, 41))
         self.pushButton_3.setStyleSheet("color:white")
         self.pushButton_3.setObjectName("pushButton_3")
         self.pushButton_3.clicked.connect(self.regUpPressed)
+        #-----------------------------------------------------#
         self.reg2 = QtWidgets.QLabel(self.centralwidget)
         self.reg2.setGeometry(QtCore.QRect(600, 98, 247, 36))
         font = QtGui.QFont()
@@ -936,11 +959,13 @@ class Ui_MainWindow(object):
         self.reg2.setStyleSheet("background:rgb(0, 255, 127)rgb(130, 130, 130);color:white\n""")
         self.reg2.setAlignment(QtCore.Qt.AlignCenter)
         self.reg2.setObjectName("reg2")
+        #-----------------------------------------------------#
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_4.setGeometry(QtCore.QRect(720, 760, 93, 41))
         self.pushButton_4.setStyleSheet("color:white\n""")
         self.pushButton_4.setObjectName("pushButton_4")
         self.pushButton_4.clicked.connect(self.regDownPressed)
+        #-----------------------------------------------------#
         self.pipeline1 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline1.setGeometry(QtCore.QRect(240, 591, 250, 40))
         font = QtGui.QFont()
@@ -948,6 +973,7 @@ class Ui_MainWindow(object):
         self.pipeline1.setFont(font)
         self.pipeline1.setStyleSheet("background:rgb(0, 255, 255)")
         self.pipeline1.setObjectName("pipeline1")
+        #-----------------------------------------------------#
         self.pipeline2 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline2.setGeometry(QtCore.QRect(240, 641, 250, 40))
         font = QtGui.QFont()
@@ -955,6 +981,7 @@ class Ui_MainWindow(object):
         self.pipeline2.setFont(font)
         self.pipeline2.setStyleSheet("background:rgb(0, 255, 255)")
         self.pipeline2.setObjectName("pipeline2")
+        #-----------------------------------------------------#
         self.pipeline2_2 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline2_2.setGeometry(QtCore.QRect(240, 741, 250, 40))
         font = QtGui.QFont()
@@ -962,6 +989,7 @@ class Ui_MainWindow(object):
         self.pipeline2_2.setFont(font)
         self.pipeline2_2.setStyleSheet("background:rgb(0, 255, 255)")
         self.pipeline2_2.setObjectName("pipeline2_2")
+        #-----------------------------------------------------#
         self.pipeline1_2 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline1_2.setGeometry(QtCore.QRect(240, 691, 250, 40))
         font = QtGui.QFont()
@@ -969,6 +997,7 @@ class Ui_MainWindow(object):
         self.pipeline1_2.setFont(font)
         self.pipeline1_2.setStyleSheet("background:rgb(0, 255, 255)")
         self.pipeline1_2.setObjectName("pipeline1_2")
+        #-----------------------------------------------------#
         self.pipeline2_3 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline2_3.setGeometry(QtCore.QRect(240, 791, 250, 40))
         font = QtGui.QFont()
@@ -976,6 +1005,7 @@ class Ui_MainWindow(object):
         self.pipeline2_3.setFont(font)
         self.pipeline2_3.setStyleSheet("background:rgb(0, 255, 255)")
         self.pipeline2_3.setObjectName("pipeline2_3")
+        #-----------------------------------------------------#
         self.pushButton_7 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_7.setGeometry(QtCore.QRect(30, 10, 120, 40))
         font = QtGui.QFont()
@@ -984,6 +1014,7 @@ class Ui_MainWindow(object):
         self.pushButton_7.setStyleSheet("color:white")
         self.pushButton_7.setObjectName("pushButton_7")
         self.pushButton_7.clicked.connect(lambda: mainFunc(0))
+        #-----------------------------------------------------#
         self.pushButton_9 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_9.setGeometry(QtCore.QRect(380, 10, 120, 40))
         font = QtGui.QFont()
@@ -992,6 +1023,7 @@ class Ui_MainWindow(object):
         self.pushButton_9.setStyleSheet("color:white")
         self.pushButton_9.setObjectName("pushButton_9")
         self.pushButton_9.clicked.connect(resetAll)
+        #-----------------------------------------------------#
         self.pushButton_8 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_8.setGeometry(QtCore.QRect(200, 10, 120, 40))
         font = QtGui.QFont()
@@ -1000,19 +1032,23 @@ class Ui_MainWindow(object):
         self.pushButton_8.setStyleSheet("color:white")
         self.pushButton_8.setObjectName("pushButton_8")
         self.pushButton_8.clicked.connect(lambda: mainFunc(1))
+        #-----------------------------------------------------#
         self.pushButton_5 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_5.setGeometry(QtCore.QRect(20, 70, 110, 35))
         self.pushButton_5.setStyleSheet("color:white")
         self.pushButton_5.setObjectName("pushButton_5")
         self.pushButton_5.clicked.connect(isPipelined)
+        #-----------------------------------------------------#
         self.pushButton_6 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_6.setGeometry(QtCore.QRect(410, 70, 110, 35))
         self.pushButton_6.setStyleSheet("color:white")
         self.pushButton_6.setObjectName("pushButton_6")
         self.pushButton_6.clicked.connect(printValuesInPipeRegAfterEachCycle)
+        #-----------------------------------------------------#
         self.pushButton_10 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_10.setGeometry(QtCore.QRect(280, 70, 110, 35))
         self.pushButton_10.clicked.connect(printValuesInRegAfterEachCycle)
+        #-----------------------------------------------------#
         palette = QtGui.QPalette()
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 255))
         brush.setStyle(QtCore.Qt.SolidPattern)
@@ -1077,19 +1113,23 @@ class Ui_MainWindow(object):
         brush = QtGui.QBrush(QtGui.QColor(255, 255, 255, 128))
         brush.setStyle(QtCore.Qt.NoBrush)
         palette.setBrush(QtGui.QPalette.Disabled, QtGui.QPalette.PlaceholderText, brush)
+        #-----------------------------------------------------#
         self.pushButton_10.setPalette(palette)
         self.pushButton_10.setStyleSheet("color:white")
         self.pushButton_10.setObjectName("pushButton_10")
+        #-----------------------------------------------------#
         self.pushButton_11 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_11.setGeometry(QtCore.QRect(210, 120, 110, 35))
         self.pushButton_11.setStyleSheet("color:white")
         self.pushButton_11.setObjectName("pushButton_11")
         self.pushButton_11.clicked.connect(printForSpecific)
+        #-----------------------------------------------------#
         self.pushButton_12 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_12.setGeometry(QtCore.QRect(150, 70, 110, 35))
         self.pushButton_12.setStyleSheet("color:white")
         self.pushButton_12.setObjectName("pushButton_12")
         self.pushButton_12.clicked.connect(isDataForward)
+        #-----------------------------------------------------#
         self.label_19 = QtWidgets.QLabel(self.centralwidget)
         self.label_19.setGeometry(QtCore.QRect(310, 170, 251, 41))
         font = QtGui.QFont()
@@ -1097,6 +1137,7 @@ class Ui_MainWindow(object):
         self.label_19.setFont(font)
         self.label_19.setStyleSheet("background:rgb(0, 255, 255)")
         self.label_19.setObjectName("label_19")
+        #-----------------------------------------------------#
         self.pipeline2_4 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline2_4.setGeometry(QtCore.QRect(80, 641, 130, 40))
         font = QtGui.QFont()
@@ -1104,6 +1145,7 @@ class Ui_MainWindow(object):
         self.pipeline2_4.setFont(font)
         self.pipeline2_4.setStyleSheet("background:rgb(0, 255, 255)")
         self.pipeline2_4.setObjectName("pipeline2_4")
+        #-----------------------------------------------------#
         self.pipeline2_5 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline2_5.setGeometry(QtCore.QRect(80, 741, 130, 40))
         font = QtGui.QFont()
@@ -1111,6 +1153,7 @@ class Ui_MainWindow(object):
         self.pipeline2_5.setFont(font)
         self.pipeline2_5.setStyleSheet("background:rgb(0, 255, 255)")
         self.pipeline2_5.setObjectName("pipeline2_5")
+        #-----------------------------------------------------#
         self.pipeline1_3 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline1_3.setGeometry(QtCore.QRect(80, 691, 130, 40))
         font = QtGui.QFont()
@@ -1118,6 +1161,7 @@ class Ui_MainWindow(object):
         self.pipeline1_3.setFont(font)
         self.pipeline1_3.setStyleSheet("background:rgb(0, 255, 255)")
         self.pipeline1_3.setObjectName("pipeline1_3")
+        #-----------------------------------------------------#
         self.pipeline1_4 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline1_4.setGeometry(QtCore.QRect(80, 591, 130, 40))
         font = QtGui.QFont()
@@ -1125,6 +1169,7 @@ class Ui_MainWindow(object):
         self.pipeline1_4.setFont(font)
         self.pipeline1_4.setStyleSheet("background:rgb(0, 255, 255)")
         self.pipeline1_4.setObjectName("pipeline1_4")
+        #-----------------------------------------------------#
         self.pipeline2_6 = QtWidgets.QLabel(self.centralwidget)
         self.pipeline2_6.setGeometry(QtCore.QRect(80, 791, 130, 40))
         font = QtGui.QFont()
@@ -1132,6 +1177,7 @@ class Ui_MainWindow(object):
         self.pipeline2_6.setFont(font)
         self.pipeline2_6.setStyleSheet("background:rgb(0, 255, 255)")
         self.pipeline2_6.setObjectName("pipeline2_6")
+        #-----------------------------------------------------#
         self.label_20 = QtWidgets.QLabel(self.centralwidget)
         self.label_20.setGeometry(QtCore.QRect(20, 170, 261, 41))
         font = QtGui.QFont()
@@ -1139,12 +1185,14 @@ class Ui_MainWindow(object):
         self.label_20.setFont(font)
         self.label_20.setStyleSheet("background:rgb(0, 255, 255)")
         self.label_20.setObjectName("label_20")
+        #-----------------------------------------------------#
         self.line_5 = QtWidgets.QFrame(self.centralwidget)
         self.line_5.setGeometry(QtCore.QRect(40, 580, 481, 2))
         self.line_5.setStyleSheet("background:rgb(252, 252, 252)")
         self.line_5.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_5.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_5.setObjectName("line_5")
+        #-----------------------------------------------------#
         self.label_26 = QtWidgets.QLabel(self.centralwidget)
         self.label_26.setGeometry(QtCore.QRect(130, 480, 70, 40))
         font = QtGui.QFont()
@@ -1153,6 +1201,7 @@ class Ui_MainWindow(object):
         self.label_26.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_26.setAlignment(QtCore.Qt.AlignCenter)
         self.label_26.setObjectName("label_26")
+        #-----------------------------------------------------#
         self.label_27 = QtWidgets.QLabel(self.centralwidget)
         self.label_27.setGeometry(QtCore.QRect(130, 320, 70, 40))
         font = QtGui.QFont()
@@ -1161,6 +1210,7 @@ class Ui_MainWindow(object):
         self.label_27.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_27.setAlignment(QtCore.Qt.AlignCenter)
         self.label_27.setObjectName("label_27")
+        #-----------------------------------------------------#
         self.label_28 = QtWidgets.QLabel(self.centralwidget)
         self.label_28.setGeometry(QtCore.QRect(130, 400, 70, 40))
         font = QtGui.QFont()
@@ -1169,12 +1219,14 @@ class Ui_MainWindow(object):
         self.label_28.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_28.setAlignment(QtCore.Qt.AlignCenter)
         self.label_28.setObjectName("label_28")
+        #-----------------------------------------------------#
         self.line_7 = QtWidgets.QFrame(self.centralwidget)
         self.line_7.setGeometry(QtCore.QRect(40, 250, 481, 2))
         self.line_7.setStyleSheet("background:rgb(252, 252, 252)")
         self.line_7.setFrameShape(QtWidgets.QFrame.HLine)
         self.line_7.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_7.setObjectName("line_7")
+        #-----------------------------------------------------#
         self.label_29 = QtWidgets.QLabel(self.centralwidget)
         self.label_29.setGeometry(QtCore.QRect(250, 320, 70, 40))
         font = QtGui.QFont()
@@ -1183,6 +1235,7 @@ class Ui_MainWindow(object):
         self.label_29.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_29.setAlignment(QtCore.Qt.AlignCenter)
         self.label_29.setObjectName("label_29")
+        #-----------------------------------------------------#
         self.label_30 = QtWidgets.QLabel(self.centralwidget)
         self.label_30.setGeometry(QtCore.QRect(250, 480, 70, 40))
         font = QtGui.QFont()
@@ -1191,6 +1244,7 @@ class Ui_MainWindow(object):
         self.label_30.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_30.setAlignment(QtCore.Qt.AlignCenter)
         self.label_30.setObjectName("label_30")
+        #-----------------------------------------------------#
         self.label_31 = QtWidgets.QLabel(self.centralwidget)
         self.label_31.setGeometry(QtCore.QRect(250, 400, 70, 40))
         font = QtGui.QFont()
@@ -1199,21 +1253,24 @@ class Ui_MainWindow(object):
         self.label_31.setStyleSheet("color:black;background:rgb(85, 255, 255)")
         self.label_31.setAlignment(QtCore.Qt.AlignCenter)
         self.label_31.setObjectName("label_31")
+        #-----------------------------------------------------#
         self.line_6 = QtWidgets.QFrame(self.centralwidget)
         self.line_6.setGeometry(QtCore.QRect(870, 40, 2, 1061))
         self.line_6.setStyleSheet("background:white")
         self.line_6.setFrameShape(QtWidgets.QFrame.VLine)
         self.line_6.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_6.setObjectName("line_6")
+        #-----------------------------------------------------#
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1173, 26))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
+        #-----------------------------------------------------#
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
         MainWindow.setStatusBar(self.statusbar)
-
+        #-----------------------------------------------------#
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
