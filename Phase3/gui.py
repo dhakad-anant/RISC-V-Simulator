@@ -413,7 +413,7 @@ def mainFunc(isStep):
                         stallsCount += 1
                         break
                     
-                    ProcessingUnit.MemoryAccess(states[i],dataCacheMemory,MainMemory)
+                    ProcessingUnit.MemoryAccess(states[i],dataCacheMemory,mainMemory)
                     if states[3]!=None:
                         ui.pipeline2_2.setText(str(states[3].PC//4 + 1) + " th instruction." )
                     else:
@@ -464,7 +464,7 @@ def mainFunc(isStep):
                     break
                 ProcessingUnit.Decode(state,btb)
                 ProcessingUnit.Execute(state)
-                ProcessingUnit.MemoryAccess(state,dataCacheMemory,MainMemory)
+                ProcessingUnit.MemoryAccess(state,dataCacheMemory,mainMemory)
                 master_PC = state.PC1
                 ProcessingUnit.RegisterUpdate(state)
                 state = State(master_PC)

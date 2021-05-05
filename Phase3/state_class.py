@@ -201,7 +201,8 @@ class CPU:
                 # return ans
             elif state.Mem_Write == 1:
                 for i in range (state.numBytes):
-                    mainMemoryObject.dataMemory[state.MAR][i] = (state.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
+                    val = (state.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
+                    cacheMemoryObject.writeCache(state.MAR, val, i, mainMemoryObject)
                 return '0x1'
 
     def GenerateControlSignals(self,reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB,state):
@@ -786,7 +787,7 @@ class InstrCacheMemory:
         word = []
         if self.tag in self.tagArray[self.index]:
             whichWay = self.tagArray[self.index].index(self.tag)
-            word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockOffset,self.blockOffset + 4)]
+            word = self.dataArray[self.index][whichWay][self.blockOffset:max(len(self.dataArray[self.index][whichWay])-1,self.blockOffset + 4)]
             if  self.validBit[self.index][whichWay]==1:
                 return word
         self.validBit[self.index][whichWay]
@@ -810,8 +811,6 @@ class InstrCacheMemory:
 
     def updateCache(self):
         pass
-
-
 
 
 
@@ -864,7 +863,7 @@ class DataCacheMemory:
         word = []
         if self.tag in self.tagArray[self.index]:
             whichWay = self.tagArray[self.index].index(self.tag)
-            word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
+            word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.len(self.dataArray[self.index][whichWay])-1,self.blockOffset + 4)]
             return word
         else: 
             blockoffset = address & (2**blockOffsetSize-1)
@@ -885,6 +884,26 @@ class DataCacheMemory:
     def updateCache(self):
         pass
 
+
+    def writeCache(self,address,val,offset,mainMemoryObject):
+        self.blockOffset = int(address,16) &  (2**self.blockOffsetSize - 1)
+        self.index = int(address,16) &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
+        self.tag = int(address,16) &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
+        # print(int(address,16))
+        whichWay = -1
+        word = []
+        if self.tag in self.tagArray[self.index]:
+            whichWay = self.tagArray[self.index].index(self.tag)
+            word = self.dataArray[self.index][whichWay][self.blockOffset:max(len(self.dataArray[self.index][whichWay])-1,self.blockOffset + 4)]
+            if  self.validBit[self.index][whichWay]==1:
+                self.dataArray[self.index][whichWay][self.blockOffset + offset] = val
+
+                newAdd = int(address,16) & (2**31 - (2**(blockOffset)))
+                newAdd = str(hex(newAdd))
+
+                self.dataMemory[newAdd][(int(address,16) - int(newAdd,16))//4][offset] = (int(val,16) & int('0xFF'+'0'*(2*offset),16)) >> 8*offset
+                return 1
+        
 
     # def readCache(self, address): # 32 bit integer
     #     self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
