@@ -1,6 +1,6 @@
 .data 
-arr : .word 4 -2 1
-len : .word 3
+arr : .word 4 -2 1 9 -8 7 10 5
+len : .word 8
 
 .text
 lw x11, len # length of the array # n 
