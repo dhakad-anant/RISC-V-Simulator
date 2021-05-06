@@ -85,9 +85,9 @@ class CPU:
         return True
     
 
-    def readInstructionMem(self,pc,instrCacheMemObj,mainMemoryObject):
+    def readInstructionMem(self,pc,instrCacheMemObj,mainMemoryObject,numMisses,numHits):
         MAR = hex(pc)
-        ans = instrCacheMemObj.readCache(MAR,mainMemoryObject)
+        ans = instrCacheMemObj.readCache(MAR,mainMemoryObject,numMisses,numHits)
         if(ans[0]==-1 and ans[1]==-1 and ans[2]==-1 and ans[3]==-1):
             return "Invalid"
         newans = ""
@@ -109,11 +109,11 @@ class CPU:
             return twosCompli
  
     
-    def ProcessorMemoryInterface(self, state, cacheMemoryObject,mainMemoryObject):
+    def ProcessorMemoryInterface(self, state, cacheMemoryObject,mainMemoryObject,numMisses,numHits):
         # Set MAR in Fetch
         if state.MuxMA_select == 0:
             if state.Mem_Read == 1:
-                word = cacheMemoryObject.readCache(state.MAR,mainMemoryObject)
+                word = cacheMemoryObject.readCache(state.MAR,mainMemoryObject,numMisses,numHits)
                 temp = word[:state.numBytes]
                 temp.reverse()
                 ans = '0x'
@@ -153,10 +153,10 @@ class CPU:
         state.immed += 1
         state.immed *= (-1)
     
-    def Fetch(self,state,btb,mainMemoryObject,instrCacheMemObj):
+    def Fetch(self,state,btb,mainMemoryObject,instrCacheMemObj,numMisses,numHits):
         pc=state.PC
         newPC = -1
-        ir=self.readInstructionMem(pc,instrCacheMemObj,mainMemoryObject)
+        ir=self.readInstructionMem(pc,instrCacheMemObj,mainMemoryObject,numMisses,numHits)
         if(ir=="Invalid"):
             return None
         state.IR=ir
@@ -515,7 +515,7 @@ class CPU:
             else:
                 state.PC1 = state.PC + state.immed
     
-    def MemoryAccess(self,state,dataCacheMemObj,mainMemoryObject):
+    def MemoryAccess(self,state,dataCacheMemObj,mainMemoryObject,numMisses,numHits):
         if self.isPipelined == 0:
             self.IAG(state)
         if state.MuxY_select == 0:
@@ -523,7 +523,7 @@ class CPU:
         elif state.MuxY_select == 1:
             state.MAR = state.RZ
             state.MDR = state.RM
-            state.RY = int(self.ProcessorMemoryInterface(state,dataCacheMemObj,mainMemoryObject),16)
+            state.RY = int(self.ProcessorMemoryInterface(state,dataCacheMemObj,mainMemoryObject,numMisses,numHits),16)
             if state.RY > 2**31 - 1:
                 state.RY = -(2**32 - state.RY)
         elif state.MuxY_select == 2:
@@ -634,7 +634,7 @@ class InstrCacheMemory:
                 return i
         return 0
 
-    def readCache(self,address,mainMemoryObject): # address is a hexadecimal string
+    def readCache(self,address,mainMemoryObject,numMisses,numHits): # address is a hexadecimal string
         address = int(address,16)
         blockOffset = address &  (2**self.blockOffsetSize - 1) 
         index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
@@ -645,8 +645,9 @@ class InstrCacheMemory:
         for i in range(self.cacheAssociativity):
             if(tag == self.tagArray[index][i]):
                 if(self.validBit[index][i][blockOffset//4]==0): continue
+                numHits[0]+=1
                 return self.instArray[index][i][blockOffset//4]
-
+        numMisses[0] += 1
         var = address & (2**32 - 2**self.blockOffsetSize)
         block = mainMemoryObject.instructionMemory[var]
         word = block[blockOffset//4]
@@ -690,7 +691,7 @@ class DataCacheMemory:
                 return i
         return 0
 
-    def readCache(self,address,mainMemoryObject):
+    def readCache(self,address,mainMemoryObject,numMisses, numHits):
         blockOffset = address &  (2**self.blockOffsetSize - 1) 
         index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
         tag = address &  ( (2**self.tagSize - 1) << (self.blockOffsetSize + self.indexSize)) 
@@ -700,8 +701,9 @@ class DataCacheMemory:
         for i in range(self.cacheAssociativity):
             if(tag == self.tagArray[index][i]):
                 if(self.validBit[index][i][blockOffset//4]==0): continue
+                numHits[0]+=1
                 return self.dataArray[index][i][blockOffset//4]
-
+        numMisses[0] += 1
         var = address & (2**32 - 2**self.blockOffsetSize)
         block = mainMemoryObject.dataMemory[var]
         word = block[blockOffset//4]

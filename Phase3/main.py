@@ -95,8 +95,8 @@ states =[None for i in range(5)] # don't change it
 predictionEnabled =1
 hduob = HDU()
 prediction_enabled = 1
-Knob1ForPipelining= False # don't change it
-Knob2ForDataForwarding = False
+Knob1ForPipelining= True # don't change it
+Knob2ForDataForwarding = True
 Knob3PrintingRegFile = False
 Knob4PrintingPipelineRegister = False
 Knob5PrintingPipelineRegForSpecificInst = False
@@ -153,6 +153,10 @@ InstCount = 0
 stall = -1
 programExecuted = 0
 clockNonPipeline = 0
+numAccesses = 0
+numHits = [0]
+numMisses = [0]
+
 # states[0] - fetch
 # states[1] - Decode
 # states[2] - execute
@@ -168,7 +172,7 @@ while True:
                 check(num,states)
             if(i==0):
                 states[i] = State(master_PC)
-                states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,instrCacheMemory)
+                states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,instrCacheMemory,numMisses,numHits)
                 if(states[i] !=None and states[i].predictionPC!=-1):
                     master_PC = states[i].predictionPC
                     ControlHazardCount += 1
@@ -209,7 +213,7 @@ while True:
                     StallsDuetoDataHazards += 1
                     stallsCount += 1
                     break
-                ProcessingUnit.MemoryAccess(states[i],dataCacheMemory,mainMemory)
+                ProcessingUnit.MemoryAccess(states[i],dataCacheMemory,mainMemory,numMisses,numHits)
                 states[i+1]=states[i]
                 states[i]=None
             if(i==4):
@@ -239,12 +243,12 @@ while True:
     else:
         state = State(0)
         while(state != None):
-            state = ProcessingUnit.Fetch(state,btb,mainMemory,instrCacheMemory)
+            state = ProcessingUnit.Fetch(state,btb,mainMemory,instrCacheMemory,numMisses,numHits)
             if(state == None):
                 break
             ProcessingUnit.Decode(state,btb)
             ProcessingUnit.Execute(state)
-            ProcessingUnit.MemoryAccess(state,dataCacheMemory,mainMemory)
+            ProcessingUnit.MemoryAccess(state,dataCacheMemory,mainMemory,numMisses,numHits)
             master_PC = state.PC1
             ProcessingUnit.RegisterUpdate(state)
             state = State(master_PC)
@@ -259,4 +263,6 @@ else:
     CPI = 0
 if(Knob4PrintingPipelineRegister == False):
     print(ProcessingUnit.reg)
+numAccesses = numMisses[0] + numHits[0]
+print(numMisses[0], numHits[0])
 print("Program Executed!!!")

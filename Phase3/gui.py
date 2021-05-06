@@ -22,6 +22,7 @@ def checkHazardous(states,isDataForwardingEnabled):
     ui.label_29.setStyleSheet("background:rgb(85, 255, 255);color:black")
     ui.label_30.setStyleSheet("background:rgb(85, 255, 255);color:black")
     ui.label_31.setStyleSheet("background:rgb(85, 255, 255);color:black")
+    ui.cacheDataUpdate(numMisses,numHits)
     if len(forwardPaths) != 0:
         if forwardPaths[0] == 0:
             ui.label_31.setStyleSheet("background:rgb(255, 255, 0);color:black")
@@ -186,6 +187,9 @@ InstCount = 0
 stall = -1
 programExecuted = 0
 clockNonPipeline = 0
+numAccesses = 0
+numHits = [0]
+numMisses = [0]
 state = State(0)
 # states[0] - fetch
 # states[1] - Decode
@@ -268,7 +272,7 @@ def resetAll():
     ui.label_15.setText("")
     ui.label_6.setText("")
     ui.label_16.setText("")
-
+    ui.cacheDataUpdate(numMisses,numHits)
     ui.label_26.setStyleSheet("background:rgb(85, 255, 255);color:black")
     ui.label_27.setStyleSheet("background:rgb(85, 255, 255);color:black")
     ui.label_28.setStyleSheet("background:rgb(85, 255, 255);color:black")
@@ -335,8 +339,9 @@ def printForSpecific():
         ui.pushButton_11.setStyleSheet("color:white")
 
 def mainFunc(isStep):
-    global clockNonPipeline, programExecuted,states,predictionEnabled,hduob,prediction_enabled,Knob1ForPipelining,Knob2ForDataForwarding,Knob3PrintingRegFile,Knob4PrintingPipelineRegister,Knob5PrintingPipelineRegForSpecificInst,num,controlChange,cntBranchHazards,cntBranchHazardStalls,controlChange_pc,controlHazard,controlHazard_pc,btb,cntDataHazards,cntDataHazardsStalls,ProcessingUnit,master_PC,masterClock,CPI,LoadAndStoreInstructions,ALUInst,ControlInst,stallsCount,DataHazardCount,ControlHazardCount,BranchMisprediction,StallsDuetoDataHazards,StallsDuetoControlHazards,InstCount,stall
+    global numMisses,numHits,clockNonPipeline, programExecuted,states,predictionEnabled,hduob,prediction_enabled,Knob1ForPipelining,Knob2ForDataForwarding,Knob3PrintingRegFile,Knob4PrintingPipelineRegister,Knob5PrintingPipelineRegForSpecificInst,num,controlChange,cntBranchHazards,cntBranchHazardStalls,controlChange_pc,controlHazard,controlHazard_pc,btb,cntDataHazards,cntDataHazardsStalls,ProcessingUnit,master_PC,masterClock,CPI,LoadAndStoreInstructions,ALUInst,ControlInst,stallsCount,DataHazardCount,ControlHazardCount,BranchMisprediction,StallsDuetoDataHazards,StallsDuetoControlHazards,InstCount,stall
     while programExecuted == 0:
+        ui.cacheDataUpdate(numMisses,numHits)
         ui.label_26.setStyleSheet("background:rgb(85, 255, 255);color:black")
         ui.label_27.setStyleSheet("background:rgb(85, 255, 255);color:black")
         ui.label_28.setStyleSheet("background:rgb(85, 255, 255);color:black")
@@ -357,7 +362,7 @@ def mainFunc(isStep):
                 if(i==0):
                     states[i] = State(master_PC)
                     # def Fetch(self,state,btb,mainMemoryObject,instrCacheMemObj)
-                    states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,instrCacheMemory)
+                    states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,instrCacheMemory,numMisses,numHits)
                     if(states[i] !=None and states[i].predictionPC!=-1):
                         master_PC = states[i].predictionPC
                         ControlHazardCount += 1
@@ -415,7 +420,7 @@ def mainFunc(isStep):
                         stallsCount += 1
                         break
                     
-                    ProcessingUnit.MemoryAccess(states[i],dataCacheMemory,mainMemory)
+                    ProcessingUnit.MemoryAccess(states[i],dataCacheMemory,mainMemory,numMisses,numHits)
                     if states[3]!=None:
                         ui.pipeline2_2.setText(str(states[3].PC//4 + 1) + " th instruction." )
                     else:
@@ -458,21 +463,23 @@ def mainFunc(isStep):
             global state
             state = State(0)
             while(state != None):
+                ui.cacheDataUpdate(numMisses,numHits)
                 # print(state)
                 # states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,InstrCacheMemory)
-                state = ProcessingUnit.Fetch(state,btb,mainMemory,instrCacheMemory)
+                state = ProcessingUnit.Fetch(state,btb,mainMemory,instrCacheMemory,numMisses,numHits)
                 if(state == None):
                     programExecuted = 1
                     break
                 ProcessingUnit.Decode(state,btb)
                 ProcessingUnit.Execute(state)
-                ProcessingUnit.MemoryAccess(state,dataCacheMemory,mainMemory)
+                ProcessingUnit.MemoryAccess(state,dataCacheMemory,mainMemory,numMisses,numHits)
                 master_PC = state.PC1
                 ProcessingUnit.RegisterUpdate(state)
                 state = State(master_PC)
                 clockNonPipeline += 1
                 ui.regUpdateGUI()
                 ui.memUpdateGUI()
+                ui.cacheUpdate()
                 ui.label_19.setText("Clock: "+str(5*clockNonPipeline))
                 if isStep == 1:
                     break
@@ -482,6 +489,7 @@ def mainFunc(isStep):
             masterClock +=1
             ui.regUpdateGUI()
             ui.memUpdateGUI()
+            ui.cacheUpdate()
 
             ui.label_19.setText("Clock: "+str(masterClock))
         if Knob1ForPipelining == 0:
@@ -524,6 +532,7 @@ class Ui_MainWindow(object):
         self.regBtn = 0
         self.memCount = 0
         self.maxCount = 10**10
+        self.cacheCount = 0
 
     def regUpdateGUI(self):
         if self.regBtn == 0:
@@ -560,6 +569,43 @@ class Ui_MainWindow(object):
             self.reg14.setText('x29: ' + str(ProcessingUnit.reg[29]))
             self.reg15.setText('x30: ' + str(ProcessingUnit.reg[30]))
             self.reg16.setText('x31: ' + str(ProcessingUnit.reg[31]))
+    
+    def convert(self, a):
+        ans = ""
+        for i in a:
+            ii = i
+            if ii<0:
+                ii = 2**32 + ii
+            ans += hex(ii)[2:]+' '
+            
+        return ans
+
+    def cacheUpdate(self):
+        try:
+            cacheData = "===== SET NUMBER : "+str(self.cacheCount)+" =====\n\n"
+            blkCnt = 0
+            for block in dataCacheMemory.dataArray[self.cacheCount]:
+                cacheData += "Block Number: " + str(blkCnt) + ", Tag: "+str(dataCacheMemory.tagArray[self.cacheCount][blkCnt])+"\n"
+                for word in block:
+                    cacheData += self.convert(word) + '\n'
+                cacheData += "====================\n"
+                blkCnt+=1
+            self.cacheLabel.setText(cacheData)
+        except:
+            self.cacheLabel.setText("GO UP!!")
+
+    def cacheUpPressed(self):
+        if self.cacheCount > 0:
+            self.cacheCount -=1
+            self.cacheUpdate()
+
+    
+    def cacheDownPressed(self):
+        xyz = cacheSize // (blockSize*cacheAssociativity)
+        self.cacheCount += 1
+        if self.cacheCount>=xyz:
+            self.cacheCount-=1
+        self.cacheUpdate()
 
     def regUpPressed(self):
         self.regBtn = 0
@@ -578,12 +624,6 @@ class Ui_MainWindow(object):
         if self.memCount - 16 >= 0:
             self.memCount -= 16
         self.memUpdateGUI()
-
-    def convert(self, a):
-        ans = ""
-        for i in a:
-            ans += hex(i)[2:]+' '
-        return ans
         
     def memUpdateGUI(self):
         # memAddresses = list(ProcessingUnit.dataMemory.keys())[:]
@@ -625,6 +665,9 @@ class Ui_MainWindow(object):
             self.label_16.setText(str(memAddresses[cnt+15]) + " : " + self.convert(ProcessingUnit.dataMemory[memAddresses[cnt+15]]))
         except:
             self.maxCount = cnt
+
+    def cacheDataUpdate(self, misses, hits):
+        self.jaglike.setText("Number of misses = "+ str(misses[0]) + '\n' + "Number of hits = "+str(hits[0]) + '\n' + "Total Number of accesses = "+str(misses[0]+hits[0]))
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -1266,14 +1309,23 @@ class Ui_MainWindow(object):
         self.line_8.setStyleSheet(u"background:white")
         self.line_8.setFrameShape(QtWidgets.QFrame.VLine)
         self.line_8.setFrameShadow(QtWidgets.QFrame.Sunken)
-        self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
-        self.scrollArea.setObjectName(u"scrollArea")
-        self.scrollArea.setGeometry(QtCore.QRect(1190, 50, 451, 691))
-        self.scrollArea.setWidgetResizable(True)
-        self.scrollAreaWidgetContents = QtWidgets.QWidget()
-        self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
-        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 449, 689))
-        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.cacheLabel = QtWidgets.QLabel(self.centralwidget)
+        self.cacheLabel.setObjectName(u"cacheLabel")
+        self.cacheLabel.setGeometry(QtCore.QRect(1190, 50, 501, 691))
+        self.cacheLabel.setFont(font)
+        self.cacheLabel.setStyleSheet(u"background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
+        self.cacheLabel.setAlignment(QtCore.Qt.AlignCenter)
+
+        self.downCache = QtWidgets.QPushButton(self.centralwidget)
+        self.downCache.setObjectName(u"downCache")
+        self.downCache.setGeometry(QtCore.QRect(1490, 760, 93, 41))
+        self.downCache.setStyleSheet(u"color:white")
+        self.downCache.clicked.connect(self.cacheDownPressed)
+        self.upCache = QtWidgets.QPushButton(self.centralwidget)
+        self.upCache.setObjectName(u"upCache")
+        self.upCache.setGeometry(QtCore.QRect(1330, 760, 93, 41))
+        self.upCache.setStyleSheet(u"color:white\n""")
+        self.upCache.clicked.connect(self.cacheUpPressed)
         self.label_17 = QtWidgets.QLabel(self.centralwidget)
         self.label_17.setObjectName(u"label_17")
         self.label_17.setGeometry(QtCore.QRect(1310, 0, 211, 31))
@@ -1368,7 +1420,9 @@ class Ui_MainWindow(object):
         self.label_29.setText(_translate("MainWindow", "D"))
         self.label_30.setText(_translate("MainWindow", "M"))
         self.label_31.setText(_translate("MainWindow", "E"))
-        self.label_17.setText(QtCore.QCoreApplication.translate("MainWindow", u"Cache", None))
+        self.label_17.setText(QtCore.QCoreApplication.translate("MainWindow", u"DataCache", None))
+        self.upCache.setText(_translate("MainWindow", "UP"))
+        self.downCache.setText(_translate("MainWindow", "DOWN"))
         self.jaglike.setText("")
 
 
