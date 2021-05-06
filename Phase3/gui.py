@@ -483,7 +483,6 @@ def mainFunc(isStep):
                 ui.label_19.setText("Clock: "+str(5*clockNonPipeline))
                 if isStep == 1:
                     break
-            print("afterwhite")
         printPipelineRegisters(states,Knob3PrintingRegFile,masterClock,Knob4PrintingPipelineRegister,ProcessingUnit)
         if Knob1ForPipelining == 1:
             masterClock +=1
@@ -510,21 +509,20 @@ def mainFunc(isStep):
 def printinOutputFile():
     global masterClock
     stdout = open('output.txt', 'w')
-    L = [ f'Stat1 : {masterClock}\n',
-          f'Stat2 : {InstCount}\n',
-          f'Stat3 : {CPI}\n',
-          f'Stat4 : {LoadAndStoreInstructions}\n',
-          f'Stat5 : {ALUInst}\n',
-          f'Stat6 : {ControlInst}\n',
-          f'Stat7 : {stallsCount}\n',
-          f'Stat8 : {DataHazardCount}\n',
-          f'Stat9 : {ControlHazardCount}\n',
-          f'Stat10 : {BranchMisprediction}\n',
-          f'Stat11 : {StallsDuetoDataHazards}\n',
-          f'Stat12 : {StallsDuetoControlHazards}\n',
+    L = [ f'Accesses : {numMisses + numHits}',
+    f'Hits : {numHits}',
+    f'Misses : {numMisses}',
     ]
     for i in L:
         print(i, file = stdout)
+    print(file=stdout)
+    print("=========== DATA MEMORY ===========", file=stdout)
+    for i in mainMemory.dataMemory:
+        print(i,"=>",mainMemory.dataMemory[i], file = stdout)
+    print(file=stdout)
+    print("=========== REGISTERS ===========", file = stdout)
+    for i in range(len(ProcessingUnit.reg)):
+        print('x'+str(i),'=>',ProcessingUnit.reg[i], file=stdout)
 
 
 class Ui_MainWindow(object):
@@ -693,7 +691,13 @@ class Ui_MainWindow(object):
             self.maxCount = cnt
 
     def cacheDataUpdate(self, misses, hits):
-        self.jaglike.setText("Number of misses = "+ str(misses[0]) + '\n' + "Number of hits = "+str(hits[0]) + '\n' + "Total Number of accesses = "+str(misses[0]+hits[0]))
+        victimStr = ""
+        if dataCacheMemory.victim != -1:
+            victimStr = "Victim Block: "+str(dataCacheMemory.victim)
+        setStr = ""
+        if dataCacheMemory.current != -1:
+            setStr = "Current Set: "+str(dataCacheMemory.current)
+        self.jaglike.setText("Number of misses = "+ str(misses[0]) + '\n' + "Number of hits = "+str(hits[0]) + '\n' + "Total Number of accesses = "+str(misses[0]+hits[0]) + '\n' + victimStr + '\n' + setStr+'\n')
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
