@@ -123,7 +123,7 @@ class CPU:
                 return ans
             elif state.Mem_Write == 1:
                 cacheMemoryObject.writeCache(state.MAR,state.MDR,mainMemoryObject)
-                return -1
+                return '0x1'
 
     def GenerateControlSignals(self,reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB,state):
 
@@ -706,7 +706,7 @@ class DataCacheMemory:
         return word
 
     def writeCache(self,address,value,mainMemoryObject):
-        val=[]
+        val=[0,0,0,0]
         val[0] = (value & int('0xFF',16))
         val[1] = (value & int('0xFF00',16))>>8
         val[2] = (value & int('0xFF0000',16))>>16
