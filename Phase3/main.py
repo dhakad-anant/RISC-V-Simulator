@@ -154,13 +154,8 @@ stall = -1
 programExecuted = 0
 clockNonPipeline = 0
 numAccesses = 0
-<<<<<<< HEAD
 numHits = [0]
 numMisses = [0]
-=======
-numHits = 0
-numMisses = 0
->>>>>>> 4643b17d3a64f76be70d6da0491c8cf620b8dcf4
 
 # states[0] - fetch
 # states[1] - Decode
@@ -268,10 +263,6 @@ else:
     CPI = 0
 if(Knob4PrintingPipelineRegister == False):
     print(ProcessingUnit.reg)
-<<<<<<< HEAD
 numAccesses = numMisses[0] + numHits[0]
 print(numMisses[0], numHits[0])
-=======
-numAccesses = numMisses + numHits
->>>>>>> 4643b17d3a64f76be70d6da0491c8cf620b8dcf4
 print("Program Executed!!!")
