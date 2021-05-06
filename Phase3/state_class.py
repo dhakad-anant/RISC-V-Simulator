@@ -812,6 +812,7 @@ class DataCacheMemory:
 
         self.tagArray = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.dataArray = [[[0 for k in range(blockSize)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
+        self.validBit = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.missCount = 0
         # create valid bit array and create dirty bit array
     
@@ -846,8 +847,8 @@ class DataCacheMemory:
             word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.len(self.dataArray[self.index][whichWay])-1,self.blockOffset + 4)]
             return word
         else: 
-            blockoffset = address & (2**blockOffsetSize-1)
-            var = address & (2**31 - 2**blockOffsetSize)
+            blockoffset = address & (2**self.blockOffsetSize-1)
+            var = address & (2**31 - 2**self.blockOffsetSize)
             block = mainMemoryObject.dataMemory[var]
             word = block[blockoffset//4]
             self.updateCache()
@@ -878,7 +879,7 @@ class DataCacheMemory:
             if  self.validBit[self.index][whichWay]==1:
                 self.dataArray[self.index][whichWay][self.blockOffset + offset] = val
 
-                newAdd = int(address,16) & (2**31 - (2**(blockOffset)))
+                newAdd = int(address,16) & (2**31 - (2**(self.blockOffset)))
                 newAdd = str(hex(newAdd))
 
                 self.dataMemory[newAdd][(int(address,16) - int(newAdd,16))//4][offset] = (int(val,16) & int('0xFF'+'0'*(2*offset),16)) >> 8*offset
