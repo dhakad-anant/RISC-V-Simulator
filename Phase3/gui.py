@@ -128,8 +128,8 @@ states =[None for i in range(5)] # don't change it
 predictionEnabled =1
 hduob = HDU()
 prediction_enabled = 1
-Knob1ForPipelining= True # don't change it
-Knob2ForDataForwarding = True
+Knob1ForPipelining= False # don't change it
+Knob2ForDataForwarding = False
 Knob3PrintingRegFile = False
 Knob4PrintingPipelineRegister = False
 Knob5PrintingPipelineRegForSpecificInst = False
@@ -456,8 +456,8 @@ def mainFunc(isStep):
             
         else:
             global state
+            state = State(0)
             while(state != None):
-                print("heyaaaaaaaaaaaaa")
                 # print(state)
                 # states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,InstrCacheMemory)
                 state = ProcessingUnit.Fetch(state,btb,mainMemory,instrCacheMemory)
@@ -628,7 +628,7 @@ class Ui_MainWindow(object):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1173, 881)
+        MainWindow.resize(1680, 865)
         MainWindow.setStyleSheet("background:rgb(44, 44, 44)")
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -1193,7 +1193,7 @@ class Ui_MainWindow(object):
         self.line_5.setObjectName("line_5")
         #-----------------------------------------------------#
         self.label_26 = QtWidgets.QLabel(self.centralwidget)
-        self.label_26.setGeometry(QtCore.QRect(130, 480, 70, 40))
+        self.label_26.setGeometry(QtCore.QRect(30, 470, 70, 40))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_26.setFont(font)
@@ -1202,7 +1202,7 @@ class Ui_MainWindow(object):
         self.label_26.setObjectName("label_26")
         #-----------------------------------------------------#
         self.label_27 = QtWidgets.QLabel(self.centralwidget)
-        self.label_27.setGeometry(QtCore.QRect(130, 320, 70, 40))
+        self.label_27.setGeometry(QtCore.QRect(30, 310, 70, 40))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_27.setFont(font)
@@ -1211,7 +1211,7 @@ class Ui_MainWindow(object):
         self.label_27.setObjectName("label_27")
         #-----------------------------------------------------#
         self.label_28 = QtWidgets.QLabel(self.centralwidget)
-        self.label_28.setGeometry(QtCore.QRect(130, 400, 70, 40))
+        self.label_28.setGeometry(QtCore.QRect(30, 390, 70, 40))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_28.setFont(font)
@@ -1227,7 +1227,7 @@ class Ui_MainWindow(object):
         self.line_7.setObjectName("line_7")
         #-----------------------------------------------------#
         self.label_29 = QtWidgets.QLabel(self.centralwidget)
-        self.label_29.setGeometry(QtCore.QRect(250, 320, 70, 40))
+        self.label_29.setGeometry(QtCore.QRect(150, 310, 70, 40))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_29.setFont(font)
@@ -1236,7 +1236,7 @@ class Ui_MainWindow(object):
         self.label_29.setObjectName("label_29")
         #-----------------------------------------------------#
         self.label_30 = QtWidgets.QLabel(self.centralwidget)
-        self.label_30.setGeometry(QtCore.QRect(250, 480, 70, 40))
+        self.label_30.setGeometry(QtCore.QRect(150, 470, 70, 40))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_30.setFont(font)
@@ -1245,7 +1245,7 @@ class Ui_MainWindow(object):
         self.label_30.setObjectName("label_30")
         #-----------------------------------------------------#
         self.label_31 = QtWidgets.QLabel(self.centralwidget)
-        self.label_31.setGeometry(QtCore.QRect(250, 400, 70, 40))
+        self.label_31.setGeometry(QtCore.QRect(150, 390, 70, 40))
         font = QtGui.QFont()
         font.setPointSize(9)
         self.label_31.setFont(font)
@@ -1259,6 +1259,33 @@ class Ui_MainWindow(object):
         self.line_6.setFrameShape(QtWidgets.QFrame.VLine)
         self.line_6.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line_6.setObjectName("line_6")
+
+        self.line_8 = QtWidgets.QFrame(self.centralwidget)
+        self.line_8.setObjectName(u"line_8")
+        self.line_8.setGeometry(QtCore.QRect(1160, 41, 2, 1061))
+        self.line_8.setStyleSheet(u"background:white")
+        self.line_8.setFrameShape(QtWidgets.QFrame.VLine)
+        self.line_8.setFrameShadow(QtWidgets.QFrame.Sunken)
+        self.scrollArea = QtWidgets.QScrollArea(self.centralwidget)
+        self.scrollArea.setObjectName(u"scrollArea")
+        self.scrollArea.setGeometry(QtCore.QRect(1190, 50, 451, 691))
+        self.scrollArea.setWidgetResizable(True)
+        self.scrollAreaWidgetContents = QtWidgets.QWidget()
+        self.scrollAreaWidgetContents.setObjectName(u"scrollAreaWidgetContents")
+        self.scrollAreaWidgetContents.setGeometry(QtCore.QRect(0, 0, 449, 689))
+        self.scrollArea.setWidget(self.scrollAreaWidgetContents)
+        self.label_17 = QtWidgets.QLabel(self.centralwidget)
+        self.label_17.setObjectName(u"label_17")
+        self.label_17.setGeometry(QtCore.QRect(1310, 0, 211, 31))
+        self.label_17.setFont(font)
+        self.label_17.setStyleSheet(u"background:rgb(0, 255, 127)rgb(130, 130, 130);color:white")
+        self.label_17.setAlignment(QtCore.Qt.AlignCenter)
+        self.jaglike = QtWidgets.QLabel(self.centralwidget)
+        self.jaglike.setObjectName(u"jaglike")
+        self.jaglike.setGeometry(QtCore.QRect(270, 320, 251, 191))
+        self.jaglike.setFont(font)
+        self.jaglike.setStyleSheet(u"background:rgb(0, 255, 255)")
+
         #-----------------------------------------------------#
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -1341,6 +1368,8 @@ class Ui_MainWindow(object):
         self.label_29.setText(_translate("MainWindow", "D"))
         self.label_30.setText(_translate("MainWindow", "M"))
         self.label_31.setText(_translate("MainWindow", "E"))
+        self.label_17.setText(QtCore.QCoreApplication.translate("MainWindow", u"Cache", None))
+        self.jaglike.setText("")
 
 
 

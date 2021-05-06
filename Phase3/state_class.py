@@ -556,7 +556,7 @@ class MainMemory:
     
     def readFile(self, blockOffset): # blockOffset means number of bits in BO
         try:
-            mcFile = open("Phase3/input.mc","r")
+            mcFile = open("input.mc","r")
         except:
             print("File Not Found!")
             return
