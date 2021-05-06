@@ -533,6 +533,7 @@ class Ui_MainWindow(object):
         self.memCount = 0
         self.maxCount = 10**10
         self.cacheCount = 0
+        self.currentCache = 0
 
     def regUpdateGUI(self):
         if self.regBtn == 0:
@@ -581,18 +582,34 @@ class Ui_MainWindow(object):
         return ans
 
     def cacheUpdate(self):
-        try:
+        if self.currentCache == 0:
+            try:
+                cacheData = "===== SET NUMBER : "+str(self.cacheCount)+" =====\n\n"
+                blkCnt = 0
+                for block in dataCacheMemory.dataArray[self.cacheCount]:
+                    cacheData += "Block Number: " + str(blkCnt) + ", Tag: "+str(dataCacheMemory.tagArray[self.cacheCount][blkCnt])+"\n"
+                    for word in block:
+                        cacheData += self.convert(word) + '\n'
+                    cacheData += "====================\n"
+                    blkCnt+=1
+                self.cacheLabel.setText(cacheData)
+            except:
+                self.cacheLabel.setText("GO UP!!")
+        else:
+            
             cacheData = "===== SET NUMBER : "+str(self.cacheCount)+" =====\n\n"
             blkCnt = 0
-            for block in dataCacheMemory.dataArray[self.cacheCount]:
-                cacheData += "Block Number: " + str(blkCnt) + ", Tag: "+str(dataCacheMemory.tagArray[self.cacheCount][blkCnt])+"\n"
+            for block in instrCacheMemory.instArray[self.cacheCount]:
+                cacheData += "Block Number: " + str(blkCnt) + ", Tag: "+str(instrCacheMemory.tagArray[self.cacheCount][blkCnt])+"\n"
                 for word in block:
-                    cacheData += self.convert(word) + '\n'
+                    try:
+                        cacheData += (' '.join(word)) + '\n'
+                    except:
+                        cacheData += self.convert(word) + '\n'
                 cacheData += "====================\n"
                 blkCnt+=1
             self.cacheLabel.setText(cacheData)
-        except:
-            self.cacheLabel.setText("GO UP!!")
+            
 
     def cacheUpPressed(self):
         if self.cacheCount > 0:
@@ -606,6 +623,15 @@ class Ui_MainWindow(object):
         if self.cacheCount>=xyz:
             self.cacheCount-=1
         self.cacheUpdate()
+
+    def changeCachePressed(self):
+        self.currentCache = 1 - self.currentCache
+        self.cacheUpdate()
+        if self.currentCache == 1:
+            self.label_17.setText("INSTRUCTION CACHE")
+        else:
+            self.label_17.setText("DATA CACHE")
+
 
     def regUpPressed(self):
         self.regBtn = 0
@@ -1337,6 +1363,11 @@ class Ui_MainWindow(object):
         self.jaglike.setGeometry(QtCore.QRect(270, 320, 251, 191))
         self.jaglike.setFont(font)
         self.jaglike.setStyleSheet(u"background:rgb(0, 255, 255)")
+        self.changeCache = QtWidgets.QPushButton(self.centralwidget)
+        self.changeCache.setObjectName(u"ChangeCache")
+        self.changeCache.setGeometry(QtCore.QRect(1200, 760, 110, 41))
+        self.changeCache.setStyleSheet(u"color:white\n""")
+        self.changeCache.clicked.connect(self.changeCachePressed)
 
         #-----------------------------------------------------#
         MainWindow.setCentralWidget(self.centralwidget)
@@ -1420,10 +1451,11 @@ class Ui_MainWindow(object):
         self.label_29.setText(_translate("MainWindow", "D"))
         self.label_30.setText(_translate("MainWindow", "M"))
         self.label_31.setText(_translate("MainWindow", "E"))
-        self.label_17.setText(QtCore.QCoreApplication.translate("MainWindow", u"DataCache", None))
+        self.label_17.setText(QtCore.QCoreApplication.translate("MainWindow", u"DATA CACHE", None))
         self.upCache.setText(_translate("MainWindow", "UP"))
         self.downCache.setText(_translate("MainWindow", "DOWN"))
         self.jaglike.setText("")
+        self.changeCache.setText("ChangeCache")
 
 
 
