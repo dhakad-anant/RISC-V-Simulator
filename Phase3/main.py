@@ -95,7 +95,7 @@ states =[None for i in range(5)] # don't change it
 predictionEnabled =1
 hduob = HDU()
 prediction_enabled = 1
-Knob1ForPipelining= False # don't change it
+Knob1ForPipelining= True # don't change it
 Knob2ForDataForwarding = False
 Knob3PrintingRegFile = False
 Knob4PrintingPipelineRegister = False
@@ -133,10 +133,10 @@ mainMemory = MainMemory(blockSize//4)
 
 ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
 # ProcessingUnit.readFile()
-numWordsinBlock = math.log2(blockSize)
-if(numWordsinBlock-int(numWordsinBlock)!=0): numWordsinBlock+=1
-numWordsinBlock = int(numWordsinBlock)
-mainMemory.readFile(numWordsinBlock)
+numberOfBitsinBO = math.log2(blockSize)
+if(numberOfBitsinBO-int(numberOfBitsinBO)!=0): numberOfBitsinBO+=1
+numberOfBitsinBO = int(numberOfBitsinBO)
+mainMemory.readFile(numberOfBitsinBO)
 # stats to be printed variables
 master_PC=0
 masterClock = 0
@@ -249,7 +249,7 @@ while True:
             master_PC = state.PC1
             ProcessingUnit.RegisterUpdate(state)
             state = State(master_PC)
-
+        print("check here")
     printPipelineRegisters(states,Knob3PrintingRegFile,masterClock,Knob4PrintingPipelineRegister,ProcessingUnit)
     masterClock +=1
     if states[0]==None and states[1]==None and states[2]==None and states[3]==None and states[4]==None:

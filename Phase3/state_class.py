@@ -519,7 +519,7 @@ class CPU:
         if state.MuxY_select == 0:
             state.RY = state.RZ
         elif state.MuxY_select == 1:
-            state.MAR = str(hex(state.RZ)).lower()
+            state.MAR = state.RZ
             state.MDR = state.RM
             state.RY = int(self.ProcessorMemoryInterface(state,dataCacheMemObj,mainMemoryObject),16)
             if state.RY > 2**31 - 1:
@@ -569,7 +569,6 @@ class MainMemory:
                 continue  
             y[1] = y[1].lower()
             newY = int(y[0],16) & andVal
-            newY = hex(newY)
             indexInBlock = int(y[0],16) & (2**blockOffset - 1)
             indexInBlock = indexInBlock//4
             if flag==1:
@@ -588,9 +587,9 @@ class MainMemory:
                     exit(1)
                 
                 for i in range (4):
-                    self.instructionMemory[indexInBlock][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
-                    self.instructionMemory[indexInBlock][i] = '0'*(2-len(self.instructionMemory[indexInBlock][i])) + self.instructionMemory[indexInBlock][i]
-                    self.instructionMemory[indexInBlock][i] = self.instructionMemory[indexInBlock][i].lower()
+                    self.instructionMemory[newY][indexInBlock][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
+                    self.instructionMemory[newY][indexInBlock][i] = '0'*(2-len(self.instructionMemory[newY][indexInBlock][i])) + self.instructionMemory[newY][indexInBlock][i]
+                    self.instructionMemory[newY][indexInBlock][i] = self.instructionMemory[newY][indexInBlock][i].lower()
 
     def validateInstruction(self,y):
         if len(y)!=2:
