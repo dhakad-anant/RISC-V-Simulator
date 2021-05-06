@@ -96,7 +96,7 @@ predictionEnabled =1
 hduob = HDU()
 prediction_enabled = 1
 Knob1ForPipelining= True # don't change it
-Knob2ForDataForwarding = False
+Knob2ForDataForwarding = True
 Knob3PrintingRegFile = False
 Knob4PrintingPipelineRegister = False
 Knob5PrintingPipelineRegForSpecificInst = False
@@ -132,7 +132,6 @@ mainMemory = MainMemory(blockSize//4)
 
 
 ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
-# ProcessingUnit.readFile()
 numberOfBitsinBO = math.log2(blockSize)
 if(numberOfBitsinBO-int(numberOfBitsinBO)!=0): numberOfBitsinBO+=1
 numberOfBitsinBO = int(numberOfBitsinBO)

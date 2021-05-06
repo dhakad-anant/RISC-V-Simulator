@@ -417,10 +417,12 @@ class CPU:
                 state.ALUOp[0] = 1
                 state.RA = state.PC
                 state.immed = state.immed << 12
+                state.message = "This is an AUIPC Instruction"
             else: #L                
                 state.ALUOp[6] = 1
                 state.RA = state.immed
                 state.immed = 12
+                state.message = "This is an LUI Instruction"
             self.GenerateControlSignals(1,1,0,0,0,0,1,0,0,state)
 
         elif state.opcode==int("1101111",2): # UJ format
@@ -620,10 +622,6 @@ class InstrCacheMemory:
         self.blockOffsetSize = int(self.blockOffsetSize)
         self.tagSize = 32 - self.indexSize - self.blockOffsetSize
 
-        self.blockOffset = 0
-        self.index = 0
-        self.tag = 0
-
         self.tagArray = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.instArray = [[[[0,0,0,0] for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.validBit = [[[0 for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
@@ -649,6 +647,7 @@ class InstrCacheMemory:
         word = block[blockOffset//4]
         storeIndex = self.LRU()
         self.instArray[index][storeIndex] = block
+        self.tagArray[index][storeIndex] = tag
         for i in range(self.numWords):
             if(self.instArray[index][storeIndex][i]!=[-1,-1,-1,-1]):
                 self.validBit[index][storeIndex][i]=1
@@ -670,10 +669,6 @@ class DataCacheMemory:
         if(self.blockOffsetSize-int(self.blockOffsetSize)!=0): self.blockOffsetSize += 1
         self.blockOffsetSize = int(self.blockOffsetSize)
         self.tagSize = 32 - self.indexSize - self.blockOffsetSize
-
-        self.blockOffset = 0
-        self.index = 0
-        self.tag = 0
 
         self.tagArray = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.dataArray = [[[[0,0,0,0] for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
@@ -700,6 +695,7 @@ class DataCacheMemory:
         word = block[blockOffset//4]
         storeIndex = self.LRU()
         self.dataArray[index][storeIndex] = block
+        self.tagArray[index][storeIndex] = tag
         for i in range(self.numWords):
             if(self.dataArray[index][storeIndex][i]!=[-1,-1,-1,-1]):
                 self.validBit[index][storeIndex][i]=1
