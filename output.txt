@@ -1,0 +1,24 @@
+Stat1 : 59
+
+Stat2 : 55
+
+Stat3 : 0
+
+Stat4 : 19
+
+Stat5 : 20
+
+Stat6 : 16
+
+Stat7 : 0
+
+Stat8 : 7
+
+Stat9 : 10
+
+Stat10 : 1
+
+Stat11 : 0
+
+Stat12 : 10
+

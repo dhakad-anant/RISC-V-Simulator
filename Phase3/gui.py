@@ -124,14 +124,12 @@ def check(num, states):
         if(states[4]!=None):
             print("RY -> ", states[4].RY)
         else: print("EMPTY")
-
-
 states =[None for i in range(5)] # don't change it
 predictionEnabled =1
 hduob = HDU()
 prediction_enabled = 1
-Knob1ForPipelining= False # don't change it
-Knob2ForDataForwarding = False
+Knob1ForPipelining= True # don't change it
+Knob2ForDataForwarding = True
 Knob3PrintingRegFile = False
 Knob4PrintingPipelineRegister = False
 Knob5PrintingPipelineRegForSpecificInst = False
@@ -160,18 +158,17 @@ cacheAssociativity = int(input("Please Enter the cacheAssociativity : "))
 
 
 dataCacheMemory = DataCacheMemory(cacheSize,blockSize,cacheAssociativity)
-InstrCacheMemory = InstrCacheMemory(cacheSize,blockSize,cacheAssociativity)
-mainMemory = MainMemory(blockSize)
+instrCacheMemory = InstrCacheMemory(cacheSize,blockSize,cacheAssociativity)
+mainMemory = MainMemory(blockSize//4)
 
 
 
 
 ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
-# ProcessingUnit.readFile()
-numWordsinBlock = math.log2(blockSize)
-if(numWordsinBlock-int(numWordsinBlock)!=0): numWordsinBlock+=1
-numWordsinBlock = int(numWordsinBlock)
-mainMemory.readFile(numWordsinBlock)
+numberOfBitsinBO = math.log2(blockSize)
+if(numberOfBitsinBO-int(numberOfBitsinBO)!=0): numberOfBitsinBO+=1
+numberOfBitsinBO = int(numberOfBitsinBO)
+mainMemory.readFile(numberOfBitsinBO)
 # stats to be printed variables
 master_PC=0
 masterClock = 0
@@ -360,7 +357,7 @@ def mainFunc(isStep):
                 if(i==0):
                     states[i] = State(master_PC)
                     # def Fetch(self,state,btb,mainMemoryObject,instrCacheMemObj)
-                    states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,InstrCacheMemory)
+                    states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,instrCacheMemory)
                     if(states[i] !=None and states[i].predictionPC!=-1):
                         master_PC = states[i].predictionPC
                         ControlHazardCount += 1
@@ -463,7 +460,7 @@ def mainFunc(isStep):
                 print("heyaaaaaaaaaaaaa")
                 # print(state)
                 # states[i] = ProcessingUnit.Fetch(states[i],btb,mainMemory,InstrCacheMemory)
-                state = ProcessingUnit.Fetch(state,btb,mainMemory,InstrCacheMemory)
+                state = ProcessingUnit.Fetch(state,btb,mainMemory,instrCacheMemory)
                 if(state == None):
                     programExecuted = 1
                     break
