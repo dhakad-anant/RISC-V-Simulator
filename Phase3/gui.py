@@ -11,7 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from state_class import CPU,State,BTB,MainMemory,DataCacheMemory,InstrCacheMemory
 from hdu_class import HDU
-from math import log2
+import math
 from sys import stdout
 
 def checkHazardous(states,isDataForwardingEnabled):
@@ -168,7 +168,10 @@ mainMemory = MainMemory(blockSize)
 
 ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
 # ProcessingUnit.readFile()
-mainMemory.readFile(int(log2(blockSize)))
+numWordsinBlock = math.log2(blockSize)
+if(numWordsinBlock-int(numWordsinBlock)!=0): numWordsinBlock+=1
+numWordsinBlock = int(numWordsinBlock)
+mainMemory.readFile(numWordsinBlock)
 # stats to be printed variables
 master_PC=0
 masterClock = 0
@@ -219,7 +222,6 @@ def resetAll():
     cntDataHazards = 0
     cntDataHazardsStalls = 0
     ProcessingUnit = CPU(Knob1ForPipelining, prediction_enabled)
-    ProcessingUnit.readFile()
     # stats to be printed variables
     master_PC=0
     masterClock = 0

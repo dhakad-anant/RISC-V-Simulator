@@ -88,8 +88,7 @@ class CPU:
     def readInstructionMem(self,pc,instrCacheMemObj,mainMemoryObject):
         MAR = hex(pc)
         ans = instrCacheMemObj.readCache(MAR,mainMemoryObject)
-        # ans = self.instructionMemory[MAR]
-        if(ans[0]==0 and ans[1]==0 and ans[2]==0 and ans[3]==0):
+        if(ans[0]==-1 and ans[1]==-1 and ans[2]==-1 and ans[3]==-1):
             return "Invalid"
         newans = ""
         x=len(ans)
@@ -97,73 +96,7 @@ class CPU:
             newans += str(ans[x-1-i])
         newans = '0x'+newans
         return newans
-
-
-    # def validateDataSegment(self,y):
-    #     if len(y)!=2:
-    #         return False
-    #     addr,data = y[0],y[1]
-    #     if addr[:2]!='0x' or data[:2]!='0x':
-    #         return False
-    #     try:
-    #         if int(addr,16)<int("0x10000000",16):
-    #             return False
-    #         int(data,16)
-    #     except:
-    #         return False 
-    #     return True
-
-    # def validateInstruction(self,y):
-    #     if len(y)!=2:
-    #         return False
-    #     addr,data = y[0],y[1]
-    #     if addr[:2]!='0x' or data[:2]!='0x':
-    #         return False
-    #     try:
-    #         temp = int(addr,16)
-    #         temp1 = int(data,16)
-    #     except:
-    #         return False
-    #     return True
-
-    # def readFile(self, blockOffset):
-    #     try:
-    #         mcFile = open("input.mc","r")
-    #     except:
-    #         print("File Not Found!")
-    #         return
-    #     # load the data segment
-    #     flag = 0
-    #     for x in mcFile:
-    #         #creating a hashmap, data segment stored
-    #         y = x.split('\n')[0].split()
-    #         y[1] = y[1].lower()
-    #         if flag==1:
-    #             if self.validateDataSegment(y)==False:
-    #                 print("ERROR : Invalid Data Segment format in the input.mc file")
-    #                 exit(1)
-    #             # 0x10000002
-    #             # 0x11111110
-    #             # 2**31-(2**4)
-    #             newY = y[0] & (2**31 - (2**(blockOffset)))
-
-    #             self.dataMemory[newY][(y - newY)/4][0] = (int(y[1],16) & int('0xFF',16))
-    #             self.dataMemory[newY][(y - newY)/4][1] = (int(y[1],16) & int('0xFF00',16))>>8
-    #             self.dataMemory[newY][(y - newY)/4][2] = (int(y[1],16) & int('0xFF0000',16))>>16
-    #             self.dataMemory[newY][(y - newY)/4][3] = (int(y[1],16) & int('0xFF000000',16))>>24
-    #         if '$' in y:
-    #             flag = 1    
-    #         if flag==0:
-    #             y = x.split('\n')[0].split()
-    #             if self.validateInstruction(y)== False:
-    #                 print("ERROR : Invalid Instruction format in the input.mc file")                    
-    #                 exit(1)
-    #             y[1] = y[1].lower() 
-    #             for i in range (4):
-    #                 self.instructionMemory[y[0]][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
-    #                 self.instructionMemory[y[0]][i] = '0'*(2-len(self.instructionMemory[y[0]][i])) + self.instructionMemory[y[0]][i]
-    #                 self.instructionMemory[y[0]][i] = self.instructionMemory[y[0]][i].lower()
-    
+        
     def sra(self, number,times):     #correct function
         bx = bin(number)[2:]
         if len(bx)<32 or bx[0]=='0':
@@ -188,22 +121,9 @@ class CPU:
                     curr =  hex(i)[2:]
                     ans += '0'*(2-len(curr)) + curr
                 return ans
-                # # blockoffset = state.MAR & (2**blockOffsetSize-1)
-                # # var = state.MAR & (2**31 - 2**blockOffsetSize)
-                # # block = mainMemoryObject.dataMemory[var]
-                # # word = block[blockoffset//4]
-                # # temp = word[:state.numBytes]
-                # # temp.reverse()
-                # # ans = '0x'
-                # # for i in temp:
-                # #     curr =  hex(i)[2:]
-                # #     ans += '0'*(2-len(curr)) + curr
-                # return ans
             elif state.Mem_Write == 1:
-                for i in range (state.numBytes):
-                    val = (state.MDR & int('0xFF'+'0'*(2*i),16))>>(8*i)
-                    cacheMemoryObject.writeCache(state.MAR, val, i, mainMemoryObject)
-                return '0x1'
+                cacheMemoryObject.writeCache(state.MAR,state.MDR,mainMemoryObject)
+                return -1
 
     def GenerateControlSignals(self,reg_write,MuxB,MuxY,MemRead,MemWrite,MuxMA,MuxPC,MuxINC,numB,state):
 
@@ -244,18 +164,6 @@ class CPU:
         state.opcode = opcode
         state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15 
         state.RS2 = (int(state.IR,16) & int('0x1F00000',16)) >> 20 
-        # I format 
-        # if (opcode in [3,19,103]):
-        #     state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15
-        #     state.RS2 = -1
-        # elif (opcode not in [23, 55, 111]):
-        #     state.RS1 = (int(state.IR,16) & int('0xF8000',16)) >> 15
-        #     state.RS2 = (int(state.IR,16) & int('0x1F00000',16)) >> 20
-
-        # if (opcode in [35, 99]):
-        #     state.RD = -1
-        # else:
-        #     state.RD = (int(state.IR,16) & int('0xF80',16)) >> 7 
         if (opcode in [99, 103, 111]):
             if (btb.isPresent(pc)):
                 newPC = btb.getTarget(pc)
@@ -616,24 +524,6 @@ class CPU:
             state.RY = int(self.ProcessorMemoryInterface(state,dataCacheMemObj,mainMemoryObject),16)
             if state.RY > 2**31 - 1:
                 state.RY = -(2**32 - state.RY)
-            # state.MAR = str(hex(state.RZ)).lower()
-            # word = cacheMemory.readCache(state.MAR)
-            # if word==None:
-            #     state.MDR = state.RM
-            #     state.RY = int(self.ProcessorMemoryInterface(state),16)
-            #     if state.RY > 2**31 - 1:
-            #         state.RY = -(2**32 - state.RY)
-            #     cacheMemory.updateCache() #mind the parameters yourself gentlemen
-            # else:
-            #     temp = word[:state.numBytes]
-            #     temp.reverse()
-            #     ans = '0x'
-            #     for i in temp:
-            #         curr =  hex(i)[2:]
-            #         ans += '0'*(2-len(curr)) + curr
-            #     state.RY = int(ans,16)
-            #     if state.RY > 2**31 - 1:
-            #         state.RY = -(2**32 - state.RY)
         elif state.MuxY_select == 2:
             state.RY = state.PC_Temp
 
@@ -642,14 +532,11 @@ class CPU:
             self.reg[state.RD] = state.RY
 
 
-
-# Phase 3 Code
-
 class MainMemory:
-    def __init__(self, blockSize):
-        self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize//4)])
-        self.instructionMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize//4)])
-            
+    def __init__(self, blockSize): # blockSize means number of words in a block
+        self.dataMemory = defaultdict(lambda : [[-1,-1,-1,-1] for i in range(blockSize)])
+        self.instructionMemory = defaultdict(lambda : [[-1,-1,-1,-1] for i in range(blockSize)])
+
     def validateDataSegment(self,y):
         if len(y)!=2:
             return False
@@ -665,49 +552,45 @@ class MainMemory:
         return True
 
     
-    def readFile(self, blockOffset):
+    def readFile(self, blockOffset): # blockOffset means number of bits in BO
         try:
-            mcFile = open("Phase2/input.mc","r")
+            mcFile = open("Phase3/input.mc","r")
         except:
             print("File Not Found!")
             return
         # load the data segment
         flag = 0
+        andVal = 2**32-2**blockOffset
         for x in mcFile:
             #creating a hashmap, data segment stored
             y = x.split('\n')[0].split()
+            if '$' in y[1]:
+                flag = 1  
+                continue  
             y[1] = y[1].lower()
+            newY = int(y[0],16) & andVal
+            newY = hex(newY)
+            indexInBlock = int(y[0],16) & (2**blockOffset - 1)
+            indexInBlock = indexInBlock//4
             if flag==1:
                 if self.validateDataSegment(y)==False:
                     print("ERROR : Invalid Data Segment format in the input.mc file")
                     exit(1)
-                # (2**31 - (2**(blockOffset))) ==  (2**(31-blockOffset) - 1)  << 2**blockOffset
-                # upon doing and, it removes the block offset bits and replaces them with zeros
-                newY = str(hex(int(y[0],16) & (2**31 - (2**(blockOffset)))))
-                # newY = str(hex(newY))
-                
-                # newY helps me select the block
-                # (int(y[0],16) - int(newY,16))//4 helps me select which word inside the block given the block is selected
-                # then all the 4 bytes are updated in the selected word                
-                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][0] = (int(y[1],16) & int('0xFF',16)) # the LSB is stored in the zeroth position of the array
-                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][1] = (int(y[1],16) & int('0xFF00',16))>>8
-                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][2] = (int(y[1],16) & int('0xFF0000',16))>>16
-                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][3] = (int(y[1],16) & int('0xFF000000',16))>>24 # the MSB is stored in the third position of the array
 
-            if '$' in y:
-                flag = 1    
+                self.dataMemory[newY][indexInBlock][0] = (int(y[1],16) & int('0xFF',16)) # the LSB is stored in the zeroth position of the array
+                self.dataMemory[newY][indexInBlock][1] = (int(y[1],16) & int('0xFF00',16))>>8
+                self.dataMemory[newY][indexInBlock][2] = (int(y[1],16) & int('0xFF0000',16))>>16
+                self.dataMemory[newY][indexInBlock][3] = (int(y[1],16) & int('0xFF000000',16))>>24 # the MSB is stored in the third position of the array
+
             if flag==0:
-                y = x.split('\n')[0].split()
                 if self.validateInstruction(y)== False:
                     print("ERROR : Invalid Instruction format in the input.mc file")                    
                     exit(1)
-                y[1] = y[1].lower() 
-                newY = str(hex(int(y[0],16) & (2**31 - (2**(blockOffset)))))
-                # newY = str(hex(newY))
+                
                 for i in range (4):
-                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]  # removing 0x from the start
-                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = '0'*(2-len(self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i])) + self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] # padding with starting zeros if required
-                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i].lower() # covert the machine code to lower case
+                    self.instructionMemory[indexInBlock][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
+                    self.instructionMemory[indexInBlock][i] = '0'*(2-len(self.instructionMemory[indexInBlock][i])) + self.instructionMemory[indexInBlock][i]
+                    self.instructionMemory[indexInBlock][i] = self.instructionMemory[indexInBlock][i].lower()
 
     def validateInstruction(self,y):
         if len(y)!=2:
@@ -721,21 +604,6 @@ class MainMemory:
         except:
             return False
         return True
-    
-    # def readInstructionMem(self,pc):
-    #     MAR = hex(pc)
-    #     ans = self.instructionMemory[MAR]
-    #     if(ans[0]==0 and ans[1]==0 and ans[2]==0 and ans[3]==0):
-    #         return "Invalid"
-    #     newans = ""
-    #     x=len(ans)
-    #     for i in range(len(ans)):
-    #         newans += str(ans[x-1-i])
-    #     newans = '0x'+newans
-    #     return newans
-
-
-
 
 class InstrCacheMemory:
     def __init__(self, cacheSize, blockSize, cacheAssociativity):       
@@ -743,56 +611,49 @@ class InstrCacheMemory:
         self.cacheAssociativity = cacheAssociativity
 
         self.numSets = cacheSize // blockSize
-        self.indexSize = int(math.log2(self.numSets))
-
-        self.blockOffsetSize = int(math.log2(blockSize))
+        self.numWords = blockSize//4
+        self.numSets = self.numSets // cacheAssociativity
+        self.indexSize = math.log2(self.numSets)
+        if(self.indexSize-int(self.indexSize)!=0): self.indexSize += 1
+        self.indexSize = int(self.indexSize)
+        self.blockOffsetSize = math.log2(blockSize)
+        if(self.blockOffsetSize-int(self.blockOffsetSize)!=0): self.blockOffsetSize += 1
+        self.blockOffsetSize = int(self.blockOffsetSize)
         self.tagSize = 32 - self.indexSize - self.blockOffsetSize
-        
+
         self.blockOffset = 0
         self.index = 0
         self.tag = 0
 
         self.tagArray = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
-        self.dataArray = [[[0 for k in range(blockSize)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
-        self.validBit = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
+        self.instArray = [[[[0,0,0,0] for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
+        self.validBit = [[[0 for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.missCount = 0
-        # create dirty bit array  
 
+    def LRU(self):
+        return 0
     def readCache(self,address,mainMemoryObject): # address is a hexadecimal string
-        self.blockOffset = int(address,16) &  (2**self.blockOffsetSize - 1)
-        self.index = int(address,16) &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
-        self.tag = int(address,16) &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
-        # print(int(address,16))
-        whichWay = -1
-        word = []
-        if self.tag in self.tagArray[self.index]:
-            whichWay = self.tagArray[self.index].index(self.tag)
-            word = self.dataArray[self.index][whichWay][self.blockOffset:max(len(self.dataArray[self.index][whichWay]),self.blockOffset + 4)]
-            if  self.validBit[self.index][whichWay]==1:
-                return word
-        self.validBit[self.index][whichWay]
-        blockoffset = int(address,16) & (2**self.blockOffsetSize-1)
-        var = int(address,16) & (2**31 - 2**self.blockOffsetSize)
-        block = mainMemoryObject.instructionMemory[hex(var)]
-        # print("mainMemoryObject.instructionMemory",mainMemoryObject.instructionMemory)
-        # print("var",var)
-        # print("block",block)
-        word = block[blockoffset//4]
-        self.updateCache()
+        address = int(address,16)
+        blockOffset = address &  (2**self.blockOffsetSize - 1) 
+        index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
+        tag = address &  ( (2**self.tagSize - 1) << (self.blockOffsetSize + self.indexSize)) 
+        index = index >> self.blockOffsetSize
+        tag = tag >> (self.blockOffsetSize + self.indexSize)
+
+        for i in range(self.cacheAssociativity):
+            if(tag == self.tagArray[index][i]):
+                if(self.validBit[index][i][blockOffset//4]==0): continue
+                return self.instArray[index][i][blockOffset//4]
+
+        var = address & (2**32 - 2**self.blockOffsetSize)
+        block = mainMemoryObject.instructionMemory[var]
+        word = block[blockOffset//4]
+        storeIndex = self.LRU()
+        self.instArray[index][storeIndex] = block
+        for i in range(self.numWords):
+            if(self.instArray[index][storeIndex][i]!=[-1,-1,-1,-1]):
+                self.validBit[index][storeIndex][i]=1
         return word
-        # todo evaluate this word
-        # word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
-        # word = [1,2,3,4]
-        # [1] or [1,2] or [1,2,3] or [1,2,3,4]
-        # Assumption leftmost is the MSB and right most is the LSB
-        # 1 word = 4 bytes
-        # return word
-
-
-    def updateCache(self):
-        pass
-
-
 
 class DataCacheMemory:
     def __init__(self, cacheSize, blockSize, cacheAssociativity):
@@ -801,9 +662,14 @@ class DataCacheMemory:
         self.cacheAssociativity = cacheAssociativity
 
         self.numSets = cacheSize // blockSize
-        self.indexSize = int(math.log2(self.numSets))
-
-        self.blockOffsetSize = int(math.log2(blockSize))
+        self.numWords = blockSize//4
+        self.numSets = self.numSets // cacheAssociativity
+        self.indexSize = math.log2(self.numSets)
+        if(self.indexSize-int(self.indexSize)!=0): self.indexSize += 1
+        self.indexSize = int(self.indexSize)
+        self.blockOffsetSize = math.log2(blockSize)
+        if(self.blockOffsetSize-int(self.blockOffsetSize)!=0): self.blockOffsetSize += 1
+        self.blockOffsetSize = int(self.blockOffsetSize)
         self.tagSize = 32 - self.indexSize - self.blockOffsetSize
 
         self.blockOffset = 0
@@ -811,115 +677,53 @@ class DataCacheMemory:
         self.tag = 0
 
         self.tagArray = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
-        self.dataArray = [[[0 for k in range(blockSize)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
-        self.validBit = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
+        self.dataArray = [[[[0,0,0,0] for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
+        self.validBit = [[[0 for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.missCount = 0
-        # create valid bit array and create dirty bit array
-    
-    # state.MAR = str(hex(state.RZ)).lower()
-    # word = cacheMemory.readCache(state.MAR)
-    # if word==None:
-    #     state.MDR = state.RM
-    #     state.RY = int(self.ProcessorMemoryInterface(state),16)
-    #     if state.RY > 2**31 - 1:
-    #         state.RY = -(2**32 - state.RY)
-    #     cacheMemory.updateCache() #mind the parameters yourself gentlemen
-    # else:
-    #     temp = word[:state.numBytes]
-    #     temp.reverse()
-    #     ans = '0x'
-    #     for i in temp:
-    #         curr =  hex(i)[2:]
-    #         ans += '0'*(2-len(curr)) + curr
-    #     state.RY = int(ans,16)
-    #     if state.RY > 2**31 - 1:
-    #         state.RY = -(2**32 - state.RY)
 
+    def LRU(self):
+        return 0
 
     def readCache(self,address,mainMemoryObject):
-        # print("hereee -- ",type(address))
-        address = int(address,16)
-        self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
-        self.index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
-        self.tag = address &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
-        whichWay = -1
-        word = []
-        if self.tag in self.tagArray[self.index]:
-            whichWay = self.tagArray[self.index].index(self.tag)
-            word = self.dataArray[self.index][whichWay][self.blockOffset:max(len(self.dataArray[self.index][whichWay])-1,self.blockOffset + 4)]
-            return word
-        else: 
-            blockoffset = address & (2**self.blockOffsetSize-1)
-            var = address & (2**31 - 2**self.blockOffsetSize)
-            block = mainMemoryObject.dataMemory[var]
-            word = block[blockoffset//4]
-            self.updateCache()
-            return word
-        # todo evaluate this word
-        # word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
-        # word = [1,2,3,4]
-        # [1] or [1,2] or [1,2,3] or [1,2,3,4]
-        # Assumption leftmost is the MSB and right most is the LSB
-        # 1 word = 4 bytes
-        # return word
+        blockOffset = address &  (2**self.blockOffsetSize - 1) 
+        index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
+        tag = address &  ( (2**self.tagSize - 1) << (self.blockOffsetSize + self.indexSize)) 
+        index = index >> self.blockOffsetSize
+        tag = tag >> (self.blockOffsetSize + self.indexSize)
 
+        for i in range(self.cacheAssociativity):
+            if(tag == self.tagArray[index][i]):
+                if(self.validBit[index][i][blockOffset//4]==0): continue
+                return self.dataArray[index][i][blockOffset//4]
 
-    def updateCache(self):
-        pass
+        var = address & (2**32 - 2**self.blockOffsetSize)
+        block = mainMemoryObject.dataMemory[var]
+        word = block[blockOffset//4]
+        storeIndex = self.LRU()
+        self.dataArray[index][storeIndex] = block
+        for i in range(self.numWords):
+            if(self.dataArray[index][storeIndex][i]!=[-1,-1,-1,-1]):
+                self.validBit[index][storeIndex][i]=1
+        return word
 
+    def writeCache(self,address,value,mainMemoryObject):
+        val=[]
+        val[0] = (value & int('0xFF',16))
+        val[1] = (value & int('0xFF00',16))>>8
+        val[2] = (value & int('0xFF0000',16))>>16
+        val[3] = (value & int('0xFF000000',16))>>24
+        blockOffset = address &  (2**self.blockOffsetSize - 1) 
+        index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
+        tag = address &  ( (2**self.tagSize - 1) << (self.blockOffsetSize + self.indexSize)) 
+        index = index >> self.blockOffsetSize
+        tag = tag >> (self.blockOffsetSize + self.indexSize)
 
-    def writeCache(self,address,val,offset,mainMemoryObject):
-        self.blockOffset = int(address,16) &  (2**self.blockOffsetSize - 1)
-        self.index = int(address,16) &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
-        self.tag = int(address,16) &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
-        # print(int(address,16))
-        whichWay = -1
-        word = []
-        if self.tag in self.tagArray[self.index]:
-            whichWay = self.tagArray[self.index].index(self.tag)
-            word = self.dataArray[self.index][whichWay][self.blockOffset:max(len(self.dataArray[self.index][whichWay])-1,self.blockOffset + 4)]
-            if  self.validBit[self.index][whichWay]==1:
-                self.dataArray[self.index][whichWay][self.blockOffset + offset] = val
-
-                newAdd = int(address,16) & (2**31 - (2**(self.blockOffset)))
-                newAdd = str(hex(newAdd))
-
-                self.dataMemory[newAdd][(int(address,16) - int(newAdd,16))//4][offset] = (int(val,16) & int('0xFF'+'0'*(2*offset),16)) >> 8*offset
-                return 1
+        for i in range(self.cacheAssociativity):
+            if(tag == self.tagArray[index][i]):
+                self.dataArray[index][i][blockOffset//4]=val
+                self.validBit[index][i][blockOffset//4]=1
+                break
         
-
-    # def readCache(self, address): # 32 bit integer
-    #     self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
-    #     self.index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
-    #     self.tag = address &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
-    #     miss = 1
-    #     way = -1
-    #     if self.tag in self.tagArray[self.index]:
-    #         way = self.tagArray[self.index].index(self.tag)
-    #         miss = 0
-    #     word = [0,0,0,0]  # stores an array of 4 bytes
-    #     if miss == 0:
-    #         #todo evaluate this word
-    #         word = self.dataArray[self.index][way][self.blockOffset:max(self.blockSize,self.blockOffset + 4)]
-    #         # [1] or [1,2] or [1,2,3] or [1,2,3,4]
-    #         # Assumption leftmost is the MSB and right most is the LSB
-    #         # 1*10^3 + 2*10^2 + 3*10^1 + 4*10^0
-    #         word.reverse()
-    #         ans = ""   # ans is of int format
-    #         for i in word:
-    #             ans = ans + bin(i)[2:]
-    #         # evaluate this word before returning
-    #         # 1 word = 4 bytes
-    #         return word
-    #     else: 
-    #         # READ from the Main memory 
-    #         # Question: How to design to the main memory? Is there any specific format
-    #         # in this case it will return none, check in the caller code
-    #         # Also add the data in the cache, find the victim block
-    #         self.missCount += 1
-
-
-
-
-
-    
+        # implementing write through
+        var = address & (2**32 - 2**self.blockOffsetSize)
+        mainMemoryObject.dataMemory[var][blockOffset//4] = val
