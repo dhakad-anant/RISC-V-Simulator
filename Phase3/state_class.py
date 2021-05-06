@@ -625,10 +625,15 @@ class InstrCacheMemory:
         self.tagArray = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.instArray = [[[[0,0,0,0] for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.validBit = [[[0 for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
+        self.forLRU = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.missCount = 0
 
-    def LRU(self):
+    def LRU(self,index):
+        for i in range(self.cacheAssociativity):
+            if(self.forLRU[index][i]==0):
+                return i
         return 0
+
     def readCache(self,address,mainMemoryObject): # address is a hexadecimal string
         address = int(address,16)
         blockOffset = address &  (2**self.blockOffsetSize - 1) 
@@ -645,9 +650,12 @@ class InstrCacheMemory:
         var = address & (2**32 - 2**self.blockOffsetSize)
         block = mainMemoryObject.instructionMemory[var]
         word = block[blockOffset//4]
-        storeIndex = self.LRU()
+        storeIndex = self.LRU(index)
+        self.forLRU[index][storeIndex] = self.cacheAssociativity-1
         self.instArray[index][storeIndex] = block
         self.tagArray[index][storeIndex] = tag
+        for i in range(self.cacheAssociativity):
+            if(self.forLRU[index][i]!=0 and i != storeIndex): self.forLRU[index][i]-=1
         for i in range(self.numWords):
             if(self.instArray[index][storeIndex][i]!=[-1,-1,-1,-1]):
                 self.validBit[index][storeIndex][i]=1
@@ -673,9 +681,13 @@ class DataCacheMemory:
         self.tagArray = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.dataArray = [[[[0,0,0,0] for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.validBit = [[[0 for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
+        self.forLRU = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.missCount = 0
 
-    def LRU(self):
+    def LRU(self,index):
+        for i in range(self.cacheAssociativity):
+            if(self.forLRU[index][i]==0):
+                return i
         return 0
 
     def readCache(self,address,mainMemoryObject):
@@ -693,9 +705,12 @@ class DataCacheMemory:
         var = address & (2**32 - 2**self.blockOffsetSize)
         block = mainMemoryObject.dataMemory[var]
         word = block[blockOffset//4]
-        storeIndex = self.LRU()
+        storeIndex = self.LRU(index)
+        self.forLRU[index][storeIndex] = self.cacheAssociativity-1
         self.dataArray[index][storeIndex] = block
         self.tagArray[index][storeIndex] = tag
+        for i in range(self.cacheAssociativity):
+            if(self.forLRU[index][i]!=0 and i != storeIndex): self.forLRU[index][i]-=1
         for i in range(self.numWords):
             if(self.dataArray[index][storeIndex][i]!=[-1,-1,-1,-1]):
                 self.validBit[index][storeIndex][i]=1
@@ -719,6 +734,6 @@ class DataCacheMemory:
                 self.validBit[index][i][blockOffset//4]=1
                 break
         
-        # implementing write through
+        # implementing write through with no write-allocate
         var = address & (2**32 - 2**self.blockOffsetSize)
         mainMemoryObject.dataMemory[var][blockOffset//4] = val
