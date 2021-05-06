@@ -667,7 +667,7 @@ class MainMemory:
     
     def readFile(self, blockOffset):
         try:
-            mcFile = open("input.mc","r")
+            mcFile = open("Phase2/input.mc","r")
         except:
             print("File Not Found!")
             return
@@ -801,9 +801,9 @@ class DataCacheMemory:
         self.cacheAssociativity = cacheAssociativity
 
         self.numSets = cacheSize // blockSize
-        self.indexSize = math.log2(self.numSets)
+        self.indexSize = int(math.log2(self.numSets))
 
-        self.blockOffsetSize = math.log2(blockSize)
+        self.blockOffsetSize = int(math.log2(blockSize))
         self.tagSize = 32 - self.indexSize - self.blockOffsetSize
 
         self.blockOffset = 0
@@ -837,6 +837,8 @@ class DataCacheMemory:
 
 
     def readCache(self,address,mainMemoryObject):
+        # print("hereee -- ",type(address))
+        address = int(address,16)
         self.blockOffset = address &  (2**self.blockOffsetSize - 1) 
         self.index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
         self.tag = address &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
@@ -844,7 +846,7 @@ class DataCacheMemory:
         word = []
         if self.tag in self.tagArray[self.index]:
             whichWay = self.tagArray[self.index].index(self.tag)
-            word = self.dataArray[self.index][whichWay][self.blockOffset:max(self.len(self.dataArray[self.index][whichWay])-1,self.blockOffset + 4)]
+            word = self.dataArray[self.index][whichWay][self.blockOffset:max(len(self.dataArray[self.index][whichWay])-1,self.blockOffset + 4)]
             return word
         else: 
             blockoffset = address & (2**self.blockOffsetSize-1)
