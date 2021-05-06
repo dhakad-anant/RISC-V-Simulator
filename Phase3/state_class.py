@@ -533,7 +533,7 @@ class CPU:
 
 
 class MainMemory:
-    def __init__(self, blockSize): # blockSize means number of words in a block
+    def __init__(self, blockSize): 
         self.dataMemory = defaultdict(lambda : [[-1,-1,-1,-1] for i in range(blockSize)])
         self.instructionMemory = defaultdict(lambda : [[-1,-1,-1,-1] for i in range(blockSize)])
 
