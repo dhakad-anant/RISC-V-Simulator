@@ -626,11 +626,16 @@ class InstrCacheMemory:
         self.instArray = [[[[0,0,0,0] for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.validBit = [[[0 for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.forLRU = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
-        self.missCount = 0
+        self.victim = -1
+        self.current = -1
 
     def LRU(self,index):
         for i in range(self.cacheAssociativity):
             if(self.forLRU[index][i]==0):
+                if(self.validBit[index][i].count(1)>0):
+                    self.victim = i+1
+                else:
+                    self.victim = 0
                 return i
         return 0
 
@@ -640,6 +645,7 @@ class InstrCacheMemory:
         index = address &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
         tag = address &  ( (2**self.tagSize - 1) << (self.blockOffsetSize + self.indexSize)) 
         index = index >> self.blockOffsetSize
+        self.curr = index + 1
         tag = tag >> (self.blockOffsetSize + self.indexSize)
 
         for i in range(self.cacheAssociativity):
@@ -683,11 +689,16 @@ class DataCacheMemory:
         self.dataArray = [[[[0,0,0,0] for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.validBit = [[[0 for k in range(self.numWords)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.forLRU = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
-        self.missCount = 0
+        self.victim = -1
+        self.current = -1
 
     def LRU(self,index):
         for i in range(self.cacheAssociativity):
             if(self.forLRU[index][i]==0):
+                if(self.validBit[index][i].count(1)>0):
+                    self.victim = i+1
+                else:
+                    self.victim = 0
                 return i
         return 0
 
@@ -697,6 +708,7 @@ class DataCacheMemory:
         tag = address &  ( (2**self.tagSize - 1) << (self.blockOffsetSize + self.indexSize)) 
         index = index >> self.blockOffsetSize
         tag = tag >> (self.blockOffsetSize + self.indexSize)
+        self.curr = index + 1
 
         for i in range(self.cacheAssociativity):
             if(tag == self.tagArray[index][i]):
@@ -729,6 +741,7 @@ class DataCacheMemory:
         tag = address &  ( (2**self.tagSize - 1) << (self.blockOffsetSize + self.indexSize)) 
         index = index >> self.blockOffsetSize
         tag = tag >> (self.blockOffsetSize + self.indexSize)
+        self.curr = index + 1
 
         for i in range(self.cacheAssociativity):
             if(tag == self.tagArray[index][i]):
