@@ -645,15 +645,9 @@ class InstrCacheMemory:
         for i in range(self.cacheAssociativity):
             if(tag == self.tagArray[index][i]):
                 if(self.validBit[index][i][blockOffset//4]==0): continue
-<<<<<<< HEAD
                 numHits[0]+=1
                 return self.instArray[index][i][blockOffset//4]
         numMisses[0] += 1
-=======
-                numHits+=1
-                return self.instArray[index][i][blockOffset//4]
-        numMisses += 1
->>>>>>> 4643b17d3a64f76be70d6da0491c8cf620b8dcf4
         var = address & (2**32 - 2**self.blockOffsetSize)
         block = mainMemoryObject.instructionMemory[var]
         word = block[blockOffset//4]
@@ -707,15 +701,9 @@ class DataCacheMemory:
         for i in range(self.cacheAssociativity):
             if(tag == self.tagArray[index][i]):
                 if(self.validBit[index][i][blockOffset//4]==0): continue
-<<<<<<< HEAD
                 numHits[0]+=1
                 return self.dataArray[index][i][blockOffset//4]
         numMisses[0] += 1
-=======
-                numHits+=1
-                return self.dataArray[index][i][blockOffset//4]
-        numMisses += 1
->>>>>>> 4643b17d3a64f76be70d6da0491c8cf620b8dcf4
         var = address & (2**32 - 2**self.blockOffsetSize)
         block = mainMemoryObject.dataMemory[var]
         word = block[blockOffset//4]
