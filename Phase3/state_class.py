@@ -647,8 +647,8 @@ class CPU:
 
 class MainMemory:
     def __init__(self, blockSize):
-        self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
-        self.instructionMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize)])
+        self.dataMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize//4)])
+        self.instructionMemory = defaultdict(lambda : [[0,0,0,0] for i in range(blockSize//4)])
             
     def validateDataSegment(self,y):
         if len(y)!=2:
@@ -681,16 +681,18 @@ class MainMemory:
                 if self.validateDataSegment(y)==False:
                     print("ERROR : Invalid Data Segment format in the input.mc file")
                     exit(1)
-                # 0x10000002
-                # 0x11111110
-                # 2**31-(2**4)
-                newY = int(y[0],16) & (2**31 - (2**(blockOffset)))
-                newY = str(hex(newY))
-
-                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][0] = (int(y[1],16) & int('0xFF',16))
+                # (2**31 - (2**(blockOffset))) ==  (2**(31-blockOffset) - 1)  << 2**blockOffset
+                # upon doing and, it removes the block offset bits and replaces them with zeros
+                newY = str(hex(int(y[0],16) & (2**31 - (2**(blockOffset)))))
+                # newY = str(hex(newY))
+                
+                # newY helps me select the block
+                # (int(y[0],16) - int(newY,16))//4 helps me select which word inside the block given the block is selected
+                # then all the 4 bytes are updated in the selected word                
+                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][0] = (int(y[1],16) & int('0xFF',16)) # the LSB is stored in the zeroth position of the array
                 self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][1] = (int(y[1],16) & int('0xFF00',16))>>8
                 self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][2] = (int(y[1],16) & int('0xFF0000',16))>>16
-                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][3] = (int(y[1],16) & int('0xFF000000',16))>>24
+                self.dataMemory[newY][(int(y[0],16) - int(newY,16))//4][3] = (int(y[1],16) & int('0xFF000000',16))>>24 # the MSB is stored in the third position of the array
 
             if '$' in y:
                 flag = 1    
@@ -700,12 +702,12 @@ class MainMemory:
                     print("ERROR : Invalid Instruction format in the input.mc file")                    
                     exit(1)
                 y[1] = y[1].lower() 
-                newY = int(y[0],16) & (2**31 - (2**(blockOffset)))
-                newY = str(hex(newY))
+                newY = str(hex(int(y[0],16) & (2**31 - (2**(blockOffset)))))
+                # newY = str(hex(newY))
                 for i in range (4):
-                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]
-                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = '0'*(2-len(self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i])) + self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i]
-                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i].lower()
+                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = hex((int(y[1],16) & int('0xFF'+'0'*(2*i),16))>>(8*i))[2:]  # removing 0x from the start
+                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = '0'*(2-len(self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i])) + self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] # padding with starting zeros if required
+                    self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i] = self.instructionMemory[newY][(int(y[0],16) - int(newY,16))//4][i].lower() # covert the machine code to lower case
 
     def validateInstruction(self,y):
         if len(y)!=2:
@@ -736,8 +738,7 @@ class MainMemory:
 
 
 class InstrCacheMemory:
-    def __init__(self, cacheSize, blockSize, cacheAssociativity):
-        # make a local variable fo the MainMemory class
+    def __init__(self, cacheSize, blockSize, cacheAssociativity):       
 
         self.cacheAssociativity = cacheAssociativity
 
@@ -755,30 +756,9 @@ class InstrCacheMemory:
         self.dataArray = [[[0 for k in range(blockSize)] for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.validBit = [[0 for i in range(self.cacheAssociativity)] for j in range(self.numSets)]
         self.missCount = 0
+        # create dirty bit array  
 
-        # create valid bit array and create dirty bit array
-    
-    # state.MAR = str(hex(state.RZ)).lower()
-    # word = cacheMemory.readCache(state.MAR)
-    # if word==None:
-    #     state.MDR = state.RM
-    #     state.RY = int(self.ProcessorMemoryInterface(state),16)
-    #     if state.RY > 2**31 - 1:
-    #         state.RY = -(2**32 - state.RY)
-    #     cacheMemory.updateCache() #mind the parameters yourself gentlemen
-    # else:
-    #     temp = word[:state.numBytes]
-    #     temp.reverse()
-    #     ans = '0x'
-    #     for i in temp:
-    #         curr =  hex(i)[2:]
-    #         ans += '0'*(2-len(curr)) + curr
-    #     state.RY = int(ans,16)
-    #     if state.RY > 2**31 - 1:
-    #         state.RY = -(2**32 - state.RY)
-
-
-    def readCache(self,address,mainMemoryObject):
+    def readCache(self,address,mainMemoryObject): # address is a hexadecimal string
         self.blockOffset = int(address,16) &  (2**self.blockOffsetSize - 1)
         self.index = int(address,16) &  ( (2**self.indexSize - 1) << self.blockOffsetSize) 
         self.tag = int(address,16) &  ( (2**self.tagSize - 1) << self.blockOffsetSize + self.indexSize) 
@@ -787,7 +767,7 @@ class InstrCacheMemory:
         word = []
         if self.tag in self.tagArray[self.index]:
             whichWay = self.tagArray[self.index].index(self.tag)
-            word = self.dataArray[self.index][whichWay][self.blockOffset:max(len(self.dataArray[self.index][whichWay])-1,self.blockOffset + 4)]
+            word = self.dataArray[self.index][whichWay][self.blockOffset:max(len(self.dataArray[self.index][whichWay]),self.blockOffset + 4)]
             if  self.validBit[self.index][whichWay]==1:
                 return word
         self.validBit[self.index][whichWay]
